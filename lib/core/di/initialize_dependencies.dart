@@ -1,17 +1,22 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:kepleomax/core/auth/auth_controller.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
+import 'package:kepleomax/core/network/middlewares/auth_interceptor.dart';
+import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<Dependencies> initializeDependencies() async {
   final dp = Dependencies();
 
   for (final step in _steps) {
     try {
-      step.call(dp);
+      await step.call(dp);
     } catch (e, st) {
-      logger.e(
-        'Error while initializing step ${step.name}: $e',
-        stackTrace: st,
-      );
+      logger.e('Error while initializing step ${step.name}: $e', stackTrace: st);
       rethrow;
     }
   }
@@ -20,7 +25,46 @@ Future<Dependencies> initializeDependencies() async {
 }
 
 List<_InitializationStep> _steps = [
-  _InitializationStep(name: 'Repositories', call: (dependencies) {}),
+  _InitializationStep(
+    name: 'authController',
+    call: (dependencies) {
+      final controller = AuthController();
+
+      dependencies.authController = controller;
+    },
+  ),
+
+  _InitializationStep(
+    name: 'storages',
+    call: (dependencies) async {
+      dependencies.sharedPreferences = await SharedPreferences.getInstance();
+      dependencies.secureStorage = FlutterSecureStorage();
+      dependencies.tokenProvider = TokenProvider(
+        prefs: dependencies.sharedPreferences,
+        secureStorage: dependencies.secureStorage,
+      );
+    },
+  ),
+
+  _InitializationStep(
+    name: 'dio',
+    call: (dependencies) {
+      final dio = Dio();
+      dio.interceptors.addAll([
+        PrettyDioLogger(
+          request: kDebugMode,
+          requestHeader: kDebugMode,
+          requestBody: kDebugMode,
+          responseHeader: kDebugMode,
+          responseBody: kDebugMode,
+          error: kDebugMode,
+          logPrint: (Object object) =>
+              debugPrint(object.toString(), wrapWidth: 1024),
+        ),
+        AuthInterceptor(tokenProvider: dependencies.tokenProvider, dio: dio),
+      ]);
+    },
+  ),
 ];
 
 class _InitializationStep {

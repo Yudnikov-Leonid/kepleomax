@@ -12,7 +12,7 @@ class MainScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Main screen screen'),
+            Text('Main screen: ${AuthScope.userOr(context)?.username}'),
             TextButton(
               onPressed: () {
                 AuthScope.logout(context);

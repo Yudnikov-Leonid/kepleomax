@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
+import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/features/login/login_screen.dart';
 
@@ -9,7 +10,7 @@ class AuthScope extends StatefulWidget {
   final Widget child;
 
   static AuthController controllerOf(BuildContext context) =>
-      context.getInheritedWidgetOfExactType<_InheritedAuth>()!.controller;
+      _InheritedAuth.maybeOf(context)!.controller;
 
   static User? userOr(BuildContext context) => controllerOf(context).user;
 
@@ -31,11 +32,11 @@ class _AuthScopeState extends State<AuthScope> {
 
   @override
   void initState() {
-    _controller = AuthController();
+    super.initState();
+    _controller = Dependencies.of(context).authController;
     _controller.addListener(() {
       setState(() {});
     });
-    super.initState();
   }
 
   @override
