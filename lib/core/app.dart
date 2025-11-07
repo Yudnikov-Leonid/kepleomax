@@ -1,0 +1,33 @@
+import 'package:flutter/material.dart';
+import 'package:kepleomax/core/navigation/app_navigator.dart';
+import 'package:kepleomax/core/navigation/pages.dart';
+import 'package:kepleomax/core/scopes/auth_scope.dart';
+
+class App extends StatefulWidget {
+  const App({super.key});
+
+  @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      theme: ThemeData(
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: Colors.white,
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.black,
+        appBarTheme: AppBarTheme(backgroundColor: Colors.black),
+      ),
+      themeMode: ThemeMode.system,
+      debugShowCheckedModeBanner: false,
+      builder: (context, _) {
+        return AuthScope(child: AppNavigator(initialState: [MainPage()]));
+      },
+    );
+  }
+}
