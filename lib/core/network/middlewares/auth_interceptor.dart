@@ -1,16 +1,17 @@
 import 'package:dio/dio.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:kepleomax/core/auth/auth_controller.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
 
 class AuthInterceptor extends QueuedInterceptorsWrapper {
-  final TokenProvider tokenProvider;
-  final Dio dio;
+  final TokenProvider _tokenProvider;
+  final AuthController _authController;
 
   AuthInterceptor({
-    required this.tokenProvider,
-    required this.dio,
-  });
+    required TokenProvider tokenProvider,
+    required AuthController authController,
+  }): _authController = authController, _tokenProvider = tokenProvider;
 
   @override
   void onRequest(
@@ -22,8 +23,8 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
       return handler.next(options);
     }
 
-    var accessToken = tokenProvider.getAccessToken();
-    final refreshToken = await tokenProvider.getRefreshToken();
+    var accessToken = _tokenProvider.getAccessToken();
+    final refreshToken = await _tokenProvider.getRefreshToken();
     if (accessToken == null || refreshToken == null || accessToken.isEmpty || refreshToken.isEmpty) {
       handler.reject(
         DioException(requestOptions: options, message: 'No token', type: DioExceptionType.cancel),
@@ -46,7 +47,7 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
             DioException(requestOptions: options, message: 'Refresh token is expired', type: DioExceptionType.cancel)
         );
       } else {
-        tokenProvider.saveAccessToken(newAccessToken);
+        await _tokenProvider.saveAccessToken(newAccessToken);
         accessToken = newAccessToken;
       }
     }
@@ -63,8 +64,8 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
   }
 
   Future<void> _logout() async {
-    await tokenProvider.clearAll();
-    // TODO logout in AuthScope
+    await _authController.logout(); // TODO
+    await _tokenProvider.clearAll();
   }
 
   Future<String?> _refreshToken(String refreshToken) async {

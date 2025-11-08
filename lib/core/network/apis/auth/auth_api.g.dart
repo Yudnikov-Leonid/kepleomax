@@ -20,13 +20,14 @@ class _AuthApi implements AuthApi {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<LoginRequestDto> login({required LoginResponseDto data}) async {
+  Future<LoginResponseDto> login({required LoginRequestDto data}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'requiresToken': false};
+    _headers.removeWhere((k, v) => v == null);
     final _data = <String, dynamic>{};
     _data.addAll(data.toJson());
-    final _options = _setStreamType<LoginRequestDto>(
+    final _options = _setStreamType<LoginResponseDto>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -37,9 +38,9 @@ class _AuthApi implements AuthApi {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late LoginRequestDto _value;
+    late LoginResponseDto _value;
     try {
-      _value = LoginRequestDto.fromJson(_result.data!);
+      _value = LoginResponseDto.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
@@ -48,13 +49,14 @@ class _AuthApi implements AuthApi {
   }
 
   @override
-  Future<RefreshRequestDto> refresh({required RefreshResponseDto data}) async {
+  Future<RefreshResponseDto> refresh({required RefreshRequestDto data}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'requiresToken': false};
+    _headers.removeWhere((k, v) => v == null);
     final _data = <String, dynamic>{};
     _data.addAll(data.toJson());
-    final _options = _setStreamType<RefreshRequestDto>(
+    final _options = _setStreamType<RefreshResponseDto>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -65,9 +67,9 @@ class _AuthApi implements AuthApi {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late RefreshRequestDto _value;
+    late RefreshResponseDto _value;
     try {
-      _value = RefreshRequestDto.fromJson(_result.data!);
+      _value = RefreshResponseDto.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
@@ -79,7 +81,8 @@ class _AuthApi implements AuthApi {
   Future<void> logout({required LogoutRequestDto data}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'requiresToken': false};
+    _headers.removeWhere((k, v) => v == null);
     final _data = <String, dynamic>{};
     _data.addAll(data.toJson());
     final _options = _setStreamType<void>(

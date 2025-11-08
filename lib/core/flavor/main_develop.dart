@@ -4,7 +4,7 @@ import 'flavor.dart';
 
 void main() => app.main(
   flavor: const Flavor(
-    baseUrl: 'http://localhost:13000',
+    baseUrl: 'http://10.0.2.2:13000',
     type: FlavorType.develop,
   ),
 );

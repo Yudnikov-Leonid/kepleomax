@@ -19,8 +19,9 @@ class LoginRequestDto {
 class LoginResponseDto {
   final String accessToken;
   final String refreshToken;
+  final Map<String, dynamic> user; // TODO
 
-  LoginResponseDto({required this.accessToken, required this.refreshToken});
+  LoginResponseDto({required this.accessToken, required this.refreshToken, required this.user});
 
   factory LoginResponseDto.fromJson(Map<String, dynamic> json) =>
       _$LoginResponseDtoFromJson(json);

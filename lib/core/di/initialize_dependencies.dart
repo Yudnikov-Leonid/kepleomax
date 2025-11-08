@@ -2,7 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
+import 'package:kepleomax/core/auth/user_provider.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
+import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
 import 'package:kepleomax/core/network/middlewares/auth_interceptor.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
@@ -26,15 +28,6 @@ Future<Dependencies> initializeDependencies() async {
 
 List<_InitializationStep> _steps = [
   _InitializationStep(
-    name: 'authController',
-    call: (dependencies) {
-      final controller = AuthController();
-
-      dependencies.authController = controller;
-    },
-  ),
-
-  _InitializationStep(
     name: 'storages',
     call: (dependencies) async {
       dependencies.sharedPreferences = await SharedPreferences.getInstance();
@@ -47,9 +40,20 @@ List<_InitializationStep> _steps = [
   ),
 
   _InitializationStep(
-    name: 'dio',
-    call: (dependencies) {
+    name: 'dio, authController',
+    call: (dependencies) async {
       final dio = Dio();
+
+      // cause need dio here
+      final api = AuthApi(dio, flavor.baseUrl);
+      final authController = AuthController(
+        api: api,
+        tokenProvider: dependencies.tokenProvider,
+        userProvider: UserProvider(prefs: dependencies.sharedPreferences)
+      );
+      await authController.init();
+      dependencies.authController = authController;
+
       dio.interceptors.addAll([
         PrettyDioLogger(
           request: kDebugMode,
@@ -61,8 +65,13 @@ List<_InitializationStep> _steps = [
           logPrint: (Object object) =>
               debugPrint(object.toString(), wrapWidth: 1024),
         ),
-        AuthInterceptor(tokenProvider: dependencies.tokenProvider, dio: dio),
+        AuthInterceptor(
+          tokenProvider: dependencies.tokenProvider,
+          authController: dependencies.authController,
+        ),
       ]);
+
+      dependencies.dio = dio;
     },
   ),
 ];

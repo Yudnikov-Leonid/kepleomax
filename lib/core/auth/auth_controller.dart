@@ -1,10 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:kepleomax/core/auth/user_provider.dart';
+import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
+import 'package:kepleomax/core/network/apis/auth/login_dtos.dart';
+import 'package:kepleomax/core/network/apis/auth/logout_dtos.dart';
+import 'package:kepleomax/core/network/token_provider.dart';
+import 'package:kepleomax/main.dart';
 
 import '../models/user.dart';
 
 class AuthController {
-  User? user;
+  final AuthApi _api;
+  final TokenProvider _tokenProvider;
+  final UserProvider _userProvider;
+  User? _user;
+
+  User? get user => _user;
+
   final List<VoidCallback> _listeners = [];
+
+  AuthController({
+    required AuthApi api,
+    required TokenProvider tokenProvider,
+    required UserProvider userProvider,
+  }) : _api = api,
+       _tokenProvider = tokenProvider,
+       _userProvider = userProvider;
 
   Future<void> registerUser({
     required String email,
@@ -12,15 +32,47 @@ class AuthController {
   }) async {}
 
   Future<void> login({required String email, required String password}) async {
-    _updateUser(User(id: 1, email: email, username: 'username'));
+    final dto = await _api.login(
+      data: LoginRequestDto(email: email, password: password),
+    );
+
+    _tokenProvider.saveAccessToken(dto.accessToken);
+    _tokenProvider.saveRefreshToken(dto.refreshToken);
+    _updateUser(
+      User(
+        id: dto.user['id'],
+        email: email,
+        username: dto.user['username'] ?? 'No username',
+      ),
+    );
   }
 
   Future<void> logout() async {
+    try {
+      final refreshToken = await _tokenProvider.getRefreshToken();
+      if (refreshToken != null) {
+        try {
+          _api.logout(data: LogoutRequestDto(refreshToken: refreshToken));
+        } catch (e, st) {
+          logger.e(e, stackTrace: st);
+        }
+      }
+      await _tokenProvider.clearAll();
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
+    }
+
     _updateUser(null);
   }
 
+  Future<void> init() async {
+    final user = await _userProvider.getSavedUser();
+    _user = user;
+  }
+
   void _updateUser(User? newUser) {
-    user = newUser;
+    _user = newUser;
+    _userProvider.setNewUser(newUser);
     for (final listener in _listeners) {
       listener();
     }

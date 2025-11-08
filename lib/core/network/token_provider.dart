@@ -10,8 +10,8 @@ class TokenProvider {
   static const _accessTokenKey = 'access_token_key';
   static const _refreshTokenKey = 'refresh_token_key';
 
-  void saveAccessToken(String token) {
-    _prefs.setString(_accessTokenKey, token);
+  Future<void> saveAccessToken(String token) async {
+    await _prefs.setString(_accessTokenKey, token);
   }
 
   String? getAccessToken() => _prefs.getString(_accessTokenKey);

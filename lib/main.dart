@@ -30,6 +30,7 @@ void main({Flavor? flavor}) => runZonedGuarded(
     runApp(dependencies.inject(child: App()));
   },
   (err, st) {
+    logger.e(err, stackTrace: st);
     // TODO
   },
 );

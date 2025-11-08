@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+import 'package:dio/dio.dart' hide Headers;
 import 'package:retrofit/retrofit.dart';
 import 'login_dtos.dart';
 import 'logout_dtos.dart';
@@ -10,15 +10,24 @@ part 'auth_api.g.dart';
 abstract class AuthApi {
   factory AuthApi(Dio dio, String baseUrl) => _AuthApi(
     dio,
-    baseUrl: '$baseUrl/api/user'
+    baseUrl: '$baseUrl/api/auth'
   );
 
   @POST('/login')
-  Future<LoginRequestDto> login({@Body() required LoginResponseDto data});
+  @Headers(<String, dynamic>{
+    "requiresToken": false
+  })
+  Future<LoginResponseDto> login({@Body() required LoginRequestDto data});
 
+  @Headers(<String, dynamic>{
+    "requiresToken": false
+  })
   @POST('/refresh')
-  Future<RefreshRequestDto> refresh({@Body() required RefreshResponseDto data});
+  Future<RefreshResponseDto> refresh({@Body() required RefreshRequestDto data});
 
+  @Headers(<String, dynamic>{
+    "requiresToken": false
+  })
   @POST('/logout')
   Future<void> logout({@Body() required LogoutRequestDto data});
 }
