@@ -13,21 +13,29 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        brightness: Brightness.light,
-        scaffoldBackgroundColor: Colors.white,
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: Colors.black,
-        appBarTheme: AppBarTheme(backgroundColor: Colors.black),
-      ),
-      themeMode: ThemeMode.system,
-      debugShowCheckedModeBanner: false,
-      builder: (context, _) {
-        return AuthScope(child: AppNavigator(initialState: [MainPage()]));
+    return GestureDetector(
+      onTap: () {
+        final currentFocus = FocusScope.of(context).focusedChild;
+        if (currentFocus != null && !currentFocus.hasPrimaryFocus) {
+          currentFocus.unfocus();
+        }
       },
+      child: MaterialApp(
+        theme: ThemeData(
+          brightness: Brightness.light,
+          scaffoldBackgroundColor: Colors.white,
+        ),
+        darkTheme: ThemeData(
+          brightness: Brightness.dark,
+          scaffoldBackgroundColor: Colors.black,
+          appBarTheme: AppBarTheme(backgroundColor: Colors.black),
+        ),
+        themeMode: ThemeMode.system,
+        debugShowCheckedModeBanner: false,
+        builder: (context, _) {
+          return AuthScope(child: AppNavigator(initialState: [MainPage()]));
+        },
+      ),
     );
   }
 }

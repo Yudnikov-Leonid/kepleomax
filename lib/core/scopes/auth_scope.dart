@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/models/user.dart';
-import 'package:kepleomax/features/login/login_screen.dart';
+import 'package:kepleomax/core/navigation/app_navigator.dart';
+
+import '../navigation/pages.dart';
 
 class AuthScope extends StatefulWidget {
   const AuthScope({required this.child, super.key});
@@ -50,7 +52,7 @@ class _AuthScopeState extends State<AuthScope> {
     return _InheritedAuth(
       key: ValueKey(_controller.user?.id ?? -1),
       controller: _controller,
-      child: _controller.user == null ? LoginScreen() : widget.child,
+      child: _controller.user == null ? AppNavigator(initialState: [LoginPage()]) : widget.child,
     );
   }
 }

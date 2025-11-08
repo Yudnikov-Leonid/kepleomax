@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kepleomax/features/login/login_screen.dart';
 
 import '../../features/main/main_screen.dart';
 
@@ -18,6 +19,15 @@ sealed class AppPage extends MaterialPage<void> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) || other is AppPage && key == other.key;
+}
+
+final class LoginPage extends AppPage {
+  const LoginPage()
+      : super(
+    name: "login",
+    child: const LoginScreen(),
+    key: const ValueKey("login"),
+  );
 }
 
 final class MainPage extends AppPage {
