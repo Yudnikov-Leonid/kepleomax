@@ -17,14 +17,27 @@ class LoginRequestDto {
 
 @JsonSerializable()
 class LoginResponseDto {
-  final String accessToken;
-  final String refreshToken;
-  final Map<String, dynamic> user; // TODO
+  final LoginResponseData? data;
+  final String? message;
 
-  LoginResponseDto({required this.accessToken, required this.refreshToken, required this.user});
+  LoginResponseDto({this.data, this.message});
 
   factory LoginResponseDto.fromJson(Map<String, dynamic> json) =>
       _$LoginResponseDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$LoginResponseDtoToJson(this);
+}
+
+@JsonSerializable()
+class LoginResponseData {
+  final String accessToken;
+  final String refreshToken;
+  final Map<String, dynamic> user; // TODO
+
+  LoginResponseData({required this.accessToken, required this.refreshToken, required this.user});
+
+  factory LoginResponseData.fromJson(Map<String, dynamic> json) =>
+      _$LoginResponseDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$LoginResponseDataToJson(this);
 }

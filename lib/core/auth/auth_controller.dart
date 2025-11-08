@@ -32,17 +32,21 @@ class AuthController {
   }) async {}
 
   Future<void> login({required String email, required String password}) async {
-    final dto = await _api.login(
+    final res = await _api.login(
       data: LoginRequestDto(email: email, password: password),
     );
 
-    _tokenProvider.saveAccessToken(dto.accessToken);
-    _tokenProvider.saveRefreshToken(dto.refreshToken);
+    if (res.response.statusCode != 200) {
+      throw Exception(res.data.message ?? 'Failed to logout');
+    }
+
+    _tokenProvider.saveAccessToken(res.data.data!.accessToken);
+    _tokenProvider.saveRefreshToken(res.data.data!.refreshToken);
     _updateUser(
       User(
-        id: dto.user['id'],
+        id: res.data.data!.user['id'],
         email: email,
-        username: dto.user['username'] ?? 'No username',
+        username: res.data.data!.user['username'] ?? 'No username',
       ),
     );
   }

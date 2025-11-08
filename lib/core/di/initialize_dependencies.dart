@@ -42,14 +42,14 @@ List<_InitializationStep> _steps = [
   _InitializationStep(
     name: 'dio, authController',
     call: (dependencies) async {
-      final dio = Dio();
+      final dio = Dio(BaseOptions(validateStatus: (_) => true));
 
       // cause need dio here
       final api = AuthApi(dio, flavor.baseUrl);
       final authController = AuthController(
         api: api,
         tokenProvider: dependencies.tokenProvider,
-        userProvider: UserProvider(prefs: dependencies.sharedPreferences)
+        userProvider: UserProvider(prefs: dependencies.sharedPreferences),
       );
       await authController.init();
       dependencies.authController = authController;

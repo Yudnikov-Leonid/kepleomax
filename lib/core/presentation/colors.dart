@@ -5,4 +5,5 @@ class KlmColors {
 
   static const primaryColor = Colors.blue;
   static const inactiveColor = Colors.blueGrey;
+  static const errorRed = Colors.red;
 }

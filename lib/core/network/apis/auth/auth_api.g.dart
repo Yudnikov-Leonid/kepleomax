@@ -20,14 +20,16 @@ class _AuthApi implements AuthApi {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<LoginResponseDto> login({required LoginRequestDto data}) async {
+  Future<HttpResponse<LoginResponseDto>> login({
+    required LoginRequestDto data,
+  }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{r'requiresToken': false};
     _headers.removeWhere((k, v) => v == null);
     final _data = <String, dynamic>{};
     _data.addAll(data.toJson());
-    final _options = _setStreamType<LoginResponseDto>(
+    final _options = _setStreamType<HttpResponse<LoginResponseDto>>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -45,7 +47,8 @@ class _AuthApi implements AuthApi {
       errorLogger?.logError(e, s, _options);
       rethrow;
     }
-    return _value;
+    final httpResponse = HttpResponse(_value, _result);
+    return httpResponse;
   }
 
   @override

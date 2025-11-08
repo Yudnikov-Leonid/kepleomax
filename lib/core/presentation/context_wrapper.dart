@@ -11,3 +11,13 @@ extension GetThemeData on BuildContext {
 extension GetScreenSize on BuildContext {
   Size get screenSize => MediaQuery.sizeOf(this);
 }
+
+extension ShowSnackBar on BuildContext {
+  void showSnackBar({required String text, Color? color}) => ScaffoldMessenger.of(this).showSnackBar(
+    SnackBar(
+      behavior: SnackBarBehavior.fixed,
+      backgroundColor: color,
+      content: Text(text),
+    ),
+  );
+}

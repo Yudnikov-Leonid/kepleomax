@@ -17,7 +17,7 @@ abstract class AuthApi {
   @Headers(<String, dynamic>{
     "requiresToken": false
   })
-  Future<LoginResponseDto> login({@Body() required LoginRequestDto data});
+  Future<HttpResponse<LoginResponseDto>> login({@Body() required LoginRequestDto data});
 
   @Headers(<String, dynamic>{
     "requiresToken": false

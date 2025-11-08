@@ -17,12 +17,23 @@ Map<String, dynamic> _$LoginRequestDtoToJson(LoginRequestDto instance) =>
 
 LoginResponseDto _$LoginResponseDtoFromJson(Map<String, dynamic> json) =>
     LoginResponseDto(
+      data: json['data'] == null
+          ? null
+          : LoginResponseData.fromJson(json['data'] as Map<String, dynamic>),
+      message: json['message'] as String?,
+    );
+
+Map<String, dynamic> _$LoginResponseDtoToJson(LoginResponseDto instance) =>
+    <String, dynamic>{'data': instance.data, 'message': instance.message};
+
+LoginResponseData _$LoginResponseDataFromJson(Map<String, dynamic> json) =>
+    LoginResponseData(
       accessToken: json['accessToken'] as String,
       refreshToken: json['refreshToken'] as String,
       user: json['user'] as Map<String, dynamic>,
     );
 
-Map<String, dynamic> _$LoginResponseDtoToJson(LoginResponseDto instance) =>
+Map<String, dynamic> _$LoginResponseDataToJson(LoginResponseData instance) =>
     <String, dynamic>{
       'accessToken': instance.accessToken,
       'refreshToken': instance.refreshToken,

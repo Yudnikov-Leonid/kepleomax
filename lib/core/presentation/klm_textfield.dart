@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 
 class KlmTextField extends StatefulWidget {
@@ -11,6 +12,7 @@ class KlmTextField extends StatefulWidget {
     this.showErrors = false,
     this.validators = const [],
     this.maxLength = 50,
+    this.readOnly = false,
     super.key,
   });
 
@@ -22,6 +24,7 @@ class KlmTextField extends StatefulWidget {
   final bool showErrors;
   final List<String? Function(String)> validators;
   final int? maxLength;
+  final bool readOnly;
 
   @override
   State<KlmTextField> createState() => _KlmTextFieldState();
@@ -37,7 +40,7 @@ class _KlmTextFieldState extends State<KlmTextField> {
   }
 
   String? _error() {
-    if (!widget.showErrors || _focusNode.hasFocus) {
+    if (!widget.showErrors) {
       return null;
     }
 
@@ -62,15 +65,18 @@ class _KlmTextFieldState extends State<KlmTextField> {
         focusNode: _focusNode,
         maxLength: widget.maxLength,
         onChanged: (value) {
-          widget.onChanged(value);
           setState(() {});
+          widget.onChanged(value);
         },
+        readOnly: widget.readOnly,
         decoration: InputDecoration(
           floatingLabelStyle: context.textTheme.bodySmall?.copyWith(
             color: Colors.grey,
             fontWeight: FontWeight.w300,
           ),
-          suffix: widget.controller.text.isNotEmpty
+          suffix: widget.readOnly
+              ? null
+              : widget.controller.text.isNotEmpty
               ? SizedBox(
                   height: 22,
                   width: 22,
@@ -96,7 +102,9 @@ class _KlmTextFieldState extends State<KlmTextField> {
           label: widget.label == null
               ? null
               : Container(color: Colors.white, child: Text(widget.label!)),
-          hintText: _focusNode.hasFocus ? '' : widget.hint,
+          hintText: _focusNode.hasFocus || widget.controller.text.isNotEmpty
+              ? ''
+              : widget.hint,
           hintStyle: const TextStyle(color: Colors.grey),
           labelStyle: context.textTheme.titleLarge?.copyWith(color: Colors.grey),
           fillColor: Colors.white,
@@ -106,25 +114,36 @@ class _KlmTextFieldState extends State<KlmTextField> {
     );
   }
 
-  InputBorder? _getFocusedBorder() => OutlineInputBorder(
-    borderRadius: BorderRadius.circular(20),
-    borderSide: const BorderSide(color: Colors.blue, width: 2),
-  );
+  InputBorder? _getFocusedBorder() => widget.readOnly
+      ? _getBorder(false)
+      : OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: const BorderSide(
+            color: Colors.blue,
+            width: 3,
+            strokeAlign: BorderSide.strokeAlignOutside,
+          ),
+        );
 
   InputBorder? _getBorder(bool isError) {
     if (isError) {
       return OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: context.themeData.colorScheme.error, width: 2),
+        borderSide: BorderSide(
+          color: KlmColors.errorRed,
+          width: 2,
+          strokeAlign: BorderSide.strokeAlignOutside,
+        ),
       );
     }
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(20),
       borderSide: BorderSide(
-        color: widget.controller.text.isNotEmpty
-            ? Colors.blueAccent
-            : Colors.blueGrey,
+        color: widget.controller.text.isEmpty || widget.readOnly
+            ? KlmColors.inactiveColor
+            : KlmColors.primaryColor,
         width: 2,
+        strokeAlign: BorderSide.strokeAlignOutside,
       ),
     );
   }

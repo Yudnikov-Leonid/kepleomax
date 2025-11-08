@@ -7,18 +7,20 @@ class KlmButton extends StatelessWidget {
     required this.onPressed,
     required this.text,
     this.width,
+    this.isLoading = false,
     super.key,
   });
 
   final double fontSize = 22;
   final double? width;
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: onPressed,
+      onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
         elevation: 0,
         backgroundColor: KlmColors.primaryColor,
@@ -35,15 +37,24 @@ class KlmButton extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       child: Center(
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: context.textTheme.titleLarge?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w500,
-            fontSize: fontSize,
-          ),
-        ),
+        child: isLoading
+            ? SizedBox(
+                height: 20,
+                width: 20,
+                child: const CircularProgressIndicator(
+                  color: KlmColors.primaryColor,
+                  strokeWidth: 2,
+                ),
+              )
+            : Text(
+                text,
+                textAlign: TextAlign.center,
+                style: context.textTheme.titleLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                  fontSize: fontSize,
+                ),
+              ),
       ),
     );
   }
