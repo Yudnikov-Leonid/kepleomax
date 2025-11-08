@@ -18,6 +18,7 @@ extension ShowSnackBar on BuildContext {
       behavior: SnackBarBehavior.fixed,
       backgroundColor: color,
       content: Text(text),
+      duration: const Duration(seconds: 6),
     ),
   );
 }

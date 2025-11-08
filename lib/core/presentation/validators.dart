@@ -1,4 +1,5 @@
 import 'package:email_validator/email_validator.dart';
+import 'package:flutter/cupertino.dart';
 
 class UiValidator {
   UiValidator._();
@@ -16,12 +17,50 @@ class UiValidator {
     return null;
   }
 
+  static String? Function(String) createConfirmPasswordValidator(
+    TextEditingController passwordController,
+  ) {
+    String? validator(String value) {
+      return confirmPasswordValidator(
+        password: passwordController.text,
+        confirmPassword: value,
+      );
+    }
+
+    return validator;
+  }
+
+  static String? confirmPasswordValidator({
+    required String password,
+    required String confirmPassword,
+  }) {
+    final emptyCheck = emptyValidator(confirmPassword);
+    if (emptyCheck != null) {
+      return emptyCheck;
+    }
+
+    if (password != confirmPassword) {
+      return "Passwords don't match";
+    }
+
+    final passwordCheck = passwordValidator(confirmPassword);
+    if (passwordCheck != null) {
+      return passwordCheck;
+    }
+
+    return null;
+  }
+
   static String? emptyValidator(String value) {
     if (value.isEmpty) {
       return "This field can't be empty";
     }
 
     return null;
+  }
+
+  static String? passwordValidator(String value) {
+    return createLengthValidator(6).call(value);
   }
 
   static String? Function(String) createLengthValidator(int length) {
@@ -32,6 +71,7 @@ class UiValidator {
 
       return null;
     }
+
     return lengthValidator;
   }
 }

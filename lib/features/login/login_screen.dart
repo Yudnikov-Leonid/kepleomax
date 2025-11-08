@@ -20,17 +20,21 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  final _confirmPasswordController = TextEditingController();
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void _updateControllers(LoginData state) {
+    _emailController.text = state.email;
+    _passwordController.text = state.password;
+    _confirmPasswordController.text = state.confirmPassword;
+    setState(() {});
   }
 
   @override
@@ -42,6 +46,10 @@ class _LoginScreenState extends State<LoginScreen> {
         listener: (context, state) {
           if (state is LoginStateError) {
             context.showSnackBar(text: state.message, color: KlmColors.errorRed);
+          }
+
+          if (state is LoginStateBase && state.updateControllers) {
+            _updateControllers(state.loginData);
           }
         },
         builder: (context, state) {
@@ -74,9 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 20),
                     KlmTextField(
                       controller: _passwordController,
-                      validators: [
-                        UiValidator.createLengthValidator(minPasswordLength),
-                      ],
+                      validators: [UiValidator.passwordValidator],
                       onChanged: (text) {
                         context.read<LoginBloc>().add(
                           LoginEventEditPassword(password: text),
@@ -86,20 +92,46 @@ class _LoginScreenState extends State<LoginScreen> {
                       showErrors: state.loginData.isButtonPressed,
                       readOnly: state.loginData.isLoading,
                     ),
+                    const SizedBox(height: 20),
+                    if (state.loginData.screenState is LoginScreenRegister)
+                      KlmTextField(
+                        controller: _confirmPasswordController,
+                        validators: [
+                          UiValidator.createConfirmPasswordValidator(
+                            _passwordController,
+                          ),
+                        ],
+                        onChanged: (text) {
+                          context.read<LoginBloc>().add(
+                            LoginEventEditConfirmPassword(confirmPassword: text),
+                          );
+                        },
+                        label: 'Confirm password',
+                        showErrors: state.loginData.isButtonPressed,
+                        readOnly: state.loginData.isLoading,
+                      ),
                     const SizedBox(height: 40),
                     KlmButton(
                       onPressed: () {
-                        context.read<LoginBloc>().add(const LoginEventLogin());
+                        context.read<LoginBloc>().add(
+                          state.loginData.screenState.event(),
+                        );
                       },
-                      text: 'Login',
+                      text: state.loginData.screenState.buttonText(),
                       width: 200,
                       isLoading: state.loginData.isLoading,
                     ),
                     const SizedBox(height: 10),
                     TextButton(
-                      onPressed: state.loginData.isLoading ? null : () {
-                        if (state.loginData.isLoading) return;
-                      },
+                      onPressed: state.loginData.isLoading
+                          ? null
+                          : () {
+                              context.read<LoginBloc>().add(
+                                LoginEventChangeScreenState(
+                                  state.loginData.screenState.subButtonNextState(),
+                                ),
+                              );
+                            },
                       style: TextButton.styleFrom(
                         overlayColor: Colors.grey,
                         shape: RoundedRectangleBorder(
@@ -109,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         minimumSize: Size.zero,
                       ),
                       child: Text(
-                        'or register a new account',
+                        state.loginData.screenState.subButtonText(),
                         style: context.textTheme.bodyLarge?.copyWith(
                           color: state.loginData.isLoading
                               ? Colors.grey.shade600

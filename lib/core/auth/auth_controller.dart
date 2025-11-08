@@ -29,7 +29,15 @@ class AuthController {
   Future<void> registerUser({
     required String email,
     required String password,
-  }) async {}
+  }) async {
+    final res = await _api.register(
+      data: LoginRequestDto(email: email, password: password),
+    );
+
+    if (res.response.statusCode != 201 && res.response.statusCode != 200) {
+      throw Exception(res.data.message ?? 'Failed to register a user: ${res.response.statusCode}');
+    }
+  }
 
   Future<void> login({required String email, required String password}) async {
     final res = await _api.login(
@@ -37,7 +45,7 @@ class AuthController {
     );
 
     if (res.response.statusCode != 200) {
-      throw Exception(res.data.message ?? 'Failed to logout');
+      throw Exception(res.data.message ?? 'Failed to logout: ${res.response.statusCode}');
     }
 
     _tokenProvider.saveAccessToken(res.data.data!.accessToken);

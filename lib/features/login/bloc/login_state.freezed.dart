@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$LoginStateBase {
 
- LoginData get loginData;
+ LoginData get loginData; bool get updateControllers;
 /// Create a copy of LoginStateBase
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $LoginStateBaseCopyWith<LoginStateBase> get copyWith => _$LoginStateBaseCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoginStateBase&&(identical(other.loginData, loginData) || other.loginData == loginData));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoginStateBase&&(identical(other.loginData, loginData) || other.loginData == loginData)&&(identical(other.updateControllers, updateControllers) || other.updateControllers == updateControllers));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,loginData);
+int get hashCode => Object.hash(runtimeType,loginData,updateControllers);
 
 @override
 String toString() {
-  return 'LoginStateBase(loginData: $loginData)';
+  return 'LoginStateBase(loginData: $loginData, updateControllers: $updateControllers)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $LoginStateBaseCopyWith<$Res>  {
   factory $LoginStateBaseCopyWith(LoginStateBase value, $Res Function(LoginStateBase) _then) = _$LoginStateBaseCopyWithImpl;
 @useResult
 $Res call({
- LoginData loginData
+ LoginData loginData, bool updateControllers
 });
 
 
@@ -62,10 +62,11 @@ class _$LoginStateBaseCopyWithImpl<$Res>
 
 /// Create a copy of LoginStateBase
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? loginData = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? loginData = null,Object? updateControllers = null,}) {
   return _then(_self.copyWith(
 loginData: null == loginData ? _self.loginData : loginData // ignore: cast_nullable_to_non_nullable
-as LoginData,
+as LoginData,updateControllers: null == updateControllers ? _self.updateControllers : updateControllers // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 /// Create a copy of LoginStateBase
@@ -159,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( LoginData loginData)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( LoginData loginData,  bool updateControllers)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LoginStateBase() when $default != null:
-return $default(_that.loginData);case _:
+return $default(_that.loginData,_that.updateControllers);case _:
   return orElse();
 
 }
@@ -180,10 +181,10 @@ return $default(_that.loginData);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( LoginData loginData)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( LoginData loginData,  bool updateControllers)  $default,) {final _that = this;
 switch (_that) {
 case _LoginStateBase():
-return $default(_that.loginData);case _:
+return $default(_that.loginData,_that.updateControllers);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +201,10 @@ return $default(_that.loginData);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( LoginData loginData)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( LoginData loginData,  bool updateControllers)?  $default,) {final _that = this;
 switch (_that) {
 case _LoginStateBase() when $default != null:
-return $default(_that.loginData);case _:
+return $default(_that.loginData,_that.updateControllers);case _:
   return null;
 
 }
@@ -215,10 +216,11 @@ return $default(_that.loginData);case _:
 
 
 class _LoginStateBase implements LoginStateBase {
-  const _LoginStateBase({required this.loginData});
+  const _LoginStateBase({required this.loginData, this.updateControllers = false});
   
 
 @override final  LoginData loginData;
+@override@JsonKey() final  bool updateControllers;
 
 /// Create a copy of LoginStateBase
 /// with the given fields replaced by the non-null parameter values.
@@ -230,16 +232,16 @@ _$LoginStateBaseCopyWith<_LoginStateBase> get copyWith => __$LoginStateBaseCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoginStateBase&&(identical(other.loginData, loginData) || other.loginData == loginData));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoginStateBase&&(identical(other.loginData, loginData) || other.loginData == loginData)&&(identical(other.updateControllers, updateControllers) || other.updateControllers == updateControllers));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,loginData);
+int get hashCode => Object.hash(runtimeType,loginData,updateControllers);
 
 @override
 String toString() {
-  return 'LoginStateBase(loginData: $loginData)';
+  return 'LoginStateBase(loginData: $loginData, updateControllers: $updateControllers)';
 }
 
 
@@ -250,7 +252,7 @@ abstract mixin class _$LoginStateBaseCopyWith<$Res> implements $LoginStateBaseCo
   factory _$LoginStateBaseCopyWith(_LoginStateBase value, $Res Function(_LoginStateBase) _then) = __$LoginStateBaseCopyWithImpl;
 @override @useResult
 $Res call({
- LoginData loginData
+ LoginData loginData, bool updateControllers
 });
 
 
@@ -267,10 +269,11 @@ class __$LoginStateBaseCopyWithImpl<$Res>
 
 /// Create a copy of LoginStateBase
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? loginData = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? loginData = null,Object? updateControllers = null,}) {
   return _then(_LoginStateBase(
 loginData: null == loginData ? _self.loginData : loginData // ignore: cast_nullable_to_non_nullable
-as LoginData,
+as LoginData,updateControllers: null == updateControllers ? _self.updateControllers : updateControllers // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -546,7 +549,7 @@ as String,
 /// @nodoc
 mixin _$LoginData {
 
- String get email; String get password; bool get isButtonPressed; bool get isLoading;
+ String get email; String get password; String get confirmPassword; bool get isButtonPressed; bool get isLoading; LoginScreenState get screenState;
 /// Create a copy of LoginData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -557,16 +560,16 @@ $LoginDataCopyWith<LoginData> get copyWith => _$LoginDataCopyWithImpl<LoginData>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoginData&&(identical(other.email, email) || other.email == email)&&(identical(other.password, password) || other.password == password)&&(identical(other.isButtonPressed, isButtonPressed) || other.isButtonPressed == isButtonPressed)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoginData&&(identical(other.email, email) || other.email == email)&&(identical(other.password, password) || other.password == password)&&(identical(other.confirmPassword, confirmPassword) || other.confirmPassword == confirmPassword)&&(identical(other.isButtonPressed, isButtonPressed) || other.isButtonPressed == isButtonPressed)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.screenState, screenState) || other.screenState == screenState));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,email,password,isButtonPressed,isLoading);
+int get hashCode => Object.hash(runtimeType,email,password,confirmPassword,isButtonPressed,isLoading,screenState);
 
 @override
 String toString() {
-  return 'LoginData(email: $email, password: $password, isButtonPressed: $isButtonPressed, isLoading: $isLoading)';
+  return 'LoginData(email: $email, password: $password, confirmPassword: $confirmPassword, isButtonPressed: $isButtonPressed, isLoading: $isLoading, screenState: $screenState)';
 }
 
 
@@ -577,7 +580,7 @@ abstract mixin class $LoginDataCopyWith<$Res>  {
   factory $LoginDataCopyWith(LoginData value, $Res Function(LoginData) _then) = _$LoginDataCopyWithImpl;
 @useResult
 $Res call({
- String email, String password, bool isButtonPressed, bool isLoading
+ String email, String password, String confirmPassword, bool isButtonPressed, bool isLoading, LoginScreenState screenState
 });
 
 
@@ -594,13 +597,15 @@ class _$LoginDataCopyWithImpl<$Res>
 
 /// Create a copy of LoginData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? email = null,Object? password = null,Object? isButtonPressed = null,Object? isLoading = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? email = null,Object? password = null,Object? confirmPassword = null,Object? isButtonPressed = null,Object? isLoading = null,Object? screenState = null,}) {
   return _then(_self.copyWith(
 email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
+as String,confirmPassword: null == confirmPassword ? _self.confirmPassword : confirmPassword // ignore: cast_nullable_to_non_nullable
 as String,isButtonPressed: null == isButtonPressed ? _self.isButtonPressed : isButtonPressed // ignore: cast_nullable_to_non_nullable
 as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,screenState: null == screenState ? _self.screenState : screenState // ignore: cast_nullable_to_non_nullable
+as LoginScreenState,
   ));
 }
 
@@ -685,10 +690,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String email,  String password,  bool isButtonPressed,  bool isLoading)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String email,  String password,  String confirmPassword,  bool isButtonPressed,  bool isLoading,  LoginScreenState screenState)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LoginData() when $default != null:
-return $default(_that.email,_that.password,_that.isButtonPressed,_that.isLoading);case _:
+return $default(_that.email,_that.password,_that.confirmPassword,_that.isButtonPressed,_that.isLoading,_that.screenState);case _:
   return orElse();
 
 }
@@ -706,10 +711,10 @@ return $default(_that.email,_that.password,_that.isButtonPressed,_that.isLoading
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String email,  String password,  bool isButtonPressed,  bool isLoading)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String email,  String password,  String confirmPassword,  bool isButtonPressed,  bool isLoading,  LoginScreenState screenState)  $default,) {final _that = this;
 switch (_that) {
 case _LoginData():
-return $default(_that.email,_that.password,_that.isButtonPressed,_that.isLoading);case _:
+return $default(_that.email,_that.password,_that.confirmPassword,_that.isButtonPressed,_that.isLoading,_that.screenState);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -726,10 +731,10 @@ return $default(_that.email,_that.password,_that.isButtonPressed,_that.isLoading
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String email,  String password,  bool isButtonPressed,  bool isLoading)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String email,  String password,  String confirmPassword,  bool isButtonPressed,  bool isLoading,  LoginScreenState screenState)?  $default,) {final _that = this;
 switch (_that) {
 case _LoginData() when $default != null:
-return $default(_that.email,_that.password,_that.isButtonPressed,_that.isLoading);case _:
+return $default(_that.email,_that.password,_that.confirmPassword,_that.isButtonPressed,_that.isLoading,_that.screenState);case _:
   return null;
 
 }
@@ -741,13 +746,15 @@ return $default(_that.email,_that.password,_that.isButtonPressed,_that.isLoading
 
 
 class _LoginData implements LoginData {
-  const _LoginData({required this.email, required this.password, required this.isButtonPressed, required this.isLoading});
+  const _LoginData({required this.email, required this.password, required this.confirmPassword, required this.isButtonPressed, required this.isLoading, required this.screenState});
   
 
 @override final  String email;
 @override final  String password;
+@override final  String confirmPassword;
 @override final  bool isButtonPressed;
 @override final  bool isLoading;
+@override final  LoginScreenState screenState;
 
 /// Create a copy of LoginData
 /// with the given fields replaced by the non-null parameter values.
@@ -759,16 +766,16 @@ _$LoginDataCopyWith<_LoginData> get copyWith => __$LoginDataCopyWithImpl<_LoginD
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoginData&&(identical(other.email, email) || other.email == email)&&(identical(other.password, password) || other.password == password)&&(identical(other.isButtonPressed, isButtonPressed) || other.isButtonPressed == isButtonPressed)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoginData&&(identical(other.email, email) || other.email == email)&&(identical(other.password, password) || other.password == password)&&(identical(other.confirmPassword, confirmPassword) || other.confirmPassword == confirmPassword)&&(identical(other.isButtonPressed, isButtonPressed) || other.isButtonPressed == isButtonPressed)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.screenState, screenState) || other.screenState == screenState));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,email,password,isButtonPressed,isLoading);
+int get hashCode => Object.hash(runtimeType,email,password,confirmPassword,isButtonPressed,isLoading,screenState);
 
 @override
 String toString() {
-  return 'LoginData(email: $email, password: $password, isButtonPressed: $isButtonPressed, isLoading: $isLoading)';
+  return 'LoginData(email: $email, password: $password, confirmPassword: $confirmPassword, isButtonPressed: $isButtonPressed, isLoading: $isLoading, screenState: $screenState)';
 }
 
 
@@ -779,7 +786,7 @@ abstract mixin class _$LoginDataCopyWith<$Res> implements $LoginDataCopyWith<$Re
   factory _$LoginDataCopyWith(_LoginData value, $Res Function(_LoginData) _then) = __$LoginDataCopyWithImpl;
 @override @useResult
 $Res call({
- String email, String password, bool isButtonPressed, bool isLoading
+ String email, String password, String confirmPassword, bool isButtonPressed, bool isLoading, LoginScreenState screenState
 });
 
 
@@ -796,13 +803,15 @@ class __$LoginDataCopyWithImpl<$Res>
 
 /// Create a copy of LoginData
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? email = null,Object? password = null,Object? isButtonPressed = null,Object? isLoading = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? email = null,Object? password = null,Object? confirmPassword = null,Object? isButtonPressed = null,Object? isLoading = null,Object? screenState = null,}) {
   return _then(_LoginData(
 email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
+as String,confirmPassword: null == confirmPassword ? _self.confirmPassword : confirmPassword // ignore: cast_nullable_to_non_nullable
 as String,isButtonPressed: null == isButtonPressed ? _self.isButtonPressed : isButtonPressed // ignore: cast_nullable_to_non_nullable
 as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,screenState: null == screenState ? _self.screenState : screenState // ignore: cast_nullable_to_non_nullable
+as LoginScreenState,
   ));
 }
 
