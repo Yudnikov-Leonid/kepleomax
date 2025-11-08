@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:kepleomax/features/login/login_screen.dart';
+import 'package:kepleomax/features/music/music_screen.dart';
 
 import '../../features/main/main_screen.dart';
 
-sealed class AppPage extends MaterialPage<void> {
+class AppPage extends MaterialPage<void> {
   const AppPage({
     required String super.name,
     required super.child,
@@ -37,4 +38,13 @@ final class MainPage extends AppPage {
         child: const MainScreen(),
         key: const ValueKey("main"),
       );
+}
+
+final class MusicPage extends AppPage {
+  const MusicPage()
+      : super(
+    name: "music",
+    child: const MusicScreen(),
+    key: const ValueKey("music"),
+  );
 }

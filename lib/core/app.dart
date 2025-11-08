@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
+import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
 
 class App extends StatefulWidget {
@@ -24,6 +25,7 @@ class _AppState extends State<App> {
         theme: ThemeData(
           brightness: Brightness.light,
           scaffoldBackgroundColor: Colors.white,
+          colorScheme: ColorScheme.fromSeed(seedColor: KlmColors.primaryColor),
         ),
         darkTheme: ThemeData(
           brightness: Brightness.dark,
@@ -33,7 +35,12 @@ class _AppState extends State<App> {
         themeMode: ThemeMode.system,
         debugShowCheckedModeBanner: false,
         builder: (context, _) {
-          return AuthScope(child: AppNavigator(initialState: [MainPage()]));
+          return AuthScope(
+            child: AppNavigator(
+              initialState: [MainPage()],
+              navigatorKey: mainNavigatorKey,
+            ),
+          );
         },
       ),
     );

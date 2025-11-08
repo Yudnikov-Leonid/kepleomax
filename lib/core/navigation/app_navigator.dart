@@ -4,36 +4,41 @@ import 'package:kepleomax/core/navigation/pages.dart';
 
 typedef AppPages = List<AppPage>;
 
+const mainNavigatorKey = 'MainNavigator';
+
 class AppNavigator extends StatefulWidget {
-  const AppNavigator({required this.initialState, super.key});
+  const AppNavigator({required this.initialState, required this.navigatorKey, super.key});
 
   final AppPages initialState;
+  final String navigatorKey;
 
-  static AppNavigatorState? maybeOf(BuildContext context) =>
+  static AppNavigatorState? firstOf(BuildContext context) =>
       context.findAncestorStateOfType<AppNavigatorState>();
 
-  static void change(
-    BuildContext context,
-    AppPages Function(AppPages pages) fn,
-  ) => maybeOf(context)?.change(fn);
+  static AppNavigatorState? withKeyOf(BuildContext context, String key) {
+    AppNavigatorState? state = context
+        .findAncestorStateOfType<AppNavigatorState>();
 
-  static void push(BuildContext context, AppPage page) =>
-      change(context, (state) => [...state, page]);
+    while (true) {
+      if (state == null) return null;
+      if (state.navigatorKey == key) return state;
 
-  static void pop(BuildContext context) => change(context, (state) {
-    if (state.length > 1) state.removeLast();
-    return state;
-  });
+      state = state.context.findAncestorStateOfType<AppNavigatorState>();
+    }
+  }
 
-  static void setCanPop(BuildContext context, bool value) =>
-      maybeOf(context)?.setCanPop(value);
+  static void change(BuildContext context, AppPages Function(AppPages pages) fn) =>
+      firstOf(context)?.change(fn);
+
+  static void push(BuildContext context, AppPage page) => firstOf(context)?.push(page);
+
+  static void pop(BuildContext context) => firstOf(context)?.pop();
 
   @override
   State<AppNavigator> createState() => AppNavigatorState();
 }
 
-class AppNavigatorState extends State<AppNavigator>
-    with WidgetsBindingObserver {
+class AppNavigatorState extends State<AppNavigator> with WidgetsBindingObserver {
   AppPages get state => _state;
   late AppPages _state;
   bool _canPop = true;
@@ -65,6 +70,17 @@ class AppNavigatorState extends State<AppNavigator>
 
     setState(() {});
   }
+
+  void push(AppPage page) {
+    change((state) => [...state, page]);
+  }
+
+  void pop() => change((state) {
+    if (state.length > 1) state.removeLast();
+    return state;
+  });
+
+  String get navigatorKey => widget.navigatorKey;
 
   @override
   Future<bool> didPopRoute() async {

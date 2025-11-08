@@ -6,6 +6,8 @@ import 'package:kepleomax/core/navigation/app_navigator.dart';
 
 import '../navigation/pages.dart';
 
+final loginNavigatorKey = 'LoginNavigator';
+
 class AuthScope extends StatefulWidget {
   const AuthScope({required this.child, super.key});
 
@@ -52,7 +54,7 @@ class _AuthScopeState extends State<AuthScope> {
     return _InheritedAuth(
       key: ValueKey(_controller.user?.id ?? -1),
       controller: _controller,
-      child: _controller.user == null ? AppNavigator(initialState: [LoginPage()]) : widget.child,
+      child: _controller.user == null ? AppNavigator(initialState: [LoginPage()], navigatorKey: loginNavigatorKey) : widget.child,
     );
   }
 }
