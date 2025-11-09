@@ -11,8 +11,9 @@ class KlmTextField extends StatefulWidget {
     this.isPassword = false,
     this.showErrors = false,
     this.validators = const [],
-    this.maxLength = 50,
+    this.maxLength,
     this.readOnly = false,
+    this.multiline = false,
     super.key,
   });
 
@@ -25,6 +26,7 @@ class KlmTextField extends StatefulWidget {
   final List<String? Function(String)> validators;
   final int? maxLength;
   final bool readOnly;
+  final bool multiline;
 
   @override
   State<KlmTextField> createState() => _KlmTextFieldState();
@@ -60,56 +62,83 @@ class _KlmTextFieldState extends State<KlmTextField> {
       onFocusChange: (newFocus) {
         setState(() {});
       },
-      child: TextFormField(
-        controller: widget.controller,
-        focusNode: _focusNode,
-        maxLength: widget.maxLength,
-        onChanged: (value) {
-          setState(() {});
-          widget.onChanged(value);
-        },
-        readOnly: widget.readOnly,
-        decoration: InputDecoration(
-          floatingLabelStyle: context.textTheme.bodySmall?.copyWith(
-            color: Colors.grey,
-            fontWeight: FontWeight.w300,
+      child: Stack(
+        children: [
+          TextFormField(
+            controller: widget.controller,
+            focusNode: _focusNode,
+            maxLines: widget.multiline ? null : 1,
+            maxLength: widget.maxLength ?? 50,
+            keyboardType: widget.multiline ? TextInputType.multiline : null,
+            onChanged: (value) {
+              setState(() {});
+              widget.onChanged(value);
+            },
+            readOnly: widget.readOnly,
+            decoration: InputDecoration(
+              floatingLabelStyle: context.textTheme.bodySmall?.copyWith(
+                color: Colors.grey,
+                fontWeight: FontWeight.w300,
+              ),
+              suffix: widget.readOnly
+                  ? null
+                  : widget.controller.text.isNotEmpty
+                  ? SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: InkWell(
+                        onTap: () {
+                          widget.controller.clear();
+                          widget.onChanged('');
+                          setState(() {});
+                        },
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.black,
+                          size: 20,
+                        ),
+                      ),
+                    )
+                  : null,
+              counter: const SizedBox(),
+              contentPadding: EdgeInsets.only(
+                bottom: 15,
+                left: 15,
+                right: 15,
+                top: 15,
+              ),
+              isDense: true,
+              focusedBorder: _getFocusedBorder(),
+              focusedErrorBorder: _getBorder(_error() != null),
+              enabledBorder: _getBorder(_error() != null),
+              errorBorder: _getBorder(_error() != null),
+              errorText: _error(),
+              //labelText: widget.label,
+              label: widget.label == null
+                  ? null
+                  : Container(
+                      color: Colors.white,
+                      child: Text(
+                        widget.label!,
+                        style: context.textTheme.bodyMedium,
+                      ),
+                    ),
+              hintText: _focusNode.hasFocus || widget.controller.text.isNotEmpty
+                  ? ''
+                  : widget.hint,
+              hintStyle: const TextStyle(color: Colors.grey),
+              labelStyle: context.textTheme.titleLarge?.copyWith(color: Colors.grey),
+              fillColor: Colors.white,
+              filled: true,
+            ),
           ),
-          suffix: widget.readOnly
-              ? null
-              : widget.controller.text.isNotEmpty
-              ? SizedBox(
-                  height: 22,
-                  width: 22,
-                  child: InkWell(
-                    onTap: () {
-                      widget.controller.clear();
-                      widget.onChanged('');
-                      setState(() {});
-                    },
-                    child: const Icon(Icons.close, color: Colors.black, size: 20),
-                  ),
-                )
-              : null,
-          counter: const SizedBox(),
-          contentPadding: EdgeInsets.only(bottom: 15, left: 15, right: 15, top: 15),
-          isDense: true,
-          focusedBorder: _getFocusedBorder(),
-          focusedErrorBorder: _getBorder(_error() != null),
-          enabledBorder: _getBorder(_error() != null),
-          errorBorder: _getBorder(_error() != null),
-          errorText: _error(),
-          //labelText: widget.label,
-          label: widget.label == null
-              ? null
-              : Container(color: Colors.white, child: Text(widget.label!)),
-          hintText: _focusNode.hasFocus || widget.controller.text.isNotEmpty
-              ? ''
-              : widget.hint,
-          hintStyle: const TextStyle(color: Colors.grey),
-          labelStyle: context.textTheme.titleLarge?.copyWith(color: Colors.grey),
-          fillColor: Colors.white,
-          filled: true,
-        ),
+          if (widget.maxLength != null)
+            Positioned(
+              bottom: _error() != null ? 32 : 4,
+              right: 10,
+              child: Text('${widget.controller.text.length}/${widget.maxLength}'),
+            ),
+        ],
       ),
     );
   }

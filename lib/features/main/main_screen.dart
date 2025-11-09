@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/features/feed/feed_navigator.dart';
-import 'package:kepleomax/features/menu/menu_navigator.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -16,7 +15,8 @@ class _MainScreenState extends State<MainScreen> {
 
   final _pages = [
     const FeedNavigator(),
-    const MenuNavigator(),
+    Container(color: Colors.green,)
+    //const MenuNavigator(),
   ];
 
   @override
@@ -35,6 +35,7 @@ class _MainScreenState extends State<MainScreen> {
           ),
           child: BottomNavigationBar(
             currentIndex: _currentIndex,
+            key: Key('main_bottom_navigation_bar'),
             showSelectedLabels: false,
             showUnselectedLabels: false,
             onTap: (index) {
@@ -55,7 +56,7 @@ class _MainScreenState extends State<MainScreen> {
                       ? KlmColors.primaryColor
                       : KlmColors.inactiveColor,
                 ),
-                label: 'Hun',
+                label: 'Hub',
               ),
             ],
           ),

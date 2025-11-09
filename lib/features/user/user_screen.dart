@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:kepleomax/core/models/post.dart';
+import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
+import 'package:kepleomax/features/editProfile/edit_profile_bottom_sheet.dart';
 import 'package:kepleomax/features/user/post_widget.dart';
 import 'package:num_remap/num_remap.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
+
+class EditUserBottomSheetPage extends ModalBottomSheetRoute {
+  EditUserBottomSheetPage({
+    required super.builder,
+    required super.isScrollControlled,
+  });
+}
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -51,7 +60,50 @@ class _UserScreenState extends State<UserScreen> {
         ),
         surfaceTintColor: Colors.white,
         leading: KlmBackButton(),
-        actions: [IconButton(onPressed: () {}, icon: Icon(Icons.settings))],
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              AppNavigator.canPop = false;
+
+              await showModalBottomSheet(
+                context: context,
+                useRootNavigator: true,
+                backgroundColor: Colors.white,
+                isScrollControlled: true,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                builder: (context) => EditProfileBottomSheet(),
+                isDismissible: false,
+                //enableDrag: false,
+              );
+
+              AppNavigator.canPop = true;
+            },
+            itemBuilder: (context) => <PopupMenuEntry<String>>[
+              PopupMenuItem<String>(
+                value: 'edit',
+                child: Text(
+                  'Edit profile',
+                  style: context.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'logout',
+                child: Text(
+                  'Logout',
+                  style: context.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: Colors.red,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
         centerTitle: true,
         title: Opacity(
           opacity: !_scrollController.hasClients
@@ -165,10 +217,11 @@ class _UserScreenState extends State<UserScreen> {
               PostWidget(
                 post: Post(
                   user: user,
-                  content: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+                  content:
+                      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
                   likesCount: 22,
                   createdAt: 1762682274000,
-                  updatedAt: 1762682474000
+                  updatedAt: 1762682474000,
                 ),
               ),
               const SizedBox(height: 1000),

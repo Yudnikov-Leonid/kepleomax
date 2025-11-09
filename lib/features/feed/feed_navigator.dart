@@ -3,7 +3,7 @@ import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/features/feed/feed_screen.dart';
 
-const feedNavigatorKey = 'MenuNavigator';
+const feedNavigatorKey = 'FeedNavigator';
 
 class FeedNavigator extends StatelessWidget {
   const FeedNavigator({super.key});

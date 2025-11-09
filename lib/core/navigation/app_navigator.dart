@@ -7,7 +7,11 @@ typedef AppPages = List<AppPage>;
 const mainNavigatorKey = 'MainNavigator';
 
 class AppNavigator extends StatefulWidget {
-  const AppNavigator({required this.initialState, required this.navigatorKey, super.key});
+  const AppNavigator({
+    required this.initialState,
+    required this.navigatorKey,
+    super.key,
+  });
 
   final AppPages initialState;
   final String navigatorKey;
@@ -16,8 +20,7 @@ class AppNavigator extends StatefulWidget {
       context.findAncestorStateOfType<AppNavigatorState>();
 
   static AppNavigatorState? withKeyOf(BuildContext context, String key) {
-    AppNavigatorState? state = context
-        .findAncestorStateOfType<AppNavigatorState>();
+    AppNavigatorState? state = context.findAncestorStateOfType<AppNavigatorState>();
 
     while (true) {
       if (state == null) return null;
@@ -34,6 +37,8 @@ class AppNavigator extends StatefulWidget {
 
   static void pop(BuildContext context) => of(context)?.pop();
 
+  static bool canPop = true;
+
   @override
   State<AppNavigator> createState() => AppNavigatorState();
 }
@@ -41,17 +46,12 @@ class AppNavigator extends StatefulWidget {
 class AppNavigatorState extends State<AppNavigator> with WidgetsBindingObserver {
   AppPages get state => _state;
   late AppPages _state;
-  bool _canPop = true;
 
   @override
   void initState() {
     _state = widget.initialState;
     WidgetsBinding.instance.addObserver(this);
     super.initState();
-  }
-
-  void setCanPop(bool value) {
-    _canPop = value;
   }
 
   @override
@@ -84,7 +84,7 @@ class AppNavigatorState extends State<AppNavigator> with WidgetsBindingObserver 
 
   @override
   Future<bool> didPopRoute() async {
-    if (!_canPop) return true;
+    if (!AppNavigator.canPop) return true;
     if (_state.length <= 1) return false;
     _onDidRemovePage(_state.last);
     return true;
@@ -99,6 +99,9 @@ class AppNavigatorState extends State<AppNavigator> with WidgetsBindingObserver 
   }
 
   @override
-  Widget build(BuildContext context) =>
-      Navigator(pages: _state, onDidRemovePage: _onDidRemovePage);
+  Widget build(BuildContext context) => Navigator(
+    key: Key(navigatorKey),
+    pages: _state,
+    onDidRemovePage: _onDidRemovePage,
+  );
 }
