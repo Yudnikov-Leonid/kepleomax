@@ -12,7 +12,7 @@ class AppNavigator extends StatefulWidget {
   final AppPages initialState;
   final String navigatorKey;
 
-  static AppNavigatorState? firstOf(BuildContext context) =>
+  static AppNavigatorState? of(BuildContext context) =>
       context.findAncestorStateOfType<AppNavigatorState>();
 
   static AppNavigatorState? withKeyOf(BuildContext context, String key) {
@@ -28,11 +28,11 @@ class AppNavigator extends StatefulWidget {
   }
 
   static void change(BuildContext context, AppPages Function(AppPages pages) fn) =>
-      firstOf(context)?.change(fn);
+      of(context)?.change(fn);
 
-  static void push(BuildContext context, AppPage page) => firstOf(context)?.push(page);
+  static void push(BuildContext context, AppPage page) => of(context)?.push(page);
 
-  static void pop(BuildContext context) => firstOf(context)?.pop();
+  static void pop(BuildContext context) => of(context)?.pop();
 
   @override
   State<AppNavigator> createState() => AppNavigatorState();

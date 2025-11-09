@@ -17,6 +17,7 @@ class AuthScope extends StatefulWidget {
       _InheritedAuth.maybeOf(context)!.controller;
 
   static User? userOr(BuildContext context) => controllerOf(context).user;
+  static User userOf(BuildContext context) => controllerOf(context).user!;
 
   static Future<void> logout(BuildContext context) =>
       controllerOf(context).logout();

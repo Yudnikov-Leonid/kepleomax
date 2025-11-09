@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kepleomax/features/login/login_screen.dart';
 import 'package:kepleomax/features/music/music_screen.dart';
+import 'package:kepleomax/features/user/user_screen.dart';
 
 import '../../features/main/main_screen.dart';
 
@@ -28,6 +29,15 @@ final class LoginPage extends AppPage {
     name: "login",
     child: const LoginScreen(),
     key: const ValueKey("login"),
+  );
+}
+
+final class UserPage extends AppPage {
+  const UserPage()
+      : super(
+    name: "user_page",
+    child: const UserScreen(),
+    key: const ValueKey("user_page"),
   );
 }
 
