@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kepleomax/core/network/common/user_dto.dart';
 
 part 'login_dtos.g.dart';
 
@@ -32,7 +33,7 @@ class LoginResponseDto {
 class LoginResponseData {
   final String accessToken;
   final String refreshToken;
-  final Map<String, dynamic> user; // TODO
+  final UserDto user;
 
   LoginResponseData({required this.accessToken, required this.refreshToken, required this.user});
 

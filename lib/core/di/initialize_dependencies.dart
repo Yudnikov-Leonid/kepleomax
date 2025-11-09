@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
 import 'package:kepleomax/core/auth/user_provider.dart';
+import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
+import 'package:kepleomax/core/network/apis/profile/profile_api.dart';
 import 'package:kepleomax/core/network/middlewares/auth_interceptor.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
@@ -45,9 +47,9 @@ List<_InitializationStep> _steps = [
       final dio = Dio(BaseOptions(validateStatus: (_) => true));
 
       // cause need dio here
-      final api = AuthApi(dio, flavor.baseUrl);
+      dependencies.authApi = AuthApi(dio, flavor.baseUrl);
       final authController = AuthController(
-        api: api,
+        api: dependencies.authApi,
         tokenProvider: dependencies.tokenProvider,
         userProvider: UserProvider(prefs: dependencies.sharedPreferences),
       );
@@ -74,6 +76,11 @@ List<_InitializationStep> _steps = [
       dependencies.dio = dio;
     },
   ),
+  
+  _InitializationStep(name: 'userRepository', call: (dependencies) {
+    dependencies.profileApi = ProfileApi(dependencies.dio, flavor.baseUrl);
+    dependencies.userRepository = UserRepository(profileApi: dependencies.profileApi);
+  })
 ];
 
 class _InitializationStep {

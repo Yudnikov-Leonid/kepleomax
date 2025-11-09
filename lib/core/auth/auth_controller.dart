@@ -52,9 +52,9 @@ class AuthController {
     _tokenProvider.saveRefreshToken(res.data.data!.refreshToken);
     _updateUser(
       User(
-        id: res.data.data!.user['id'],
-        email: email,
-        username: res.data.data!.user['username'] ?? 'No username',
+        id: res.data.data!.user.id,
+        email: res.data.data!.user.email,
+        username: res.data.data!.user.username,
       ),
     );
   }

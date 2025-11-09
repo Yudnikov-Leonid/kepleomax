@@ -33,11 +33,11 @@ final class LoginPage extends AppPage {
 }
 
 final class UserPage extends AppPage {
-  const UserPage()
+  UserPage({required int userId})
       : super(
-    name: "user_page",
-    child: const UserScreen(),
-    key: const ValueKey("user_page"),
+    name: "user_page_$userId",
+    child: UserScreen(userId: userId),
+    key: ValueKey("user_page_$userId"),
   );
 }
 

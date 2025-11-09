@@ -30,7 +30,7 @@ LoginResponseData _$LoginResponseDataFromJson(Map<String, dynamic> json) =>
     LoginResponseData(
       accessToken: json['accessToken'] as String,
       refreshToken: json['refreshToken'] as String,
-      user: json['user'] as Map<String, dynamic>,
+      user: UserDto.fromJson(json['user'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$LoginResponseDataToJson(LoginResponseData instance) =>

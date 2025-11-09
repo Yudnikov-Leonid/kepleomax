@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
+import 'package:kepleomax/core/scopes/auth_scope.dart';
 
 import '../navigation/app_navigator.dart';
 
@@ -9,12 +10,19 @@ class KlmAppBar extends AppBar {
     : super(
         leading: InkWell(
           onTap: () {
-            AppNavigator.of(context)?.push(UserPage());
+            AppNavigator.of(
+              context,
+            )?.push(UserPage(userId: AuthScope.userOf(context).id));
           },
-          child: leading ?? Container(
-            decoration: BoxDecoration(color: Colors.grey, shape: BoxShape.circle),
-            margin: const EdgeInsets.all(12),
-          ),
+          child:
+              leading ??
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey,
+                  shape: BoxShape.circle,
+                ),
+                margin: const EdgeInsets.all(12),
+              ),
         ),
         titleSpacing: 5,
         backgroundColor: Colors.white,
@@ -32,8 +40,13 @@ class KlmBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(onPressed: onPressed ?? () {
-      AppNavigator.pop(context);
-    }, icon: Icon(Icons.arrow_back_ios_new));
+    return IconButton(
+      onPressed:
+          onPressed ??
+          () {
+            AppNavigator.pop(context);
+          },
+      icon: Icon(Icons.arrow_back_ios_new),
+    );
   }
 }

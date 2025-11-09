@@ -11,13 +11,11 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
   AuthInterceptor({
     required TokenProvider tokenProvider,
     required AuthController authController,
-  }): _authController = authController, _tokenProvider = tokenProvider;
+  }) : _authController = authController,
+       _tokenProvider = tokenProvider;
 
   @override
-  void onRequest(
-    RequestOptions options,
-    RequestInterceptorHandler handler,
-  ) async {
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     if (options.headers["requiresToken"] == false) {
       options.headers.remove("requiresToken");
       return handler.next(options);
@@ -25,9 +23,16 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
 
     var accessToken = _tokenProvider.getAccessToken();
     final refreshToken = await _tokenProvider.getRefreshToken();
-    if (accessToken == null || refreshToken == null || accessToken.isEmpty || refreshToken.isEmpty) {
+    if (accessToken == null ||
+        refreshToken == null ||
+        accessToken.isEmpty ||
+        refreshToken.isEmpty) {
       handler.reject(
-        DioException(requestOptions: options, message: 'No token', type: DioExceptionType.cancel),
+        DioException(
+          requestOptions: options,
+          message: 'No token',
+          type: DioExceptionType.cancel,
+        ),
       );
     }
 
@@ -37,14 +42,22 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
     if (refreshTokenHasExpired) {
       _logout();
       return handler.reject(
-          DioException(requestOptions: options, message: 'Refresh token is expired', type: DioExceptionType.cancel)
+        DioException(
+          requestOptions: options,
+          message: 'Refresh token is expired',
+          type: DioExceptionType.cancel,
+        ),
       );
     } else if (accessTokenHasExpired) {
       final newAccessToken = await _refreshToken(refreshToken);
       if (newAccessToken == null) {
         _logout();
         return handler.reject(
-            DioException(requestOptions: options, message: 'Refresh token is expired', type: DioExceptionType.cancel)
+          DioException(
+            requestOptions: options,
+            message: 'Access token is expired',
+            type: DioExceptionType.cancel,
+          ),
         );
       } else {
         await _tokenProvider.saveAccessToken(newAccessToken);
@@ -58,7 +71,7 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode == 401 || err.response?.statusCode == 403) {
-        _logout();
+      _logout();
     }
     handler.next(err);
   }
@@ -73,19 +86,18 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
       final dio = Dio(); // because current dio is locked
 
       final response = await dio.post(
-          '${flavor.baseUrl}/api/user/refresh',
-          data: {'refreshToken': refreshToken}
+        '${flavor.baseUrl}/api/auth/refresh',
+        data: {'refreshToken': refreshToken},
       );
 
       if (response.statusCode == 200) {
         return response.data['accessToken'];
       } else {
-        _logout();
+        throw Exception('Failed to refreshToken: ${response.statusCode}, $response');
       }
-
-    } catch (e) {
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
       return null;
     }
-    return null;
   }
 }
