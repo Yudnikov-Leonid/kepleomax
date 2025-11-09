@@ -544,9 +544,541 @@ as String,
 }
 
 /// @nodoc
+mixin _$UserStateMessage {
+
+ String get message;
+/// Create a copy of UserStateMessage
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$UserStateMessageCopyWith<UserStateMessage> get copyWith => _$UserStateMessageCopyWithImpl<UserStateMessage>(this as UserStateMessage, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserStateMessage&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,message);
+
+@override
+String toString() {
+  return 'UserStateMessage(message: $message)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $UserStateMessageCopyWith<$Res>  {
+  factory $UserStateMessageCopyWith(UserStateMessage value, $Res Function(UserStateMessage) _then) = _$UserStateMessageCopyWithImpl;
+@useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class _$UserStateMessageCopyWithImpl<$Res>
+    implements $UserStateMessageCopyWith<$Res> {
+  _$UserStateMessageCopyWithImpl(this._self, this._then);
+
+  final UserStateMessage _self;
+  final $Res Function(UserStateMessage) _then;
+
+/// Create a copy of UserStateMessage
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? message = null,}) {
+  return _then(_self.copyWith(
+message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [UserStateMessage].
+extension UserStateMessagePatterns on UserStateMessage {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _UserStateMessage value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _UserStateMessage() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _UserStateMessage value)  $default,){
+final _that = this;
+switch (_that) {
+case _UserStateMessage():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _UserStateMessage value)?  $default,){
+final _that = this;
+switch (_that) {
+case _UserStateMessage() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String message)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _UserStateMessage() when $default != null:
+return $default(_that.message);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String message)  $default,) {final _that = this;
+switch (_that) {
+case _UserStateMessage():
+return $default(_that.message);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String message)?  $default,) {final _that = this;
+switch (_that) {
+case _UserStateMessage() when $default != null:
+return $default(_that.message);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _UserStateMessage implements UserStateMessage {
+  const _UserStateMessage({required this.message});
+  
+
+@override final  String message;
+
+/// Create a copy of UserStateMessage
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$UserStateMessageCopyWith<_UserStateMessage> get copyWith => __$UserStateMessageCopyWithImpl<_UserStateMessage>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserStateMessage&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,message);
+
+@override
+String toString() {
+  return 'UserStateMessage(message: $message)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$UserStateMessageCopyWith<$Res> implements $UserStateMessageCopyWith<$Res> {
+  factory _$UserStateMessageCopyWith(_UserStateMessage value, $Res Function(_UserStateMessage) _then) = __$UserStateMessageCopyWithImpl;
+@override @useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class __$UserStateMessageCopyWithImpl<$Res>
+    implements _$UserStateMessageCopyWith<$Res> {
+  __$UserStateMessageCopyWithImpl(this._self, this._then);
+
+  final _UserStateMessage _self;
+  final $Res Function(_UserStateMessage) _then;
+
+/// Create a copy of UserStateMessage
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(_UserStateMessage(
+message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+mixin _$UserStateUpdateUser {
+
+ User get user;
+/// Create a copy of UserStateUpdateUser
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$UserStateUpdateUserCopyWith<UserStateUpdateUser> get copyWith => _$UserStateUpdateUserCopyWithImpl<UserStateUpdateUser>(this as UserStateUpdateUser, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserStateUpdateUser&&(identical(other.user, user) || other.user == user));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,user);
+
+@override
+String toString() {
+  return 'UserStateUpdateUser(user: $user)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $UserStateUpdateUserCopyWith<$Res>  {
+  factory $UserStateUpdateUserCopyWith(UserStateUpdateUser value, $Res Function(UserStateUpdateUser) _then) = _$UserStateUpdateUserCopyWithImpl;
+@useResult
+$Res call({
+ User user
+});
+
+
+$UserCopyWith<$Res> get user;
+
+}
+/// @nodoc
+class _$UserStateUpdateUserCopyWithImpl<$Res>
+    implements $UserStateUpdateUserCopyWith<$Res> {
+  _$UserStateUpdateUserCopyWithImpl(this._self, this._then);
+
+  final UserStateUpdateUser _self;
+  final $Res Function(UserStateUpdateUser) _then;
+
+/// Create a copy of UserStateUpdateUser
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? user = null,}) {
+  return _then(_self.copyWith(
+user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
+as User,
+  ));
+}
+/// Create a copy of UserStateUpdateUser
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$UserCopyWith<$Res> get user {
+  
+  return $UserCopyWith<$Res>(_self.user, (value) {
+    return _then(_self.copyWith(user: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [UserStateUpdateUser].
+extension UserStateUpdateUserPatterns on UserStateUpdateUser {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _UserStateUpdateUser value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _UserStateUpdateUser() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _UserStateUpdateUser value)  $default,){
+final _that = this;
+switch (_that) {
+case _UserStateUpdateUser():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _UserStateUpdateUser value)?  $default,){
+final _that = this;
+switch (_that) {
+case _UserStateUpdateUser() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( User user)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _UserStateUpdateUser() when $default != null:
+return $default(_that.user);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( User user)  $default,) {final _that = this;
+switch (_that) {
+case _UserStateUpdateUser():
+return $default(_that.user);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( User user)?  $default,) {final _that = this;
+switch (_that) {
+case _UserStateUpdateUser() when $default != null:
+return $default(_that.user);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _UserStateUpdateUser implements UserStateUpdateUser {
+  const _UserStateUpdateUser({required this.user});
+  
+
+@override final  User user;
+
+/// Create a copy of UserStateUpdateUser
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$UserStateUpdateUserCopyWith<_UserStateUpdateUser> get copyWith => __$UserStateUpdateUserCopyWithImpl<_UserStateUpdateUser>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserStateUpdateUser&&(identical(other.user, user) || other.user == user));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,user);
+
+@override
+String toString() {
+  return 'UserStateUpdateUser(user: $user)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$UserStateUpdateUserCopyWith<$Res> implements $UserStateUpdateUserCopyWith<$Res> {
+  factory _$UserStateUpdateUserCopyWith(_UserStateUpdateUser value, $Res Function(_UserStateUpdateUser) _then) = __$UserStateUpdateUserCopyWithImpl;
+@override @useResult
+$Res call({
+ User user
+});
+
+
+@override $UserCopyWith<$Res> get user;
+
+}
+/// @nodoc
+class __$UserStateUpdateUserCopyWithImpl<$Res>
+    implements _$UserStateUpdateUserCopyWith<$Res> {
+  __$UserStateUpdateUserCopyWithImpl(this._self, this._then);
+
+  final _UserStateUpdateUser _self;
+  final $Res Function(_UserStateUpdateUser) _then;
+
+/// Create a copy of UserStateUpdateUser
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? user = null,}) {
+  return _then(_UserStateUpdateUser(
+user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
+as User,
+  ));
+}
+
+/// Create a copy of UserStateUpdateUser
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$UserCopyWith<$Res> get user {
+  
+  return $UserCopyWith<$Res>(_self.user, (value) {
+    return _then(_self.copyWith(user: value));
+  });
+}
+}
+
+/// @nodoc
 mixin _$UserData {
 
- User? get user; UserProfile? get profile; bool get isError; bool get isLoading;
+ UserProfile? get profile; bool get isLoading;
 /// Create a copy of UserData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -557,16 +1089,16 @@ $UserDataCopyWith<UserData> get copyWith => _$UserDataCopyWithImpl<UserData>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserData&&(identical(other.user, user) || other.user == user)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.isError, isError) || other.isError == isError)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserData&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,user,profile,isError,isLoading);
+int get hashCode => Object.hash(runtimeType,profile,isLoading);
 
 @override
 String toString() {
-  return 'UserData(user: $user, profile: $profile, isError: $isError, isLoading: $isLoading)';
+  return 'UserData(profile: $profile, isLoading: $isLoading)';
 }
 
 
@@ -577,11 +1109,11 @@ abstract mixin class $UserDataCopyWith<$Res>  {
   factory $UserDataCopyWith(UserData value, $Res Function(UserData) _then) = _$UserDataCopyWithImpl;
 @useResult
 $Res call({
- User? user, UserProfile? profile, bool isError, bool isLoading
+ UserProfile? profile, bool isLoading
 });
 
 
-$UserCopyWith<$Res>? get user;$UserProfileCopyWith<$Res>? get profile;
+$UserProfileCopyWith<$Res>? get profile;
 
 }
 /// @nodoc
@@ -594,28 +1126,14 @@ class _$UserDataCopyWithImpl<$Res>
 
 /// Create a copy of UserData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? user = freezed,Object? profile = freezed,Object? isError = null,Object? isLoading = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? profile = freezed,Object? isLoading = null,}) {
   return _then(_self.copyWith(
-user: freezed == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
-as User?,profile: freezed == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
-as UserProfile?,isError: null == isError ? _self.isError : isError // ignore: cast_nullable_to_non_nullable
-as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
+profile: freezed == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
+as UserProfile?,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
 /// Create a copy of UserData
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$UserCopyWith<$Res>? get user {
-    if (_self.user == null) {
-    return null;
-  }
-
-  return $UserCopyWith<$Res>(_self.user!, (value) {
-    return _then(_self.copyWith(user: value));
-  });
-}/// Create a copy of UserData
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -709,10 +1227,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( User? user,  UserProfile? profile,  bool isError,  bool isLoading)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( UserProfile? profile,  bool isLoading)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserData() when $default != null:
-return $default(_that.user,_that.profile,_that.isError,_that.isLoading);case _:
+return $default(_that.profile,_that.isLoading);case _:
   return orElse();
 
 }
@@ -730,10 +1248,10 @@ return $default(_that.user,_that.profile,_that.isError,_that.isLoading);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( User? user,  UserProfile? profile,  bool isError,  bool isLoading)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( UserProfile? profile,  bool isLoading)  $default,) {final _that = this;
 switch (_that) {
 case _UserData():
-return $default(_that.user,_that.profile,_that.isError,_that.isLoading);case _:
+return $default(_that.profile,_that.isLoading);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -750,10 +1268,10 @@ return $default(_that.user,_that.profile,_that.isError,_that.isLoading);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( User? user,  UserProfile? profile,  bool isError,  bool isLoading)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( UserProfile? profile,  bool isLoading)?  $default,) {final _that = this;
 switch (_that) {
 case _UserData() when $default != null:
-return $default(_that.user,_that.profile,_that.isError,_that.isLoading);case _:
+return $default(_that.profile,_that.isLoading);case _:
   return null;
 
 }
@@ -765,12 +1283,10 @@ return $default(_that.user,_that.profile,_that.isError,_that.isLoading);case _:
 
 
 class _UserData implements UserData {
-  const _UserData({required this.user, required this.profile, this.isError = false, this.isLoading = true});
+  const _UserData({required this.profile, this.isLoading = true});
   
 
-@override final  User? user;
 @override final  UserProfile? profile;
-@override@JsonKey() final  bool isError;
 @override@JsonKey() final  bool isLoading;
 
 /// Create a copy of UserData
@@ -783,16 +1299,16 @@ _$UserDataCopyWith<_UserData> get copyWith => __$UserDataCopyWithImpl<_UserData>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserData&&(identical(other.user, user) || other.user == user)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.isError, isError) || other.isError == isError)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserData&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,user,profile,isError,isLoading);
+int get hashCode => Object.hash(runtimeType,profile,isLoading);
 
 @override
 String toString() {
-  return 'UserData(user: $user, profile: $profile, isError: $isError, isLoading: $isLoading)';
+  return 'UserData(profile: $profile, isLoading: $isLoading)';
 }
 
 
@@ -803,11 +1319,11 @@ abstract mixin class _$UserDataCopyWith<$Res> implements $UserDataCopyWith<$Res>
   factory _$UserDataCopyWith(_UserData value, $Res Function(_UserData) _then) = __$UserDataCopyWithImpl;
 @override @useResult
 $Res call({
- User? user, UserProfile? profile, bool isError, bool isLoading
+ UserProfile? profile, bool isLoading
 });
 
 
-@override $UserCopyWith<$Res>? get user;@override $UserProfileCopyWith<$Res>? get profile;
+@override $UserProfileCopyWith<$Res>? get profile;
 
 }
 /// @nodoc
@@ -820,29 +1336,15 @@ class __$UserDataCopyWithImpl<$Res>
 
 /// Create a copy of UserData
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? user = freezed,Object? profile = freezed,Object? isError = null,Object? isLoading = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? profile = freezed,Object? isLoading = null,}) {
   return _then(_UserData(
-user: freezed == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
-as User?,profile: freezed == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
-as UserProfile?,isError: null == isError ? _self.isError : isError // ignore: cast_nullable_to_non_nullable
-as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
+profile: freezed == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
+as UserProfile?,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
 
 /// Create a copy of UserData
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$UserCopyWith<$Res>? get user {
-    if (_self.user == null) {
-    return null;
-  }
-
-  return $UserCopyWith<$Res>(_self.user!, (value) {
-    return _then(_self.copyWith(user: value));
-  });
-}/// Create a copy of UserData
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')

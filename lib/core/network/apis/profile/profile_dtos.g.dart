@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'get_profile_response_dto.dart';
+part of 'profile_dtos.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -18,6 +18,20 @@ GetProfileResponseDto _$GetProfileResponseDtoFromJson(
 Map<String, dynamic> _$GetProfileResponseDtoToJson(
   GetProfileResponseDto instance,
 ) => <String, dynamic>{'data': instance.data, 'message': instance.message};
+
+EditProfileRequestDto _$EditProfileRequestDtoFromJson(
+  Map<String, dynamic> json,
+) => EditProfileRequestDto(
+  username: json['username'] as String,
+  description: json['description'] as String,
+);
+
+Map<String, dynamic> _$EditProfileRequestDtoToJson(
+  EditProfileRequestDto instance,
+) => <String, dynamic>{
+  'username': instance.username,
+  'description': instance.description,
+};
 
 GetProfileDataDto _$GetProfileDataDtoFromJson(Map<String, dynamic> json) =>
     GetProfileDataDto(

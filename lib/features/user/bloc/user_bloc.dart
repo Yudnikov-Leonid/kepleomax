@@ -11,12 +11,14 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     : _userRepository = userRepository,
       super(UserStateBase.initial()) {
     on<UserEventLoad>(_onLoad);
+    on<UserEventUpdateProfile>(_onUpdateProfile);
   }
 
   late UserData _userData = UserData.initial();
 
   void _onLoad(UserEventLoad event, Emitter<UserState> emit) async {
-    _userData = _userData.copyWith(isLoading: true, isError: false);
+    _userData = _userData.copyWith(isLoading: true);
+    emit(UserStateBase(userData: _userData));
 
     final userId = event.userId;
 
@@ -26,12 +28,35 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       profile = await _userRepository.getUserProfile(userId);
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      _userData = _userData.copyWith(
-        isError: true,
-      );
       emit(UserStateError(message: e.toString()));
     } finally {
-      _userData = _userData.copyWith(user: profile?.user, profile: profile, isLoading: false);
+      _userData = _userData.copyWith(profile: profile, isLoading: false);
+      emit(UserStateBase(userData: _userData));
+    }
+  }
+
+  void _onUpdateProfile(
+    UserEventUpdateProfile event,
+    Emitter<UserState> emit,
+  ) async {
+    if (event.newProfile == _userData.profile) {
+      return;
+    }
+
+    _userData = _userData.copyWith(isLoading: true);
+    emit(UserStateBase(userData: _userData));
+
+    try {
+      await _userRepository.updateProfile(event.newProfile);
+
+      _userData = _userData.copyWith(profile: event.newProfile);
+      emit(UserStateUpdateUser(user: event.newProfile.user));
+      emit(UserStateMessage(message: 'Changes saved'));
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
+      emit(UserStateError(message: e.toString()));
+    } finally {
+      _userData = _userData.copyWith(isLoading: false);
       emit(UserStateBase(userData: _userData));
     }
   }
@@ -44,4 +69,10 @@ class UserEventLoad implements UserEvent {
   final int userId;
 
   UserEventLoad({required this.userId});
+}
+
+class UserEventUpdateProfile implements UserEvent {
+  final UserProfile newProfile;
+
+  UserEventUpdateProfile({required this.newProfile});
 }

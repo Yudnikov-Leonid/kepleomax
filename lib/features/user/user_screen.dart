@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart' show BlocConsumer, BlocProvider;
+import 'package:flutter_bloc/flutter_bloc.dart'
+    show BlocConsumer, BlocProvider, ReadContext;
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/models/user.dart';
+import 'package:kepleomax/core/models/user_profile.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
@@ -61,6 +63,14 @@ class _UserScreenState extends State<UserScreen> {
           if (state is UserStateError) {
             context.showSnackBar(text: state.message, color: KlmColors.errorRed);
           }
+
+          if (state is UserStateMessage) {
+            context.showSnackBar(text: state.message, color: Colors.green, duration: const Duration(seconds: 2));
+          }
+
+          if (state is UserStateUpdateUser) {
+            AuthScope.updateUser(context, state.user);
+          }
         },
         builder: (context, state) {
           if (state is! UserStateBase) {
@@ -85,7 +95,14 @@ class _UserScreenState extends State<UserScreen> {
                 PopupMenuButton<String>(
                   onSelected: (value) async {
                     if (value == 'edit') {
-                      await _editProfile();
+                      if (state.userData.profile == null ||
+                          state.userData.isLoading)
+                        return;
+                      await _editProfile(state.userData.profile!, (newProfile) {
+                        context.read<UserBloc>().add(
+                          UserEventUpdateProfile(newProfile: newProfile),
+                        );
+                      });
                     } else if (value == 'logout') {
                       AuthScope.logout(context);
                     }
@@ -122,7 +139,7 @@ class _UserScreenState extends State<UserScreen> {
                 child: Text(
                   data.isLoading
                       ? '--------------'
-                      : data.user?.username ?? 'Failed to load username',
+                      : data.profile?.user.username ?? 'Failed to load username',
                   style: context.textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 26,
@@ -189,19 +206,23 @@ class _UserScreenState extends State<UserScreen> {
                       Text(
                         data.isLoading
                             ? '--------------'
-                            : data.user?.username ?? 'Failed to load username',
+                            : data.profile?.user.username ?? 'Failed to load username',
                         style: context.textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           fontSize: 26,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        state.userData.isLoading
-                            ? '-------------'
-                            : state.userData.profile?.description ??
-                                  'Failed to load description',
-                        style: context.textTheme.bodyLarge?.copyWith(),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          state.userData.isLoading
+                              ? '-------------'
+                              : state.userData.profile?.description ??
+                                    'Failed to load description',
+                          textAlign: TextAlign.center,
+                          style: context.textTheme.bodyLarge?.copyWith(),
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Padding(
@@ -264,7 +285,10 @@ class _UserScreenState extends State<UserScreen> {
     );
   }
 
-  Future<void> _editProfile() async {
+  Future<void> _editProfile(
+    UserProfile profile,
+    ValueChanged<UserProfile> onSave,
+  ) async {
     AppNavigator.canPop = false;
     await showModalBottomSheet(
       context: context,
@@ -274,7 +298,7 @@ class _UserScreenState extends State<UserScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => EditProfileBottomSheet(),
+      builder: (context) => EditProfileBottomSheet(profile: profile, onSave: onSave),
       isDismissible: false,
       //enableDrag: false,
     );

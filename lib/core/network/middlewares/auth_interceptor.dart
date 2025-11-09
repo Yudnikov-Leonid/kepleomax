@@ -77,7 +77,7 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
   }
 
   Future<void> _logout() async {
-    await _authController.logout(); // TODO
+    await _authController.logout();
     await _tokenProvider.clearAll();
   }
 

@@ -19,13 +19,21 @@ abstract class UserStateError with _$UserStateError implements UserState {
 }
 
 @freezed
+abstract class UserStateMessage with _$UserStateMessage implements UserState {
+  const factory UserStateMessage({required String message}) = _UserStateMessage;
+}
+
+@freezed
+abstract class UserStateUpdateUser with _$UserStateUpdateUser implements UserState {
+  const factory UserStateUpdateUser({required User user}) = _UserStateUpdateUser;
+}
+
+@freezed
 abstract class UserData with _$UserData {
   const factory UserData({
-    required User? user,
     required UserProfile? profile,
-    @Default(false) bool isError,
     @Default(true) bool isLoading,
   }) = _UserData;
 
-  factory UserData.initial() => UserData(user: null, profile: null);
+  factory UserData.initial() => UserData(profile: null);
 }

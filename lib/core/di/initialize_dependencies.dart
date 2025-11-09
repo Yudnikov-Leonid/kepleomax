@@ -7,6 +7,7 @@ import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
 import 'package:kepleomax/core/network/apis/profile/profile_api.dart';
+import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/middlewares/auth_interceptor.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
@@ -48,8 +49,10 @@ List<_InitializationStep> _steps = [
 
       // cause need dio here
       dependencies.authApi = AuthApi(dio, flavor.baseUrl);
+      dependencies.userApi = UserApi(dio, flavor.baseUrl);
       final authController = AuthController(
-        api: dependencies.authApi,
+        authApi: dependencies.authApi,
+        userApi: dependencies.userApi,
         tokenProvider: dependencies.tokenProvider,
         userProvider: UserProvider(prefs: dependencies.sharedPreferences),
       );

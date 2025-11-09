@@ -11,6 +11,7 @@ class KlmTextField extends StatefulWidget {
     this.isPassword = false,
     this.showErrors = false,
     this.validators = const [],
+    this.validator,
     this.maxLength,
     this.readOnly = false,
     this.multiline = false,
@@ -23,7 +24,8 @@ class KlmTextField extends StatefulWidget {
   final bool isPassword;
   final ValueChanged<String> onChanged;
   final bool showErrors;
-  final List<String? Function(String)> validators;
+  final List<String? Function(String)> validators; // for bool showError
+  final FormFieldValidator<String>? validator; // for formKey validation
   final int? maxLength;
   final bool readOnly;
   final bool multiline;
@@ -74,6 +76,7 @@ class _KlmTextFieldState extends State<KlmTextField> {
               setState(() {});
               widget.onChanged(value);
             },
+            validator: widget.validator,
             readOnly: widget.readOnly,
             decoration: InputDecoration(
               floatingLabelStyle: context.textTheme.bodySmall?.copyWith(

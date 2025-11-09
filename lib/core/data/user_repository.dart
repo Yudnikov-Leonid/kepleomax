@@ -1,6 +1,7 @@
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/models/user_profile.dart';
 import 'package:kepleomax/core/network/apis/profile/profile_api.dart';
+import 'package:kepleomax/core/network/apis/profile/profile_dtos.dart';
 
 class UserRepository {
   final ProfileApi _profileApi;
@@ -18,5 +19,18 @@ class UserRepository {
       user: User.fromDto(res.data.data!.user),
       description: res.data.data!.description,
     );
+  }
+
+  Future<void> updateProfile(UserProfile profile) async {
+    final res = await _profileApi.editProfile(
+      EditProfileRequestDto(
+        username: profile.user.username.trim(),
+        description: profile.description.trim(),
+      ),
+    );
+
+    if (res.response.statusCode != 200) {
+      throw Exception(res.data.message ?? "Failed to update profile");
+    }
   }
 }

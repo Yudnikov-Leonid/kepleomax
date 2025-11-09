@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kepleomax/core/network/common/user_dto.dart';
 
-part 'get_profile_response_dto.g.dart';
+part 'profile_dtos.g.dart';
 
 @JsonSerializable()
 class GetProfileResponseDto {
@@ -14,6 +14,19 @@ class GetProfileResponseDto {
       _$GetProfileResponseDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$GetProfileResponseDtoToJson(this);
+}
+
+@JsonSerializable()
+class EditProfileRequestDto {
+  final String username;
+  final String description;
+
+  EditProfileRequestDto({required this.username, required this.description});
+
+  factory EditProfileRequestDto.fromJson(Map<String, dynamic> json) =>
+      _$EditProfileRequestDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$EditProfileRequestDtoToJson(this);
 }
 
 @JsonSerializable()

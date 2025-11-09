@@ -51,8 +51,8 @@ class UiValidator {
     return null;
   }
 
-  static String? emptyValidator(String value) {
-    if (value.isEmpty) {
+  static String? emptyValidator(String? value) {
+    if (value == null || value.isEmpty) {
       return "This field can't be empty";
     }
 

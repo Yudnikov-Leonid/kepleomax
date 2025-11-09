@@ -22,6 +22,9 @@ class AuthScope extends StatefulWidget {
   static Future<void> logout(BuildContext context) =>
       controllerOf(context).logout();
 
+  static void updateUser(BuildContext context, User newUser) =>
+      controllerOf(context).updateUser(newUser);
+
   static Future<void> login(
     BuildContext context, {
     required String email,

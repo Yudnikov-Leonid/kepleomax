@@ -3,13 +3,15 @@ import 'package:kepleomax/core/auth/user_provider.dart';
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
 import 'package:kepleomax/core/network/apis/auth/login_dtos.dart';
 import 'package:kepleomax/core/network/apis/auth/logout_dtos.dart';
+import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
 
 import '../models/user.dart';
 
 class AuthController {
-  final AuthApi _api;
+  final AuthApi _authApi;
+  final UserApi _userApi;
   final TokenProvider _tokenProvider;
   final UserProvider _userProvider;
   User? _user;
@@ -19,10 +21,12 @@ class AuthController {
   final List<VoidCallback> _listeners = [];
 
   AuthController({
-    required AuthApi api,
+    required AuthApi authApi,
+    required UserApi userApi,
     required TokenProvider tokenProvider,
     required UserProvider userProvider,
-  }) : _api = api,
+  }) : _authApi = authApi,
+       _userApi = userApi,
        _tokenProvider = tokenProvider,
        _userProvider = userProvider;
 
@@ -30,27 +34,31 @@ class AuthController {
     required String email,
     required String password,
   }) async {
-    final res = await _api.register(
+    final res = await _authApi.register(
       data: LoginRequestDto(email: email, password: password),
     );
 
     if (res.response.statusCode != 201 && res.response.statusCode != 200) {
-      throw Exception(res.data.message ?? 'Failed to register a user: ${res.response.statusCode}');
+      throw Exception(
+        res.data.message ?? 'Failed to register a user: ${res.response.statusCode}',
+      );
     }
   }
 
   Future<void> login({required String email, required String password}) async {
-    final res = await _api.login(
+    final res = await _authApi.login(
       data: LoginRequestDto(email: email, password: password),
     );
 
     if (res.response.statusCode != 200) {
-      throw Exception(res.data.message ?? 'Failed to logout: ${res.response.statusCode}');
+      throw Exception(
+        res.data.message ?? 'Failed to logout: ${res.response.statusCode}',
+      );
     }
 
     _tokenProvider.saveAccessToken(res.data.data!.accessToken);
     _tokenProvider.saveRefreshToken(res.data.data!.refreshToken);
-    _updateUser(
+    updateUser(
       User(
         id: res.data.data!.user.id,
         email: res.data.data!.user.email,
@@ -64,25 +72,39 @@ class AuthController {
       final refreshToken = await _tokenProvider.getRefreshToken();
       if (refreshToken != null) {
         try {
-          _api.logout(data: LogoutRequestDto(refreshToken: refreshToken));
+          _authApi.logout(data: LogoutRequestDto(refreshToken: refreshToken));
         } catch (e, st) {
           logger.e(e, stackTrace: st);
         }
       }
-      await _tokenProvider.clearAll();
     } catch (e, st) {
       logger.e(e, stackTrace: st);
+    } finally {
+      updateUser(null);
+      await _tokenProvider.clearAll();
     }
-
-    _updateUser(null);
   }
 
   Future<void> init() async {
     final user = await _userProvider.getSavedUser();
     _user = user;
+
+    if (_user == null) return;
+
+    Future(() async {
+      try {
+        final res = await _userApi.getUser(userId: _user!.id);
+        if (res.response.statusCode != 200) {
+          throw Exception(res.data.message ?? 'Failed to get user');
+        }
+        updateUser(User.fromDto(res.data.data!));
+      } catch (e, st) {
+        logger.e(e, stackTrace: st);
+      }
+    });
   }
 
-  void _updateUser(User? newUser) {
+  void updateUser(User? newUser) {
     _user = newUser;
     _userProvider.setNewUser(newUser);
     for (final listener in _listeners) {
