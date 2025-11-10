@@ -5,6 +5,7 @@ import 'flavor.dart';
 void main() => app.main(
   flavor: const Flavor(
     baseUrl: 'http://10.0.2.2:13000',
+    imageUrl: 'http://10.0.2.2:13000/api/files/',
     type: FlavorType.develop,
   ),
 );

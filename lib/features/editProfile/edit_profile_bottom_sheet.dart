@@ -1,9 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:kepleomax/core/models/user_profile.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_textfield.dart';
 import 'package:kepleomax/core/presentation/validators.dart';
+import 'package:kepleomax/main.dart';
+
+import '../../core/presentation/user_image.dart';
 
 class EditProfileBottomSheet extends StatefulWidget {
   const EditProfileBottomSheet({
@@ -24,10 +30,14 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
   final _descriptionController = TextEditingController();
   bool _isClosing = false;
   bool _isButtonPressed = false;
+  bool _isImageEdited = false;
+  String? _imageUrl;
 
   @override
   void initState() {
-    _nameController.text = widget.profile.user.username;
+    final user = widget.profile.user;
+    _imageUrl = user.profileImage.isEmpty ? null : user.profileImage;
+    _nameController.text = user.username;
     _descriptionController.text = widget.profile.description;
     super.initState();
   }
@@ -52,12 +62,18 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
                         Navigator.of(context).pop();
                       },
               ),
-              Container(
+              SizedBox(
                 height: 120,
                 width: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.grey,
+                child: ClipOval(
+                  child: _imageUrl == null
+                      ? DefaultUserIcon()
+                      : _isImageEdited
+                      ? Image.file(File(_imageUrl!), fit: BoxFit.cover)
+                      : Image.network(
+                          flavor.imageUrl + _imageUrl!,
+                          fit: BoxFit.cover,
+                        ),
                 ),
               ),
               _Button(
@@ -84,6 +100,9 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
                           description: _descriptionController.text,
                           user: oldProfile.user.copyWith(
                             username: _nameController.text,
+                            profileImage: _isImageEdited
+                                ? _imageUrl ?? ''
+                                : oldProfile.user.profileImage,
                           ),
                         );
                         widget.onSave(newProfile);
@@ -110,6 +129,32 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
             onChanged: (newName) {},
             showErrors: _isButtonPressed,
             readOnly: _isClosing,
+          ),
+          TextButton(
+            onPressed: () async {
+              final picker = ImagePicker();
+              final image = await picker.pickImage(
+                source: ImageSource.gallery,
+                imageQuality: 50,
+              );
+
+              if (image != null) {
+                setState(() {
+                  _imageUrl = image.path;
+                  _isImageEdited = true;
+                });
+              }
+            },
+            child: Text('Edit picture'),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _imageUrl = null;
+                _isImageEdited = true;
+              });
+            },
+            child: Text('Delete picture'),
           ),
           const SizedBox(height: 200),
         ],

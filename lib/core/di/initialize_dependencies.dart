@@ -6,6 +6,7 @@ import 'package:kepleomax/core/auth/user_provider.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
+import 'package:kepleomax/core/network/apis/files/files_api.dart';
 import 'package:kepleomax/core/network/apis/profile/profile_api.dart';
 import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/middlewares/auth_interceptor.dart';
@@ -79,11 +80,19 @@ List<_InitializationStep> _steps = [
       dependencies.dio = dio;
     },
   ),
-  
-  _InitializationStep(name: 'userRepository', call: (dependencies) {
-    dependencies.profileApi = ProfileApi(dependencies.dio, flavor.baseUrl);
-    dependencies.userRepository = UserRepository(profileApi: dependencies.profileApi);
-  })
+
+  _InitializationStep(
+    name: 'apis, repositories',
+    call: (dependencies) {
+      dependencies.profileApi = ProfileApi(dependencies.dio, flavor.baseUrl);
+      dependencies.filesApi = FilesApi(dependencies.dio, flavor.baseUrl);
+
+      dependencies.userRepository = UserRepository(
+        profileApi: dependencies.profileApi,
+        filesApi: dependencies.filesApi,
+      );
+    },
+  ),
 ];
 
 class _InitializationStep {

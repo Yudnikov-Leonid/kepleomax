@@ -7,8 +7,15 @@ class UserDto {
   final int id;
   final String email;
   final String username;
+  @JsonKey(name: 'profile_image')
+  final String profileImage;
 
-  UserDto({required this.id, required this.email, required this.username});
+  UserDto({
+    required this.id,
+    required this.email,
+    required this.username,
+    required this.profileImage,
+  });
 
   factory UserDto.fromJson(Map<String, dynamic> json) => _$UserDtoFromJson(json);
 

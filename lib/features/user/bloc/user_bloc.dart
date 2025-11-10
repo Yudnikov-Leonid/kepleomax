@@ -8,8 +8,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   final UserRepository _userRepository;
 
   UserBloc({required UserRepository userRepository})
-    : _userRepository = userRepository,
-      super(UserStateBase.initial()) {
+      : _userRepository = userRepository,
+        super(UserStateBase.initial()) {
     on<UserEventLoad>(_onLoad);
     on<UserEventUpdateProfile>(_onUpdateProfile);
   }
@@ -35,10 +35,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
   }
 
-  void _onUpdateProfile(
-    UserEventUpdateProfile event,
-    Emitter<UserState> emit,
-  ) async {
+  void _onUpdateProfile(UserEventUpdateProfile event,
+      Emitter<UserState> emit,) async {
     if (event.newProfile == _userData.profile) {
       return;
     }
@@ -47,10 +45,14 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     emit(UserStateBase(userData: _userData));
 
     try {
-      await _userRepository.updateProfile(event.newProfile);
+      final newProfile = await _userRepository.updateProfile(
+        event.newProfile,
+        updateImage: _userData.profile!.user.profileImage !=
+            event.newProfile.user.profileImage,
+      );
 
-      _userData = _userData.copyWith(profile: event.newProfile);
-      emit(UserStateUpdateUser(user: event.newProfile.user));
+      _userData = _userData.copyWith(profile: newProfile);
+      emit(UserStateUpdateUser(user: newProfile.user));
       emit(UserStateMessage(message: 'Changes saved'));
     } catch (e, st) {
       logger.e(e, stackTrace: st);

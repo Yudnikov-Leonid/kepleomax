@@ -8,6 +8,7 @@ import 'package:kepleomax/core/models/user_profile.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
+import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
 import 'package:kepleomax/features/editProfile/edit_profile_bottom_sheet.dart';
 import 'package:kepleomax/features/user/bloc/user_bloc.dart';
@@ -65,7 +66,11 @@ class _UserScreenState extends State<UserScreen> {
           }
 
           if (state is UserStateMessage) {
-            context.showSnackBar(text: state.message, color: Colors.green, duration: const Duration(seconds: 2));
+            context.showSnackBar(
+              text: state.message,
+              color: Colors.green,
+              duration: const Duration(seconds: 2),
+            );
           }
 
           if (state is UserStateUpdateUser) {
@@ -95,8 +100,7 @@ class _UserScreenState extends State<UserScreen> {
                 PopupMenuButton<String>(
                   onSelected: (value) async {
                     if (value == 'edit') {
-                      if (state.userData.profile == null ||
-                          state.userData.isLoading)
+                      if (state.userData.profile == null || state.userData.isLoading)
                         return;
                       await _editProfile(state.userData.profile!, (newProfile) {
                         context.read<UserBloc>().add(
@@ -186,13 +190,10 @@ class _UserScreenState extends State<UserScreen> {
                         index: 0,
                         highlightColor: Colors.red,
                         child: Center(
-                          child: Container(
-                            height: 130,
-                            width: 130,
-                            decoration: BoxDecoration(
-                              color: Colors.grey,
-                              shape: BoxShape.circle,
-                            ),
+                          child: UserImage(
+                            url: data.profile?.user.profileImage,
+                            size: 130,
+                            isLoading: data.isLoading,
                           ),
                         ),
                       ),
@@ -206,24 +207,29 @@ class _UserScreenState extends State<UserScreen> {
                       Text(
                         data.isLoading
                             ? '--------------'
-                            : data.profile?.user.username ?? 'Failed to load username',
+                            : data.profile?.user.username ??
+                                  'Failed to load username',
                         style: context.textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           fontSize: 26,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(
-                          state.userData.isLoading
-                              ? '-------------'
-                              : state.userData.profile?.description ??
-                                    'Failed to load description',
-                          textAlign: TextAlign.center,
-                          style: context.textTheme.bodyLarge?.copyWith(),
+                      if (state.userData.isLoading ||
+                          (state.userData.profile?.description.isNotEmpty ??
+                              false)) ...[
+                        const SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Text(
+                            state.userData.isLoading
+                                ? '-------------'
+                                : state.userData.profile?.description ??
+                                      'Failed to load description',
+                            textAlign: TextAlign.center,
+                            style: context.textTheme.bodyLarge?.copyWith(),
+                          ),
                         ),
-                      ),
+                      ],
                       const SizedBox(height: 16),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -264,7 +270,12 @@ class _UserScreenState extends State<UserScreen> {
                       const SizedBox(height: 10),
                       PostWidget(
                         post: Post(
-                          user: User(id: 0, email: '', username: '---------'),
+                          user: User(
+                            id: 0,
+                            email: '',
+                            username: '---------',
+                            profileImage: '',
+                          ),
                           content:
                               "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
                           likesCount: 22,

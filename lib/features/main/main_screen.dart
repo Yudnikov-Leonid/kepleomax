@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/features/feed/feed_navigator.dart';
+import 'package:kepleomax/features/menu/menu_navigator.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -15,8 +16,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final _pages = [
     const FeedNavigator(),
-    Container(color: Colors.green,)
-    //const MenuNavigator(),
+    const MenuNavigator(),
   ];
 
   @override

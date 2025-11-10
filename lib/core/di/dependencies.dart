@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
+import 'package:kepleomax/core/network/apis/files/files_api.dart';
 import 'package:kepleomax/core/network/apis/profile/profile_api.dart';
 import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
@@ -21,6 +22,7 @@ class Dependencies {
   late AuthApi authApi;
   late UserApi userApi;
   late ProfileApi profileApi;
+  late FilesApi filesApi;
 
   Widget inject({required Widget child}) =>
       InheritedDependencies(dependencies: this, child: child);

@@ -11,10 +11,15 @@ abstract class User with _$User {
     required int id,
     required String email,
     required String username,
+    required String profileImage,
   }) = _User;
 
-  factory User.fromDto(UserDto dto) =>
-      User(id: dto.id, email: dto.email, username: dto.username);
+  factory User.fromDto(UserDto dto) => User(
+    id: dto.id,
+    email: dto.email,
+    username: dto.username,
+    profileImage: dto.profileImage,
+  );
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 }

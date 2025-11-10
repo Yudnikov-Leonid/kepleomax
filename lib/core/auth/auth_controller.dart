@@ -58,13 +58,7 @@ class AuthController {
 
     _tokenProvider.saveAccessToken(res.data.data!.accessToken);
     _tokenProvider.saveRefreshToken(res.data.data!.refreshToken);
-    updateUser(
-      User(
-        id: res.data.data!.user.id,
-        email: res.data.data!.user.email,
-        username: res.data.data!.user.username,
-      ),
-    );
+    updateUser(User.fromDto(res.data.data!.user));
   }
 
   Future<void> logout() async {

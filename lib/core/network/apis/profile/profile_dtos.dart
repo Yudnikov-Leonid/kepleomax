@@ -20,8 +20,13 @@ class GetProfileResponseDto {
 class EditProfileRequestDto {
   final String username;
   final String description;
+  final String profileImage;
 
-  EditProfileRequestDto({required this.username, required this.description});
+  EditProfileRequestDto({
+    required this.username,
+    required this.description,
+    required this.profileImage,
+  });
 
   factory EditProfileRequestDto.fromJson(Map<String, dynamic> json) =>
       _$EditProfileRequestDtoFromJson(json);
