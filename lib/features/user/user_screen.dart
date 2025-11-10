@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart'
-    show BlocConsumer, BlocProvider, ReadContext;
+    show BlocConsumer, BlocProvider, ReadContext, BlocBuilder;
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/models/user_profile.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
+import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
@@ -32,11 +33,13 @@ class UserScreen extends StatefulWidget {
 class _UserScreenState extends State<UserScreen> {
   late final _scrollController = AutoScrollController(
     viewportBoundaryGetter: () =>
-        Rect.fromLTRB(0, MediaQuery.of(context).viewPadding.top, 0, 0),
+        Rect.fromLTRB(0, MediaQuery
+            .of(context)
+            .viewPadding
+            .top, 0, 0),
   );
 
   void _onScrolled() {
-    //print(_scrollController.offset);
     setState(() {});
   }
 
@@ -57,8 +60,10 @@ class _UserScreenState extends State<UserScreen> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) =>
-          UserBloc(userRepository: Dependencies.of(context).userRepository)
-            ..add(UserEventLoad(userId: widget.userId)),
+      UserBloc(userRepository: Dependencies
+          .of(context)
+          .userRepository)
+        ..add(UserEventLoad(userId: widget.userId)),
       child: BlocConsumer<UserBloc, UserState>(
         listener: (context, state) {
           if (state is UserStateError) {
@@ -82,195 +87,140 @@ class _UserScreenState extends State<UserScreen> {
             return Scaffold(appBar: AppBar(leading: BackButton()));
           }
 
-          final data = state.userData;
           return Scaffold(
             extendBodyBehindAppBar: true,
-            appBar: AppBar(
-              backgroundColor: Colors.white.withAlpha(
-                !_scrollController.hasClients
-                    ? 0
-                    : _scrollController.offset
-                          .remap(0, 90, 0, 255)
-                          .clamp(0, 255)
-                          .toInt(),
-              ),
-              surfaceTintColor: Colors.white,
-              leading: KlmBackButton(),
-              actions: [
-                if (!state.userData.isLoading &&
-                    (state.userData.profile?.user.isCurrent ?? false))
-                  PopupMenuButton<String>(
-                    onSelected: (value) async {
-                      if (value == 'edit') {
-                        if (state.userData.profile == null ||
-                            state.userData.isLoading)
-                          return;
-                        await _editProfile(state.userData.profile!, (newProfile) {
-                          context.read<UserBloc>().add(
-                            UserEventUpdateProfile(newProfile: newProfile),
-                          );
-                        });
-                      } else if (value == 'logout') {
-                        AuthScope.logout(context);
-                      }
-                    },
-                    itemBuilder: (context) => <PopupMenuEntry<String>>[
-                      PopupMenuItem<String>(
-                        value: 'edit',
-                        child: Text(
-                          'Edit profile',
-                          style: context.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      PopupMenuItem<String>(
-                        value: 'logout',
-                        child: Text(
-                          'Logout',
-                          style: context.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: Colors.red,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
-              centerTitle: true,
-              title: Opacity(
-                opacity: !_scrollController.hasClients
-                    ? 0
-                    : _scrollController.offset.remap(110, 130, 0, 1).clamp(0, 1),
-                child: Text(
-                  data.isLoading
-                      ? '--------------'
-                      : data.profile?.user.username ?? 'Failed to load username',
-                  style: context.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 26,
-                  ),
-                ),
-              ),
-            ),
-            body: NotificationListener<ScrollNotification>(
-              onNotification: (ScrollNotification notification) {
-                if (notification is ScrollStartNotification) {
-                  // print('scroll start');
-                } else if (notification is ScrollEndNotification) {
-                  //print('scroll end, offset: ${_scrollController.offset}');
-                  final offset = _scrollController.offset;
-                  if (offset > 0 && offset <= 75) {
-                    //print('scroll to index 0');
-                    _scrollController.scrollToIndex(
-                      0,
-                      preferPosition: AutoScrollPosition.end,
-                    );
-                  } else if (offset > 75 && offset < 125) {
-                    //print('scroll to index 1');
-                    _scrollController.scrollToIndex(
-                      1,
-                      preferPosition: AutoScrollPosition.begin,
-                    );
-                  }
-                }
-                return false;
-              },
-              child: SingleChildScrollView(
-                key: Key('scroll_profile'),
-                padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).viewPadding.top,
-                ),
-                controller: _scrollController,
-                child: Skeletonizer(
-                  enabled: state.userData.isLoading,
-                  child: Column(
-                    children: [
-                      AutoScrollTag(
-                        key: Key('top_scroll_tag'),
-                        controller: _scrollController,
-                        index: 0,
-                        highlightColor: Colors.red,
-                        child: Center(
-                          child: UserImage(
-                            url: data.profile?.user.profileImage,
-                            size: 130,
-                            isLoading: data.isLoading,
-                          ),
-                        ),
-                      ),
-                      AutoScrollTag(
-                        key: Key('bottom_of_username_scroll_tag'),
-                        controller: _scrollController,
-                        index: 1,
-                        highlightColor: Colors.red,
-                        child: const SizedBox(height: 16),
-                      ),
-                      Text(
-                        data.isLoading
-                            ? '--------------'
-                            : data.profile?.user.username ??
-                                  'Failed to load username',
-                        style: context.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 26,
-                        ),
-                      ),
-                      if (state.userData.isLoading ||
-                          (state.userData.profile?.description.isNotEmpty ??
-                              false)) ...[
-                        const SizedBox(height: 8),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Text(
-                            state.userData.isLoading
-                                ? '-------------'
-                                : state.userData.profile?.description ??
-                                      'Failed to load description',
-                            textAlign: TextAlign.center,
-                            style: context.textTheme.bodyLarge?.copyWith(),
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 16),
-                      if (!state.userData.isLoading &&
-                          (state.userData.profile?.user.isCurrent ?? false)) ...[
-                        _postButton(),
-                        const SizedBox(height: 10),
-                      ],
-                      Divider(thickness: 5, color: Colors.grey.shade300),
-                      const SizedBox(height: 10),
-                      PostWidget(
-                        post: Post(
-                          user: User(
-                            id: 0,
-                            email: '',
-                            username: '---------',
-                            profileImage: '',
-                            isCurrent: false,
-                          ),
-                          content:
-                              "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                          likesCount: 22,
-                          createdAt: 1762682274000,
-                          updatedAt: 1762682474000,
-                        ),
-                      ),
-                      const SizedBox(height: 1000),
-                      const Text('END'),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            appBar: _AppBar(scrollController: _scrollController),
+            body: _Body(
+                scrollController: _scrollController, scrollPadding: MediaQuery
+                .of(context)
+                .viewPadding
+                .top),
           );
         },
       ),
     );
   }
+}
 
-  Widget _postButton() {
+class _Body extends StatelessWidget {
+  const _Body(
+      {required AutoScrollController scrollController, required double scrollPadding})
+      : _scrollController = scrollController,
+        _scrollPadding = scrollPadding;
+
+  final AutoScrollController _scrollController;
+  // MediaQuery.of(context).viewPadding.top inside this widget will be 0
+  final double _scrollPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<UserBloc, UserState>(
+      builder: (context, state) {
+        if (state is! UserStateBase) return SizedBox();
+
+        final data = state.userData;
+        return NotificationListener<ScrollNotification>(
+          onNotification: _onScrollNotification,
+          child: SingleChildScrollView(
+            key: Key('scroll_profile'),
+            padding: EdgeInsets.only(top: _scrollPadding),
+            controller: _scrollController,
+            child: Skeletonizer(
+              enabled: data.isLoading,
+              child: Column(
+                children: [
+                  AutoScrollTag(
+                    key: Key('top_scroll_tag'),
+                    controller: _scrollController,
+                    index: 0,
+                    highlightColor: Colors.red,
+                    child: Center(
+                      child: UserImage(
+                        url: data.profile?.user.profileImage,
+                        size: 130,
+                        isLoading: data.isLoading,
+                      ),
+                    ),
+                  ),
+                  AutoScrollTag(
+                    key: Key('bottom_of_username_scroll_tag'),
+                    controller: _scrollController,
+                    index: 1,
+                    highlightColor: Colors.red,
+                    child: const SizedBox(height: 16),
+                  ),
+                  Text(
+                    data.isLoading
+                        ? '--------------'
+                        : data.profile?.user.username ?? 'Failed to load username',
+                    style: context.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 26,
+                    ),
+                  ),
+                  if (data.isLoading ||
+                      (data.profile?.description.isNotEmpty ?? false)) ...[
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        data.isLoading
+                            ? '-------------'
+                            : data.profile?.description ??
+                            'Failed to load description',
+                        textAlign: TextAlign.center,
+                        style: context.textTheme.bodyLarge?.copyWith(),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  if (!data.isLoading &&
+                      (data.profile?.user.isCurrent ?? false)) ...[
+                    _postButton(context),
+                    const SizedBox(height: 10),
+                  ],
+                  Divider(thickness: 5, color: Colors.grey.shade300),
+                  const SizedBox(height: 10),
+                  PostWidget(
+                    post: Post(
+                      user: User(
+                        id: 0,
+                        email: '',
+                        username: '---------',
+                        profileImage: '',
+                        isCurrent: false,
+                      ),
+                      content:
+                      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+                      likesCount: 22,
+                      createdAt: 1762682274000,
+                      updatedAt: 1762682474000,
+                    ),
+                  ),
+                  const SizedBox(height: 1000),
+                  const Text('END'),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification is ScrollEndNotification) {
+      final offset = _scrollController.offset;
+      if (offset > 0 && offset <= 75) {
+        _scrollController.scrollToIndex(0, preferPosition: AutoScrollPosition.end);
+      } else if (offset > 75 && offset < 125) {
+        _scrollController.scrollToIndex(1, preferPosition: AutoScrollPosition.begin);
+      }
+    }
+    return false;
+  }
+
+  Widget _postButton(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
@@ -281,7 +231,12 @@ class _UserScreenState extends State<UserScreen> {
           borderRadius: BorderRadius.circular(20),
         ),
         child: TextButton(
-          onPressed: () {},
+          onPressed: () {
+            AppNavigator.withKeyOf(
+              context,
+              mainNavigatorKey,
+            )!.push(PostEditorPage());
+          },
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -301,11 +256,95 @@ class _UserScreenState extends State<UserScreen> {
       ),
     );
   }
+}
 
-  Future<void> _editProfile(
-    UserProfile profile,
-    ValueChanged<UserProfile> onSave,
-  ) async {
+class _AppBar extends StatelessWidget implements PreferredSizeWidget {
+  const _AppBar({required AutoScrollController scrollController})
+      : _scrollController = scrollController;
+
+  final AutoScrollController _scrollController;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<UserBloc, UserState>(
+      builder: (context, state) {
+        if (state is! UserStateBase) return SizedBox();
+
+        final data = state.userData;
+        return AppBar(
+          backgroundColor: Colors.white.withAlpha(
+            !_scrollController.hasClients
+                ? 0
+                : _scrollController.offset
+                .remap(0, 90, 0, 255)
+                .clamp(0, 255)
+                .toInt(),
+          ),
+          surfaceTintColor: Colors.white,
+          leading: KlmBackButton(),
+          actions: [
+            if (!data.isLoading && (data.profile?.user.isCurrent ?? false))
+              PopupMenuButton<String>(
+                onSelected: (value) async {
+                  if (value == 'edit') {
+                    if (data.profile == null || data.isLoading) return;
+                    await _editProfile(context, data.profile!, (newProfile) {
+                      context.read<UserBloc>().add(
+                        UserEventUpdateProfile(newProfile: newProfile),
+                      );
+                    });
+                  } else if (value == 'logout') {
+                    AuthScope.logout(context);
+                  }
+                },
+                itemBuilder: (context) =>
+                <PopupMenuEntry<String>>[
+                  PopupMenuItem<String>(
+                    value: 'edit',
+                    child: Text(
+                      'Edit profile',
+                      style: context.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'logout',
+                    child: Text(
+                      'Logout',
+                      style: context.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+          centerTitle: true,
+          title: Opacity(
+            opacity: !_scrollController.hasClients
+                ? 0
+                : _scrollController.offset.remap(110, 130, 0, 1).clamp(0, 1),
+            child: Text(
+              data.isLoading
+                  ? '--------------'
+                  : data.profile?.user.username ?? 'Failed to load username',
+              style: context.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 26,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _editProfile(BuildContext context,
+      UserProfile profile,
+      ValueChanged<UserProfile> onSave,) async {
     AppNavigator.canPop = false;
     await showModalBottomSheet(
       context: context,
@@ -321,4 +360,7 @@ class _UserScreenState extends State<UserScreen> {
     );
     AppNavigator.canPop = true;
   }
+
+  @override
+  Size get preferredSize => Size.fromHeight(kToolbarHeight);
 }

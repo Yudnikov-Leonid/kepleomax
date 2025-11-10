@@ -32,9 +32,10 @@ class KlmAppBar extends AppBar {
 }
 
 class KlmBackButton extends StatelessWidget {
-  const KlmBackButton({this.onPressed, super.key});
+  const KlmBackButton({this.onPressed, this.icon, super.key});
 
   final VoidCallback? onPressed;
+  final Widget? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +45,7 @@ class KlmBackButton extends StatelessWidget {
           () {
             AppNavigator.pop(context);
           },
-      icon: Icon(Icons.arrow_back_ios_new),
+      icon: icon ?? Icon(Icons.arrow_back_ios_new),
     );
   }
 }
