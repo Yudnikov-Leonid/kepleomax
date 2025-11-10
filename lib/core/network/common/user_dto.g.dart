@@ -11,6 +11,7 @@ UserDto _$UserDtoFromJson(Map<String, dynamic> json) => UserDto(
   email: json['email'] as String,
   username: json['username'] as String,
   profileImage: json['profile_image'] as String,
+  isCurrent: json['is_current'] as bool,
 );
 
 Map<String, dynamic> _$UserDtoToJson(UserDto instance) => <String, dynamic>{
@@ -18,4 +19,5 @@ Map<String, dynamic> _$UserDtoToJson(UserDto instance) => <String, dynamic>{
   'email': instance.email,
   'username': instance.username,
   'profile_image': instance.profileImage,
+  'is_current': instance.isCurrent,
 };

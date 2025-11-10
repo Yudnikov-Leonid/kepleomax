@@ -12,6 +12,7 @@ abstract class User with _$User {
     required String email,
     required String username,
     required String profileImage,
+    required bool isCurrent,
   }) = _User;
 
   factory User.fromDto(UserDto dto) => User(
@@ -19,6 +20,7 @@ abstract class User with _$User {
     email: dto.email,
     username: dto.username,
     profileImage: dto.profileImage,
+    isCurrent: dto.isCurrent
   );
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);

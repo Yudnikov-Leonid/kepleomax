@@ -97,43 +97,46 @@ class _UserScreenState extends State<UserScreen> {
               surfaceTintColor: Colors.white,
               leading: KlmBackButton(),
               actions: [
-                PopupMenuButton<String>(
-                  onSelected: (value) async {
-                    if (value == 'edit') {
-                      if (state.userData.profile == null || state.userData.isLoading)
-                        return;
-                      await _editProfile(state.userData.profile!, (newProfile) {
-                        context.read<UserBloc>().add(
-                          UserEventUpdateProfile(newProfile: newProfile),
-                        );
-                      });
-                    } else if (value == 'logout') {
-                      AuthScope.logout(context);
-                    }
-                  },
-                  itemBuilder: (context) => <PopupMenuEntry<String>>[
-                    PopupMenuItem<String>(
-                      value: 'edit',
-                      child: Text(
-                        'Edit profile',
-                        style: context.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
+                if (!state.userData.isLoading &&
+                    (state.userData.profile?.user.isCurrent ?? false))
+                  PopupMenuButton<String>(
+                    onSelected: (value) async {
+                      if (value == 'edit') {
+                        if (state.userData.profile == null ||
+                            state.userData.isLoading)
+                          return;
+                        await _editProfile(state.userData.profile!, (newProfile) {
+                          context.read<UserBloc>().add(
+                            UserEventUpdateProfile(newProfile: newProfile),
+                          );
+                        });
+                      } else if (value == 'logout') {
+                        AuthScope.logout(context);
+                      }
+                    },
+                    itemBuilder: (context) => <PopupMenuEntry<String>>[
+                      PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Text(
+                          'Edit profile',
+                          style: context.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'logout',
-                      child: Text(
-                        'Logout',
-                        style: context.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: Colors.red,
+                      PopupMenuItem<String>(
+                        value: 'logout',
+                        child: Text(
+                          'Logout',
+                          style: context.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: Colors.red,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
               ],
               centerTitle: true,
               title: Opacity(
@@ -231,41 +234,11 @@ class _UserScreenState extends State<UserScreen> {
                         ),
                       ],
                       const SizedBox(height: 16),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Container(
-                          height: 50,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: KlmColors.primaryColor,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: TextButton(
-                            onPressed: () {},
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.add,
-                                  weight: 4,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                                const SizedBox(width: 2),
-                                Text(
-                                  'Post',
-                                  style: context.textTheme.bodyLarge?.copyWith(
-                                    fontSize: 20,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
+                      if (!state.userData.isLoading &&
+                          (state.userData.profile?.user.isCurrent ?? false)) ...[
+                        _postButton(),
+                        const SizedBox(height: 10),
+                      ],
                       Divider(thickness: 5, color: Colors.grey.shade300),
                       const SizedBox(height: 10),
                       PostWidget(
@@ -275,6 +248,7 @@ class _UserScreenState extends State<UserScreen> {
                             email: '',
                             username: '---------',
                             profileImage: '',
+                            isCurrent: false,
                           ),
                           content:
                               "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
@@ -292,6 +266,38 @@ class _UserScreenState extends State<UserScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _postButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        height: 50,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: KlmColors.primaryColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: TextButton(
+          onPressed: () {},
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.add, weight: 4, color: Colors.white, size: 24),
+              const SizedBox(width: 2),
+              Text(
+                'Post',
+                style: context.textTheme.bodyLarge?.copyWith(
+                  fontSize: 20,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
