@@ -2,15 +2,23 @@ import 'dart:io';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:kepleomax/features/post/bloc/post_editor_state.dart';
+import 'package:kepleomax/core/data/files_repository.dart';
+import 'package:kepleomax/core/data/post_repository.dart';
+import 'package:kepleomax/features/post_editor/bloc/post_editor_state.dart';
 import 'package:kepleomax/main.dart';
 
 const imagesCountLimit = 5;
 
 class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
   late PostEditorData _data = PostEditorData.initial();
+  final PostRepository _repository;
+  final FilesRepository _filesRepository;
 
-  PostEditorBloc() : super(PostEditorStateBase.initial()) {
+  PostEditorBloc(
+      {required PostRepository postRepository, required FilesRepository filesRepository})
+      : _repository = postRepository,
+        _filesRepository = filesRepository,
+        super(PostEditorStateBase.initial()) {
     on<PostEditorEventPost>(_onPost);
     on<PostEditorEventEditText>(_onEditText);
     on<PostEditorEventAddPhotos>(_onAddPhotos);
@@ -25,6 +33,27 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
 
     _data = _data.copyWith(isLoading: true);
     emit(PostEditorStateBase(data: _data));
+
+    try {
+      final imagesList = <String>[];
+      for (final image in _data.images) {
+        if (image.url != null) {
+          imagesList.add(image.url!);
+        } else {
+          final url = await _filesRepository.uploadFile(image.file!.path);
+          imagesList.add(url);
+        }
+      }
+
+      await _repository.createNewPost(content: _data.text, images: imagesList);
+
+      emit(const PostEditorStateExit());
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
+      emit(PostEditorStateError(message: e.toString()));
+      _data = _data.copyWith(isLoading: false);
+      emit(PostEditorStateBase(data: _data));
+    }
   }
 
   void _onEditText(PostEditorEventEditText event, Emitter<PostEditorState> emit) {
@@ -32,10 +61,8 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
     emit(PostEditorStateBase(data: _data));
   }
 
-  void _onAddPhotos(
-    PostEditorEventAddPhotos event,
-    Emitter<PostEditorState> emit,
-  ) async {
+  void _onAddPhotos(PostEditorEventAddPhotos event,
+      Emitter<PostEditorState> emit,) async {
     if (_data.images.length >= imagesCountLimit) {
       emit(const PostEditorStateError(message: 'Photo limit reached'));
       emit(PostEditorStateBase(data: _data));
@@ -44,7 +71,6 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
 
     try {
       final maxCount = imagesCountLimit - _data.images.length;
-      print('maxCount: $maxCount');
 
       List<XFile> images;
       if (maxCount == 1) {
@@ -62,7 +88,8 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
           imageQuality: 70,
           limit: maxCount,
         );
-        if (images.length > maxCount) { // should be here cause bug with pickMultiImage()
+        if (images.length > maxCount) {
+          // should be here cause bug with pickMultiImage()
           images = images.sublist(0, maxCount);
           emit(const PostEditorStateError(message: 'Photo limit reached'));
           emit(PostEditorStateBase(data: _data));
@@ -85,10 +112,8 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
     }
   }
 
-  void _onRemovePhoto(
-    PostEditorEventRemovePhoto event,
-    Emitter<PostEditorState> emit,
-  ) {
+  void _onRemovePhoto(PostEditorEventRemovePhoto event,
+      Emitter<PostEditorState> emit,) {
     final index = event.index;
     final newList = <ImageUrlOrFile>[];
 
@@ -101,10 +126,8 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
     emit(PostEditorStateBase(data: _data));
   }
 
-  void _onSwapPhotos(
-    PostEditorEventSwapPhotos event,
-    Emitter<PostEditorState> emit,
-  ) {
+  void _onSwapPhotos(PostEditorEventSwapPhotos event,
+      Emitter<PostEditorState> emit,) {
     final indexOne = event.indexOne;
     final indexTwo = event.indexTwo;
     final oldList = _data.images;

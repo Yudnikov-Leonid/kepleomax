@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Post {
 
- User get user; String get content; int get likesCount; int get createdAt; int? get updatedAt;
+ User get user; String get content; List<String> get images; int get likesCount; int get createdAt; int? get updatedAt;
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $PostCopyWith<Post> get copyWith => _$PostCopyWithImpl<Post>(this as Post, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Post&&(identical(other.user, user) || other.user == user)&&(identical(other.content, content) || other.content == content)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Post&&(identical(other.user, user) || other.user == user)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other.images, images)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,user,content,likesCount,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,user,content,const DeepCollectionEquality().hash(images),likesCount,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'Post(user: $user, content: $content, likesCount: $likesCount, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Post(user: $user, content: $content, images: $images, likesCount: $likesCount, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $PostCopyWith<$Res>  {
   factory $PostCopyWith(Post value, $Res Function(Post) _then) = _$PostCopyWithImpl;
 @useResult
 $Res call({
- User user, String content, int likesCount, int createdAt, int? updatedAt
+ User user, String content, List<String> images, int likesCount, int createdAt, int? updatedAt
 });
 
 
@@ -62,11 +62,12 @@ class _$PostCopyWithImpl<$Res>
 
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? user = null,Object? content = null,Object? likesCount = null,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? user = null,Object? content = null,Object? images = null,Object? likesCount = null,Object? createdAt = null,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as User,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
-as String,likesCount: null == likesCount ? _self.likesCount : likesCount // ignore: cast_nullable_to_non_nullable
+as String,images: null == images ? _self.images : images // ignore: cast_nullable_to_non_nullable
+as List<String>,likesCount: null == likesCount ? _self.likesCount : likesCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as int,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as int?,
@@ -163,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( User user,  String content,  int likesCount,  int createdAt,  int? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( User user,  String content,  List<String> images,  int likesCount,  int createdAt,  int? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Post() when $default != null:
-return $default(_that.user,_that.content,_that.likesCount,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.user,_that.content,_that.images,_that.likesCount,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -184,10 +185,10 @@ return $default(_that.user,_that.content,_that.likesCount,_that.createdAt,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( User user,  String content,  int likesCount,  int createdAt,  int? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( User user,  String content,  List<String> images,  int likesCount,  int createdAt,  int? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Post():
-return $default(_that.user,_that.content,_that.likesCount,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.user,_that.content,_that.images,_that.likesCount,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +205,10 @@ return $default(_that.user,_that.content,_that.likesCount,_that.createdAt,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( User user,  String content,  int likesCount,  int createdAt,  int? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( User user,  String content,  List<String> images,  int likesCount,  int createdAt,  int? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Post() when $default != null:
-return $default(_that.user,_that.content,_that.likesCount,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.user,_that.content,_that.images,_that.likesCount,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -219,11 +220,18 @@ return $default(_that.user,_that.content,_that.likesCount,_that.createdAt,_that.
 
 
 class _Post implements Post {
-  const _Post({required this.user, required this.content, required this.likesCount, required this.createdAt, this.updatedAt});
+  const _Post({required this.user, required this.content, required final  List<String> images, required this.likesCount, required this.createdAt, this.updatedAt}): _images = images;
   
 
 @override final  User user;
 @override final  String content;
+ final  List<String> _images;
+@override List<String> get images {
+  if (_images is EqualUnmodifiableListView) return _images;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_images);
+}
+
 @override final  int likesCount;
 @override final  int createdAt;
 @override final  int? updatedAt;
@@ -238,16 +246,16 @@ _$PostCopyWith<_Post> get copyWith => __$PostCopyWithImpl<_Post>(this, _$identit
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Post&&(identical(other.user, user) || other.user == user)&&(identical(other.content, content) || other.content == content)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Post&&(identical(other.user, user) || other.user == user)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other._images, _images)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,user,content,likesCount,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,user,content,const DeepCollectionEquality().hash(_images),likesCount,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'Post(user: $user, content: $content, likesCount: $likesCount, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Post(user: $user, content: $content, images: $images, likesCount: $likesCount, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -258,7 +266,7 @@ abstract mixin class _$PostCopyWith<$Res> implements $PostCopyWith<$Res> {
   factory _$PostCopyWith(_Post value, $Res Function(_Post) _then) = __$PostCopyWithImpl;
 @override @useResult
 $Res call({
- User user, String content, int likesCount, int createdAt, int? updatedAt
+ User user, String content, List<String> images, int likesCount, int createdAt, int? updatedAt
 });
 
 
@@ -275,11 +283,12 @@ class __$PostCopyWithImpl<$Res>
 
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? user = null,Object? content = null,Object? likesCount = null,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? user = null,Object? content = null,Object? images = null,Object? likesCount = null,Object? createdAt = null,Object? updatedAt = freezed,}) {
   return _then(_Post(
 user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as User,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
-as String,likesCount: null == likesCount ? _self.likesCount : likesCount // ignore: cast_nullable_to_non_nullable
+as String,images: null == images ? _self._images : images // ignore: cast_nullable_to_non_nullable
+as List<String>,likesCount: null == likesCount ? _self.likesCount : likesCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as int,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as int?,

@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
@@ -16,11 +17,18 @@ class PostEditorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<PostEditorBloc>(
-      create: (context) => PostEditorBloc(),
+      create: (context) => PostEditorBloc(
+        filesRepository: Dependencies.of(context).filesRepository,
+        postRepository: Dependencies.of(context).postRepository,
+      ),
       child: BlocListener<PostEditorBloc, PostEditorState>(
         listener: (context, state) {
           if (state is PostEditorStateError) {
             context.showSnackBar(text: state.message, color: KlmColors.errorRed);
+          }
+
+          if (state is PostEditorStateExit) {
+            AppNavigator.withKeyOf(context, mainNavigatorKey)!.pop();
           }
         },
         child: Scaffold(
@@ -124,50 +132,53 @@ class _Images extends StatelessWidget {
       child: Row(
         children: _images
             .mapIndexed(
-              (i, image) => LongPressDraggable<int>(
-                data: i,
-                feedback: SizedBox(height: 150, child: _image(image)),
-                childWhenDragging: Container(
-                  margin: const EdgeInsets.only(right: 5),
-                  height: 150,
-                  child: _image(image, color: Colors.grey.shade300),
-                ),
-                child: DragTarget<int>(
-                  onAcceptWithDetails: (details) {
-                    context.read<PostEditorBloc>().add(
-                      PostEditorEventSwapPhotos(indexOne: i, indexTwo: details.data),
-                    );
-                  },
-                  builder: (context, _, _) {
-                    return Container(
-                      key: Key('image-${image.url}-${image.file?.path}-$i'),
-                      margin: const EdgeInsets.only(right: 5),
-                      height: 150,
-                      child: Stack(
-                        children: [
-                          _image(image),
-                          if (!_isLoading)
-                            Positioned(
-                              right: 0,
-                              child: IconButton.filled(
-                                onPressed: () {
-                                  context.read<PostEditorBloc>().add(
-                                    PostEditorEventRemovePhoto(index: i),
-                                  );
-                                },
-                                icon: Icon(Icons.close, fontWeight: FontWeight.bold),
-                                style: IconButton.styleFrom(
-                                  backgroundColor: Colors.black.withAlpha(75),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.all(5),
-                                  minimumSize: Size.zero,
+              (i, image) => IgnorePointer(
+                ignoring: _isLoading,
+                child: LongPressDraggable<int>(
+                  data: i,
+                  feedback: SizedBox(height: 150, child: _image(image)),
+                  childWhenDragging: Container(
+                    margin: const EdgeInsets.only(right: 5),
+                    height: 150,
+                    child: _image(image, color: Colors.grey.shade300),
+                  ),
+                  child: DragTarget<int>(
+                    onAcceptWithDetails: (details) {
+                      context.read<PostEditorBloc>().add(
+                        PostEditorEventSwapPhotos(indexOne: i, indexTwo: details.data),
+                      );
+                    },
+                    builder: (context, _, _) {
+                      return Container(
+                        key: Key('image-${image.url}-${image.file?.path}-$i'),
+                        margin: const EdgeInsets.only(right: 5),
+                        height: 150,
+                        child: Stack(
+                          children: [
+                            _image(image),
+                            if (!_isLoading)
+                              Positioned(
+                                right: 0,
+                                child: IconButton.filled(
+                                  onPressed: () {
+                                    context.read<PostEditorBloc>().add(
+                                      PostEditorEventRemovePhoto(index: i),
+                                    );
+                                  },
+                                  icon: Icon(Icons.close, fontWeight: FontWeight.bold),
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: Colors.black.withAlpha(75),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.all(5),
+                                    minimumSize: Size.zero,
+                                  ),
                                 ),
                               ),
-                            ),
-                        ],
-                      ),
-                    );
-                  },
+                          ],
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             )

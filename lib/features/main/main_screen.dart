@@ -3,6 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/features/feed/feed_navigator.dart';
 import 'package:kepleomax/features/menu/menu_navigator.dart';
+import 'package:kepleomax/generated/images_keys.images_keys.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -49,7 +50,7 @@ class _MainScreenState extends State<MainScreen> {
               BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Feed'),
               BottomNavigationBarItem(
                 icon: SvgPicture.asset(
-                  'assets/icons/hub_icon.svg',
+                  ImagesKeys.hub_icon_svg,
                   height: 25,
                   width: 25,
                   color: _currentIndex == 1

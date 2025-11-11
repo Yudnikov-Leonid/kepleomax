@@ -3,10 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
 import 'package:kepleomax/core/auth/user_provider.dart';
+import 'package:kepleomax/core/data/files_repository.dart';
+import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
 import 'package:kepleomax/core/network/apis/files/files_api.dart';
+import 'package:kepleomax/core/network/apis/posts/post_api.dart';
 import 'package:kepleomax/core/network/apis/profile/profile_api.dart';
 import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/middlewares/auth_interceptor.dart';
@@ -86,11 +89,16 @@ List<_InitializationStep> _steps = [
     call: (dependencies) {
       dependencies.profileApi = ProfileApi(dependencies.dio, flavor.baseUrl);
       dependencies.filesApi = FilesApi(dependencies.dio, flavor.baseUrl);
+      dependencies.postApi = PostApi(dependencies.dio, flavor.baseUrl);
 
       dependencies.userRepository = UserRepository(
         profileApi: dependencies.profileApi,
         filesApi: dependencies.filesApi,
       );
+      dependencies.filesRepository = FilesRepository(
+        filesApi: dependencies.filesApi,
+      );
+      dependencies.postRepository = PostRepository(postApi: dependencies.postApi);
     },
   ),
 ];

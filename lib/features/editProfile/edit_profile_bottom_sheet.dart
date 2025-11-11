@@ -62,19 +62,52 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
                         Navigator.of(context).pop();
                       },
               ),
-              SizedBox(
-                height: 120,
-                width: 120,
-                child: ClipOval(
-                  child: _imageUrl == null
-                      ? DefaultUserIcon()
-                      : _isImageEdited
-                      ? Image.file(File(_imageUrl!), fit: BoxFit.cover)
-                      : Image.network(
-                          flavor.imageUrl + _imageUrl!,
-                          fit: BoxFit.cover,
-                        ),
-                ),
+              Stack(
+                children: [
+                  Container(
+                    height: 120,
+                    width: 120,
+                    margin: const EdgeInsets.symmetric(horizontal: 26, vertical: 4),
+                    child: ClipOval(
+                      child: _imageUrl == null
+                          ? DefaultUserIcon()
+                          : _isImageEdited
+                          ? Image.file(File(_imageUrl!), fit: BoxFit.cover)
+                          : Image.network(
+                              flavor.imageUrl + _imageUrl!,
+                              fit: BoxFit.cover,
+                            ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: IconButton.filled(
+                      onPressed: _isClosing ? null : _editImage,
+                      icon: Icon(Icons.edit),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.grey.shade200,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.all(5),
+                        minimumSize: Size.zero,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: IconButton.filled(
+                      onPressed: _isClosing ? null : _removeImage,
+                      icon: Icon(Icons.close, fontWeight: FontWeight.w600),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.grey.shade300,
+                        foregroundColor: Colors.red.shade600,
+                        padding: const EdgeInsets.all(5),
+                        minimumSize: Size.zero,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               _Button(
                 text: 'Save',
@@ -130,36 +163,32 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
             showErrors: _isButtonPressed,
             readOnly: _isClosing,
           ),
-          TextButton(
-            onPressed: () async {
-              final picker = ImagePicker();
-              final image = await picker.pickImage(
-                source: ImageSource.gallery,
-                imageQuality: 50,
-              );
-
-              if (image != null) {
-                setState(() {
-                  _imageUrl = image.path;
-                  _isImageEdited = true;
-                });
-              }
-            },
-            child: Text('Edit picture'),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _imageUrl = null;
-                _isImageEdited = true;
-              });
-            },
-            child: Text('Delete picture'),
-          ),
           const SizedBox(height: 200),
         ],
       ),
     );
+  }
+
+  Future<void> _removeImage() async {
+    setState(() {
+      _imageUrl = null;
+      _isImageEdited = true;
+    });
+  }
+
+  Future<void> _editImage() async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
+
+    if (image != null) {
+      setState(() {
+        _imageUrl = image.path;
+        _isImageEdited = true;
+      });
+    }
   }
 }
 

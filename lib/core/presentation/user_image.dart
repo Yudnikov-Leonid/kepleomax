@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:kepleomax/generated/images_keys.images_keys.dart';
 import 'package:kepleomax/main.dart';
 
 class UserImage extends StatelessWidget {
-  const UserImage({
-    required this.url,
-    this.size,
-    this.isLoading = false,
-    super.key,
-  });
+  const UserImage({required this.url, this.size, this.isLoading = false, super.key});
 
   final String? url;
   final double? size;
@@ -34,6 +31,16 @@ class DefaultUserIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(color: Colors.grey);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return ColoredBox(
+          color: Colors.grey.shade400,
+          child: Padding(
+            padding: EdgeInsets.only(top: constraints.maxHeight * 0.2),
+            child: SvgPicture.asset(ImagesKeys.user_default_icon_svg),
+          ),
+        );
+      }
+    );
   }
 }

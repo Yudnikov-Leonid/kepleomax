@@ -2,9 +2,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
+import 'package:kepleomax/core/data/files_repository.dart';
+import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
 import 'package:kepleomax/core/network/apis/files/files_api.dart';
+import 'package:kepleomax/core/network/apis/posts/post_api.dart';
 import 'package:kepleomax/core/network/apis/profile/profile_api.dart';
 import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
@@ -17,12 +20,15 @@ class Dependencies {
   late FlutterSecureStorage secureStorage;
 
   late UserRepository userRepository;
+  late PostRepository postRepository;
+  late FilesRepository filesRepository;
 
   late Dio dio;
   late AuthApi authApi;
   late UserApi userApi;
   late ProfileApi profileApi;
   late FilesApi filesApi;
+  late PostApi postApi;
 
   Widget inject({required Widget child}) =>
       InheritedDependencies(dependencies: this, child: child);

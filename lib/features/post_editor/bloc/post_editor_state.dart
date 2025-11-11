@@ -26,6 +26,11 @@ abstract class PostEditorStateError
 }
 
 @freezed
+abstract class PostEditorStateExit with _$PostEditorStateExit implements PostEditorState {
+  const factory PostEditorStateExit() = _PostEditorStateExit;
+}
+
+@freezed
 abstract class PostEditorData with _$PostEditorData {
   const PostEditorData._();
 

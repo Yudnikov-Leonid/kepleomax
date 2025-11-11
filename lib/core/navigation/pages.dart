@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:kepleomax/core/presentation/photos_preview_screen.dart';
 import 'package:kepleomax/features/login/login_screen.dart';
 import 'package:kepleomax/features/music/music_screen.dart';
-import 'package:kepleomax/features/post/post_editor_screen.dart';
+import 'package:kepleomax/features/post_editor/post_editor_screen.dart';
 import 'package:kepleomax/features/user/user_screen.dart';
 
 import '../../features/main/main_screen.dart';
@@ -66,5 +67,14 @@ final class PostEditorPage extends AppPage {
     name: "post_editor",
     child: const PostEditorScreen(),
     key: const ValueKey("post_editor"),
+  );
+}
+
+final class PhotosPreviewPage extends AppPage {
+  PhotosPreviewPage({required List<String> urls, required int index})
+      : super(
+    name: "photos_preview",
+    child: PhotosPreviewScreen(urls: urls, initialIndex: index),
+    key: ValueKey("photos_preview_$urls"),
   );
 }

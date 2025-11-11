@@ -2,19 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart'
     show BlocConsumer, BlocProvider, ReadContext, BlocBuilder;
 import 'package:kepleomax/core/di/dependencies.dart';
-import 'package:kepleomax/core/models/post.dart';
-import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/models/user_profile.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
+import 'package:kepleomax/core/presentation/klm_button.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
 import 'package:kepleomax/features/editProfile/edit_profile_bottom_sheet.dart';
+import 'package:kepleomax/features/post/post_list_widget.dart';
 import 'package:kepleomax/features/user/bloc/user_bloc.dart';
 import 'package:kepleomax/features/user/bloc/user_states.dart';
-import 'package:kepleomax/features/user/post_widget.dart';
 import 'package:num_remap/num_remap.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -33,10 +32,7 @@ class UserScreen extends StatefulWidget {
 class _UserScreenState extends State<UserScreen> {
   late final _scrollController = AutoScrollController(
     viewportBoundaryGetter: () =>
-        Rect.fromLTRB(0, MediaQuery
-            .of(context)
-            .viewPadding
-            .top, 0, 0),
+        Rect.fromLTRB(0, MediaQuery.of(context).viewPadding.top, 0, 0),
   );
 
   void _onScrolled() {
@@ -60,10 +56,8 @@ class _UserScreenState extends State<UserScreen> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) =>
-      UserBloc(userRepository: Dependencies
-          .of(context)
-          .userRepository)
-        ..add(UserEventLoad(userId: widget.userId)),
+          UserBloc(userRepository: Dependencies.of(context).userRepository)
+            ..add(UserEventLoad(userId: widget.userId)),
       child: BlocConsumer<UserBloc, UserState>(
         listener: (context, state) {
           if (state is UserStateError) {
@@ -91,10 +85,10 @@ class _UserScreenState extends State<UserScreen> {
             extendBodyBehindAppBar: true,
             appBar: _AppBar(scrollController: _scrollController),
             body: _Body(
-                scrollController: _scrollController, scrollPadding: MediaQuery
-                .of(context)
-                .viewPadding
-                .top),
+              scrollController: _scrollController,
+              scrollPadding: MediaQuery.of(context).viewPadding.top,
+              userId: widget.userId,
+            ),
           );
         },
       ),
@@ -103,18 +97,30 @@ class _UserScreenState extends State<UserScreen> {
 }
 
 class _Body extends StatelessWidget {
-  const _Body(
-      {required AutoScrollController scrollController, required double scrollPadding})
-      : _scrollController = scrollController,
-        _scrollPadding = scrollPadding;
+  const _Body({
+    required AutoScrollController scrollController,
+    required double scrollPadding,
+    required int userId,
+  }) : _scrollController = scrollController,
+       _scrollPadding = scrollPadding,
+       _userId = userId;
 
   final AutoScrollController _scrollController;
+
   // MediaQuery.of(context).viewPadding.top inside this widget will be 0
   final double _scrollPadding;
+  final int _userId;
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<UserBloc, UserState>(
+      buildWhen: (oldState, newState) {
+        if (newState is! UserStateBase) return false;
+
+        if (oldState is! UserStateBase) return true;
+
+        return oldState.userData != newState.userData;
+      },
       builder: (context, state) {
         if (state is! UserStateBase) return SizedBox();
 
@@ -167,13 +173,23 @@ class _Body extends StatelessWidget {
                         data.isLoading
                             ? '-------------'
                             : data.profile?.description ??
-                            'Failed to load description',
+                                  'Failed to load description',
                         textAlign: TextAlign.center,
                         style: context.textTheme.bodyLarge?.copyWith(),
                       ),
                     ),
                   ],
                   const SizedBox(height: 16),
+                  if (!data.isLoading && data.profile == null) ...[
+                    KlmButton(
+                      onPressed: () {
+                        context.read<UserBloc>().add(UserEventLoad(userId: _userId));
+                      },
+                      text: 'Retry',
+                      width: 120,
+                    ),
+                    const SizedBox(height: 10),
+                  ],
                   if (!data.isLoading &&
                       (data.profile?.user.isCurrent ?? false)) ...[
                     _postButton(context),
@@ -181,24 +197,7 @@ class _Body extends StatelessWidget {
                   ],
                   Divider(thickness: 5, color: Colors.grey.shade300),
                   const SizedBox(height: 10),
-                  PostWidget(
-                    post: Post(
-                      user: User(
-                        id: 0,
-                        email: '',
-                        username: '---------',
-                        profileImage: '',
-                        isCurrent: false,
-                      ),
-                      content:
-                      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                      likesCount: 22,
-                      createdAt: 1762682274000,
-                      updatedAt: 1762682474000,
-                    ),
-                  ),
-                  const SizedBox(height: 1000),
-                  const Text('END'),
+                  PostListWidget(key: Key('post_of_user_$_userId'), userId: _userId),
                 ],
               ),
             ),
@@ -260,13 +259,25 @@ class _Body extends StatelessWidget {
 
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   const _AppBar({required AutoScrollController scrollController})
-      : _scrollController = scrollController;
+    : _scrollController = scrollController;
 
   final AutoScrollController _scrollController;
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<UserBloc, UserState>(
+      buildWhen: (oldState, newState) {
+        if (newState is! UserStateBase) return false;
+
+        if (oldState is! UserStateBase) return true;
+
+        final oldData = oldState.userData;
+        final newData = newState.userData;
+
+        return oldData.isLoading != newData.isLoading ||
+            oldData.profile?.user.isCurrent != newData.profile?.user.isCurrent ||
+            oldData.profile?.user.username != newData.profile?.user.username;
+      },
       builder: (context, state) {
         if (state is! UserStateBase) return SizedBox();
 
@@ -276,9 +287,9 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
             !_scrollController.hasClients
                 ? 0
                 : _scrollController.offset
-                .remap(0, 90, 0, 255)
-                .clamp(0, 255)
-                .toInt(),
+                      .remap(0, 90, 0, 255)
+                      .clamp(0, 255)
+                      .toInt(),
           ),
           surfaceTintColor: Colors.white,
           leading: KlmBackButton(),
@@ -297,8 +308,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                     AuthScope.logout(context);
                   }
                 },
-                itemBuilder: (context) =>
-                <PopupMenuEntry<String>>[
+                itemBuilder: (context) => <PopupMenuEntry<String>>[
                   PopupMenuItem<String>(
                     value: 'edit',
                     child: Text(
@@ -342,9 +352,11 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  Future<void> _editProfile(BuildContext context,
-      UserProfile profile,
-      ValueChanged<UserProfile> onSave,) async {
+  Future<void> _editProfile(
+    BuildContext context,
+    UserProfile profile,
+    ValueChanged<UserProfile> onSave,
+  ) async {
     AppNavigator.canPop = false;
     await showModalBottomSheet(
       context: context,

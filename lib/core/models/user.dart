@@ -15,13 +15,21 @@ abstract class User with _$User {
     required bool isCurrent,
   }) = _User;
 
-  factory User.fromDto(UserDto dto) => User(
-    id: dto.id,
-    email: dto.email,
-    username: dto.username,
-    profileImage: dto.profileImage,
-    isCurrent: dto.isCurrent
-  );
+  factory User.fromDto(UserDto dto) =>
+      User(
+          id: dto.id,
+          email: dto.email,
+          username: dto.username,
+          profileImage: dto.profileImage,
+          isCurrent: dto.isCurrent
+      );
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+
+  factory User.loading() =>
+      User(id: -1,
+          email: '',
+          username: '-------------',
+          profileImage: '',
+          isCurrent: false);
 }
