@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PostListStateBase {
 
- List<Post> get posts;
+ PostListData get data;
 /// Create a copy of PostListStateBase
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $PostListStateBaseCopyWith<PostListStateBase> get copyWith => _$PostListStateBas
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostListStateBase&&const DeepCollectionEquality().equals(other.posts, posts));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostListStateBase&&(identical(other.data, data) || other.data == data));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(posts));
+int get hashCode => Object.hash(runtimeType,data);
 
 @override
 String toString() {
-  return 'PostListStateBase(posts: $posts)';
+  return 'PostListStateBase(data: $data)';
 }
 
 
@@ -45,11 +45,11 @@ abstract mixin class $PostListStateBaseCopyWith<$Res>  {
   factory $PostListStateBaseCopyWith(PostListStateBase value, $Res Function(PostListStateBase) _then) = _$PostListStateBaseCopyWithImpl;
 @useResult
 $Res call({
- List<Post> posts
+ PostListData data
 });
 
 
-
+$PostListDataCopyWith<$Res> get data;
 
 }
 /// @nodoc
@@ -62,13 +62,22 @@ class _$PostListStateBaseCopyWithImpl<$Res>
 
 /// Create a copy of PostListStateBase
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? posts = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? data = null,}) {
   return _then(_self.copyWith(
-posts: null == posts ? _self.posts : posts // ignore: cast_nullable_to_non_nullable
-as List<Post>,
+data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
+as PostListData,
   ));
 }
-
+/// Create a copy of PostListStateBase
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PostListDataCopyWith<$Res> get data {
+  
+  return $PostListDataCopyWith<$Res>(_self.data, (value) {
+    return _then(_self.copyWith(data: value));
+  });
+}
 }
 
 
@@ -150,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<Post> posts)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PostListData data)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PostListStateBase() when $default != null:
-return $default(_that.posts);case _:
+return $default(_that.data);case _:
   return orElse();
 
 }
@@ -171,10 +180,10 @@ return $default(_that.posts);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<Post> posts)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PostListData data)  $default,) {final _that = this;
 switch (_that) {
 case _PostListStateBase():
-return $default(_that.posts);case _:
+return $default(_that.data);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -191,10 +200,10 @@ return $default(_that.posts);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<Post> posts)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PostListData data)?  $default,) {final _that = this;
 switch (_that) {
 case _PostListStateBase() when $default != null:
-return $default(_that.posts);case _:
+return $default(_that.data);case _:
   return null;
 
 }
@@ -206,16 +215,10 @@ return $default(_that.posts);case _:
 
 
 class _PostListStateBase implements PostListStateBase {
-  const _PostListStateBase({required final  List<Post> posts}): _posts = posts;
+  const _PostListStateBase({required this.data});
   
 
- final  List<Post> _posts;
-@override List<Post> get posts {
-  if (_posts is EqualUnmodifiableListView) return _posts;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_posts);
-}
-
+@override final  PostListData data;
 
 /// Create a copy of PostListStateBase
 /// with the given fields replaced by the non-null parameter values.
@@ -227,16 +230,16 @@ _$PostListStateBaseCopyWith<_PostListStateBase> get copyWith => __$PostListState
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostListStateBase&&const DeepCollectionEquality().equals(other._posts, _posts));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostListStateBase&&(identical(other.data, data) || other.data == data));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_posts));
+int get hashCode => Object.hash(runtimeType,data);
 
 @override
 String toString() {
-  return 'PostListStateBase(posts: $posts)';
+  return 'PostListStateBase(data: $data)';
 }
 
 
@@ -247,11 +250,11 @@ abstract mixin class _$PostListStateBaseCopyWith<$Res> implements $PostListState
   factory _$PostListStateBaseCopyWith(_PostListStateBase value, $Res Function(_PostListStateBase) _then) = __$PostListStateBaseCopyWithImpl;
 @override @useResult
 $Res call({
- List<Post> posts
+ PostListData data
 });
 
 
-
+@override $PostListDataCopyWith<$Res> get data;
 
 }
 /// @nodoc
@@ -264,14 +267,23 @@ class __$PostListStateBaseCopyWithImpl<$Res>
 
 /// Create a copy of PostListStateBase
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? posts = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? data = null,}) {
   return _then(_PostListStateBase(
-posts: null == posts ? _self._posts : posts // ignore: cast_nullable_to_non_nullable
-as List<Post>,
+data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
+as PostListData,
   ));
 }
 
-
+/// Create a copy of PostListStateBase
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PostListDataCopyWith<$Res> get data {
+  
+  return $PostListDataCopyWith<$Res>(_self.data, (value) {
+    return _then(_self.copyWith(data: value));
+  });
+}
 }
 
 /// @nodoc
@@ -722,5 +734,274 @@ String toString() {
 
 
 
+
+/// @nodoc
+mixin _$PostListData {
+
+ List<Post> get posts; bool get isNewPostsLoading; bool get isAllPostsLoaded;
+/// Create a copy of PostListData
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PostListDataCopyWith<PostListData> get copyWith => _$PostListDataCopyWithImpl<PostListData>(this as PostListData, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostListData&&const DeepCollectionEquality().equals(other.posts, posts)&&(identical(other.isNewPostsLoading, isNewPostsLoading) || other.isNewPostsLoading == isNewPostsLoading)&&(identical(other.isAllPostsLoaded, isAllPostsLoaded) || other.isAllPostsLoaded == isAllPostsLoaded));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(posts),isNewPostsLoading,isAllPostsLoaded);
+
+@override
+String toString() {
+  return 'PostListData(posts: $posts, isNewPostsLoading: $isNewPostsLoading, isAllPostsLoaded: $isAllPostsLoaded)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $PostListDataCopyWith<$Res>  {
+  factory $PostListDataCopyWith(PostListData value, $Res Function(PostListData) _then) = _$PostListDataCopyWithImpl;
+@useResult
+$Res call({
+ List<Post> posts, bool isNewPostsLoading, bool isAllPostsLoaded
+});
+
+
+
+
+}
+/// @nodoc
+class _$PostListDataCopyWithImpl<$Res>
+    implements $PostListDataCopyWith<$Res> {
+  _$PostListDataCopyWithImpl(this._self, this._then);
+
+  final PostListData _self;
+  final $Res Function(PostListData) _then;
+
+/// Create a copy of PostListData
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? posts = null,Object? isNewPostsLoading = null,Object? isAllPostsLoaded = null,}) {
+  return _then(_self.copyWith(
+posts: null == posts ? _self.posts : posts // ignore: cast_nullable_to_non_nullable
+as List<Post>,isNewPostsLoading: null == isNewPostsLoading ? _self.isNewPostsLoading : isNewPostsLoading // ignore: cast_nullable_to_non_nullable
+as bool,isAllPostsLoaded: null == isAllPostsLoaded ? _self.isAllPostsLoaded : isAllPostsLoaded // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [PostListData].
+extension PostListDataPatterns on PostListData {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _PostListData value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _PostListData() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _PostListData value)  $default,){
+final _that = this;
+switch (_that) {
+case _PostListData():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _PostListData value)?  $default,){
+final _that = this;
+switch (_that) {
+case _PostListData() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<Post> posts,  bool isNewPostsLoading,  bool isAllPostsLoaded)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _PostListData() when $default != null:
+return $default(_that.posts,_that.isNewPostsLoading,_that.isAllPostsLoaded);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<Post> posts,  bool isNewPostsLoading,  bool isAllPostsLoaded)  $default,) {final _that = this;
+switch (_that) {
+case _PostListData():
+return $default(_that.posts,_that.isNewPostsLoading,_that.isAllPostsLoaded);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<Post> posts,  bool isNewPostsLoading,  bool isAllPostsLoaded)?  $default,) {final _that = this;
+switch (_that) {
+case _PostListData() when $default != null:
+return $default(_that.posts,_that.isNewPostsLoading,_that.isAllPostsLoaded);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _PostListData implements PostListData {
+  const _PostListData({required final  List<Post> posts, this.isNewPostsLoading = false, this.isAllPostsLoaded = false}): _posts = posts;
+  
+
+ final  List<Post> _posts;
+@override List<Post> get posts {
+  if (_posts is EqualUnmodifiableListView) return _posts;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_posts);
+}
+
+@override@JsonKey() final  bool isNewPostsLoading;
+@override@JsonKey() final  bool isAllPostsLoaded;
+
+/// Create a copy of PostListData
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$PostListDataCopyWith<_PostListData> get copyWith => __$PostListDataCopyWithImpl<_PostListData>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostListData&&const DeepCollectionEquality().equals(other._posts, _posts)&&(identical(other.isNewPostsLoading, isNewPostsLoading) || other.isNewPostsLoading == isNewPostsLoading)&&(identical(other.isAllPostsLoaded, isAllPostsLoaded) || other.isAllPostsLoaded == isAllPostsLoaded));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_posts),isNewPostsLoading,isAllPostsLoaded);
+
+@override
+String toString() {
+  return 'PostListData(posts: $posts, isNewPostsLoading: $isNewPostsLoading, isAllPostsLoaded: $isAllPostsLoaded)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$PostListDataCopyWith<$Res> implements $PostListDataCopyWith<$Res> {
+  factory _$PostListDataCopyWith(_PostListData value, $Res Function(_PostListData) _then) = __$PostListDataCopyWithImpl;
+@override @useResult
+$Res call({
+ List<Post> posts, bool isNewPostsLoading, bool isAllPostsLoaded
+});
+
+
+
+
+}
+/// @nodoc
+class __$PostListDataCopyWithImpl<$Res>
+    implements _$PostListDataCopyWith<$Res> {
+  __$PostListDataCopyWithImpl(this._self, this._then);
+
+  final _PostListData _self;
+  final $Res Function(_PostListData) _then;
+
+/// Create a copy of PostListData
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? posts = null,Object? isNewPostsLoading = null,Object? isAllPostsLoaded = null,}) {
+  return _then(_PostListData(
+posts: null == posts ? _self._posts : posts // ignore: cast_nullable_to_non_nullable
+as List<Post>,isNewPostsLoading: null == isNewPostsLoading ? _self.isNewPostsLoading : isNewPostsLoading // ignore: cast_nullable_to_non_nullable
+as bool,isAllPostsLoaded: null == isAllPostsLoaded ? _self.isAllPostsLoaded : isAllPostsLoaded // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
 
 // dart format on

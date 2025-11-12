@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Post {
 
- User get user; String get content; List<String> get images; int get likesCount; int get createdAt; int? get updatedAt;
+ int get id; User get user; String get content; List<String> get images; int get likesCount; int get createdAt; bool get isMockLoadingPost; int? get updatedAt;
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $PostCopyWith<Post> get copyWith => _$PostCopyWithImpl<Post>(this as Post, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Post&&(identical(other.user, user) || other.user == user)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other.images, images)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Post&&(identical(other.id, id) || other.id == id)&&(identical(other.user, user) || other.user == user)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other.images, images)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.isMockLoadingPost, isMockLoadingPost) || other.isMockLoadingPost == isMockLoadingPost)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,user,content,const DeepCollectionEquality().hash(images),likesCount,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,user,content,const DeepCollectionEquality().hash(images),likesCount,createdAt,isMockLoadingPost,updatedAt);
 
 @override
 String toString() {
-  return 'Post(user: $user, content: $content, images: $images, likesCount: $likesCount, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Post(id: $id, user: $user, content: $content, images: $images, likesCount: $likesCount, createdAt: $createdAt, isMockLoadingPost: $isMockLoadingPost, updatedAt: $updatedAt)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $PostCopyWith<$Res>  {
   factory $PostCopyWith(Post value, $Res Function(Post) _then) = _$PostCopyWithImpl;
 @useResult
 $Res call({
- User user, String content, List<String> images, int likesCount, int createdAt, int? updatedAt
+ int id, User user, String content, List<String> images, int likesCount, int createdAt, bool isMockLoadingPost, int? updatedAt
 });
 
 
@@ -62,14 +62,16 @@ class _$PostCopyWithImpl<$Res>
 
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? user = null,Object? content = null,Object? images = null,Object? likesCount = null,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? user = null,Object? content = null,Object? images = null,Object? likesCount = null,Object? createdAt = null,Object? isMockLoadingPost = null,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
-user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as User,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String,images: null == images ? _self.images : images // ignore: cast_nullable_to_non_nullable
 as List<String>,likesCount: null == likesCount ? _self.likesCount : likesCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as int,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as int,isMockLoadingPost: null == isMockLoadingPost ? _self.isMockLoadingPost : isMockLoadingPost // ignore: cast_nullable_to_non_nullable
+as bool,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
 }
@@ -164,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( User user,  String content,  List<String> images,  int likesCount,  int createdAt,  int? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  User user,  String content,  List<String> images,  int likesCount,  int createdAt,  bool isMockLoadingPost,  int? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Post() when $default != null:
-return $default(_that.user,_that.content,_that.images,_that.likesCount,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.user,_that.content,_that.images,_that.likesCount,_that.createdAt,_that.isMockLoadingPost,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -185,10 +187,10 @@ return $default(_that.user,_that.content,_that.images,_that.likesCount,_that.cre
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( User user,  String content,  List<String> images,  int likesCount,  int createdAt,  int? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  User user,  String content,  List<String> images,  int likesCount,  int createdAt,  bool isMockLoadingPost,  int? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Post():
-return $default(_that.user,_that.content,_that.images,_that.likesCount,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.user,_that.content,_that.images,_that.likesCount,_that.createdAt,_that.isMockLoadingPost,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +207,10 @@ return $default(_that.user,_that.content,_that.images,_that.likesCount,_that.cre
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( User user,  String content,  List<String> images,  int likesCount,  int createdAt,  int? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  User user,  String content,  List<String> images,  int likesCount,  int createdAt,  bool isMockLoadingPost,  int? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Post() when $default != null:
-return $default(_that.user,_that.content,_that.images,_that.likesCount,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.user,_that.content,_that.images,_that.likesCount,_that.createdAt,_that.isMockLoadingPost,_that.updatedAt);case _:
   return null;
 
 }
@@ -220,9 +222,10 @@ return $default(_that.user,_that.content,_that.images,_that.likesCount,_that.cre
 
 
 class _Post implements Post {
-  const _Post({required this.user, required this.content, required final  List<String> images, required this.likesCount, required this.createdAt, this.updatedAt}): _images = images;
+  const _Post({required this.id, required this.user, required this.content, required final  List<String> images, required this.likesCount, required this.createdAt, this.isMockLoadingPost = false, this.updatedAt}): _images = images;
   
 
+@override final  int id;
 @override final  User user;
 @override final  String content;
  final  List<String> _images;
@@ -234,6 +237,7 @@ class _Post implements Post {
 
 @override final  int likesCount;
 @override final  int createdAt;
+@override@JsonKey() final  bool isMockLoadingPost;
 @override final  int? updatedAt;
 
 /// Create a copy of Post
@@ -246,16 +250,16 @@ _$PostCopyWith<_Post> get copyWith => __$PostCopyWithImpl<_Post>(this, _$identit
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Post&&(identical(other.user, user) || other.user == user)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other._images, _images)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Post&&(identical(other.id, id) || other.id == id)&&(identical(other.user, user) || other.user == user)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other._images, _images)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.isMockLoadingPost, isMockLoadingPost) || other.isMockLoadingPost == isMockLoadingPost)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,user,content,const DeepCollectionEquality().hash(_images),likesCount,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,user,content,const DeepCollectionEquality().hash(_images),likesCount,createdAt,isMockLoadingPost,updatedAt);
 
 @override
 String toString() {
-  return 'Post(user: $user, content: $content, images: $images, likesCount: $likesCount, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Post(id: $id, user: $user, content: $content, images: $images, likesCount: $likesCount, createdAt: $createdAt, isMockLoadingPost: $isMockLoadingPost, updatedAt: $updatedAt)';
 }
 
 
@@ -266,7 +270,7 @@ abstract mixin class _$PostCopyWith<$Res> implements $PostCopyWith<$Res> {
   factory _$PostCopyWith(_Post value, $Res Function(_Post) _then) = __$PostCopyWithImpl;
 @override @useResult
 $Res call({
- User user, String content, List<String> images, int likesCount, int createdAt, int? updatedAt
+ int id, User user, String content, List<String> images, int likesCount, int createdAt, bool isMockLoadingPost, int? updatedAt
 });
 
 
@@ -283,14 +287,16 @@ class __$PostCopyWithImpl<$Res>
 
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? user = null,Object? content = null,Object? images = null,Object? likesCount = null,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? user = null,Object? content = null,Object? images = null,Object? likesCount = null,Object? createdAt = null,Object? isMockLoadingPost = null,Object? updatedAt = freezed,}) {
   return _then(_Post(
-user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as User,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String,images: null == images ? _self._images : images // ignore: cast_nullable_to_non_nullable
 as List<String>,likesCount: null == likesCount ? _self.likesCount : likesCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as int,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as int,isMockLoadingPost: null == isMockLoadingPost ? _self.isMockLoadingPost : isMockLoadingPost // ignore: cast_nullable_to_non_nullable
+as bool,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
 }

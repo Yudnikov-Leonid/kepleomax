@@ -10,94 +10,97 @@ import 'package:kepleomax/core/presentation/photos_preview/photos_preview_screen
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/generated/images_keys.images_keys.dart';
 import 'package:kepleomax/main.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class PostWidget extends StatelessWidget {
-  const PostWidget({required this.post, this.isLoading = false, super.key});
+  const PostWidget({required this.post, super.key});
 
   final Post post;
-  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              UserImage(url: post.user.profileImage, size: 34, isLoading: isLoading),
-              const SizedBox(width: 10),
-              Text(
-                post.user.username,
-                style: context.textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 19,
-                ),
-              ),
-              const Expanded(child: SizedBox()),
-              IconButton(onPressed: () {}, icon: Icon(Icons.edit, size: 20)),
-            ],
-          ),
-        ),
-        const SizedBox(height: 4),
-        if (post.images.isNotEmpty) ...[
-          _PostImagesWidget(images: post.images),
-          const SizedBox(height: 10),
-        ],
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
-            post.content,
-            style: context.textTheme.bodyLarge?.copyWith(
-              fontSize: 15,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                ),
-                child: Row(
-                  children: [
-                    if (!isLoading) ...[
-                      SvgPicture.asset(ImagesKeys.favorite_icon_svg, height: 24),
-                      const SizedBox(width: 4),
-                    ],
-                    Text(
-                      post.likesCount.toString(),
-                      style: context.textTheme.bodyLarge,
-                    ),
-                  ],
-                ),
-              ),
-              const Expanded(child: SizedBox()),
-              Tooltip(
-                message:
-                    '${ParseTime.unixTimeToPreciseDate(post.createdAt)}${post.updatedAt == null ? '' : '\nedited: ${ParseTime.unixTimeToPreciseDate(post.updatedAt!)}'}',
-                triggerMode: TooltipTriggerMode.tap,
-                preferBelow: false,
-                showDuration: Duration(seconds: 5),
-                child: Text(
-                  ParseTime.unixTimeToDate(post.createdAt),
-                  style: context.textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey,
+    return Skeletonizer(
+      enabled: post.isMockLoadingPost,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                UserImage(url: post.user.profileImage, size: 34, isLoading: post.isMockLoadingPost),
+                const SizedBox(width: 10),
+                Text(
+                  post.user.username,
+                  style: context.textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.w500,
+                    fontSize: 19,
                   ),
                 ),
-              ),
-            ],
+                const Expanded(child: SizedBox()),
+                IconButton(onPressed: () {}, icon: Icon(Icons.edit, size: 20)),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 20),
-      ],
+          const SizedBox(height: 4),
+          if (post.images.isNotEmpty) ...[
+            _PostImagesWidget(images: post.images),
+            const SizedBox(height: 10),
+          ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              post.content,
+              style: context.textTheme.bodyLarge?.copyWith(
+                fontSize: 15,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                TextButton(
+                  onPressed: () {},
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                  ),
+                  child: Row(
+                    children: [
+                      if (!post.isMockLoadingPost) ...[
+                        SvgPicture.asset(ImagesKeys.favorite_icon_svg, height: 24),
+                        const SizedBox(width: 4),
+                      ],
+                      Text(
+                        post.likesCount.toString(),
+                        style: context.textTheme.bodyLarge,
+                      ),
+                    ],
+                  ),
+                ),
+                const Expanded(child: SizedBox()),
+                Tooltip(
+                  message:
+                      '${ParseTime.unixTimeToPreciseDate(post.createdAt)}${post.updatedAt == null ? '' : '\nedited: ${ParseTime.unixTimeToPreciseDate(post.updatedAt!)}'}',
+                  triggerMode: TooltipTriggerMode.tap,
+                  preferBelow: false,
+                  showDuration: Duration(seconds: 5),
+                  child: Text(
+                    ParseTime.unixTimeToDate(post.createdAt),
+                    style: context.textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
     );
   }
 }

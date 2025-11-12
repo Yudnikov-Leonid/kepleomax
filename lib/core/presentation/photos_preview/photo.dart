@@ -161,7 +161,7 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
 
       final Matrix4 matrix = Matrix4.identity()
         ..translate(newX, newY)
-        ..scale(_isOnlyYAxes ? 1.4 : _scaleFactorOnDoubleTap)
+        ..scale(_isOnlyYAxes ? _scaleFactorOnDoubleTapWhenOnlyYAxes : _scaleFactorOnDoubleTap)
         ..translate(-newX, -newY);
 
       endMatrix = matrix;

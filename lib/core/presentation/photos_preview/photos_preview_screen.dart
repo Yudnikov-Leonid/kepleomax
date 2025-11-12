@@ -24,6 +24,7 @@ const int _distanceToClose = 150;
 const double _maxScaleFactor = 4;
 const double _swipeViewHeight = 2600;
 
+const double _scaleFactorOnDoubleTapWhenOnlyYAxes = 1.5;
 /// change carefully
 const double _scaleFactorOnDoubleTap = 2.5;
 
