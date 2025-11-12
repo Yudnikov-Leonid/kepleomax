@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
-import 'package:kepleomax/core/navigation/pages.dart';
+import 'package:kepleomax/core/presentation/caching_image.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/parse_time.dart';
+import 'package:kepleomax/core/presentation/photos_preview/photos_preview_screen.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/generated/images_keys.images_keys.dart';
 import 'package:kepleomax/main.dart';
@@ -25,7 +26,7 @@ class PostWidget extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
-              UserImage(url: post.user.profileImage, size: 34),
+              UserImage(url: post.user.profileImage, size: 34, isLoading: isLoading),
               const SizedBox(width: 10),
               Text(
                 post.user.username,
@@ -40,8 +41,10 @@ class PostWidget extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        _PostImagesWidget(images: post.images),
-        if (post.images.isNotEmpty) const SizedBox(height: 10),
+        if (post.images.isNotEmpty) ...[
+          _PostImagesWidget(images: post.images),
+          const SizedBox(height: 10),
+        ],
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Text(
@@ -328,18 +331,31 @@ class _PhotoWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        AppNavigator.withKeyOf(
-          context,
-          mainNavigatorKey,
-        )!.push(PhotosPreviewPage(urls: imagesToOpen, index: index));
+        AppNavigator.canPop = false;
+        showGeneralDialog(
+          context: context,
+          useRootNavigator: true,
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              PhotosPreviewScreen(urls: imagesToOpen, initialIndex: index),
+        ).whenComplete(() {
+          AppNavigator.canPop = true;
+        });
+        // AppNavigator.withKeyOf(
+        //   context,
+        //   mainNavigatorKey,
+        // )!.push(PhotosPreviewPage(urls: imagesToOpen, index: index));
       },
       child: SizedBox(
         width: width,
         height: height,
-        child: Image.network(
-          flavor.imageUrl + imagesToOpen[index],
+        child: KlmCachedImage(
+          imageUrl: flavor.imageUrl + imagesToOpen[index],
           fit: BoxFit.cover,
         ),
+        // Image.network(
+        //   flavor.imageUrl + imagesToOpen[index],
+        //   fit: BoxFit.cover,
+        // ),
       ),
     );
   }

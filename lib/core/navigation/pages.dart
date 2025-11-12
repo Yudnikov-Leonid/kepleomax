@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:kepleomax/core/presentation/photos_preview_screen.dart';
 import 'package:kepleomax/features/login/login_screen.dart';
 import 'package:kepleomax/features/music/music_screen.dart';
 import 'package:kepleomax/features/post_editor/post_editor_screen.dart';
@@ -70,11 +69,11 @@ final class PostEditorPage extends AppPage {
   );
 }
 
-final class PhotosPreviewPage extends AppPage {
-  PhotosPreviewPage({required List<String> urls, required int index})
-      : super(
-    name: "photos_preview",
-    child: PhotosPreviewScreen(urls: urls, initialIndex: index),
-    key: ValueKey("photos_preview_$urls"),
-  );
-}
+// final class PhotosPreviewPage extends AppPage {
+//   PhotosPreviewPage({required List<String> urls, required int index})
+//       : super(
+//     name: "photos_preview",
+//     child: PhotosPreviewScreen(urls: urls, initialIndex: index),
+//     key: ValueKey("photos_preview_$urls"),
+//   );
+// }
