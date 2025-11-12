@@ -33,11 +33,40 @@ class UserScreen extends StatefulWidget {
 class _UserScreenState extends State<UserScreen> {
   late final _scrollController = AutoScrollController(
     viewportBoundaryGetter: () =>
-        Rect.fromLTRB(0, MediaQuery.of(context).viewPadding.top, 0, 0),
+        Rect.fromLTRB(0, MediaQuery
+            .of(context)
+            .viewPadding
+            .top, 0, 0),
   );
+  bool _isAllPostsLoaded = false;
+  late UserBloc _userBloc;
+
+  void _onScrollListener() {
+    if (_isAllPostsLoaded) return;
+
+    if (_scrollController.offset == _scrollController.position.maxScrollExtent) {
+      _userBloc.add(const UserEventLoadMorePosts());
+    }
+  }
+
+  @override
+  void initState() {
+    _userBloc = UserBloc(
+      userRepository: Dependencies
+          .of(context)
+          .userRepository,
+      postRepository: Dependencies
+          .of(context)
+          .postRepository,
+    )
+      ..add(UserEventLoad(userId: widget.userId));
+    _scrollController.addListener(_onScrollListener);
+    super.initState();
+  }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScrollListener);
     _scrollController.dispose();
     super.dispose();
   }
@@ -45,12 +74,13 @@ class _UserScreenState extends State<UserScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => UserBloc(
-        userRepository: Dependencies.of(context).userRepository,
-        postRepository: Dependencies.of(context).postRepository,
-      )..add(UserEventLoad(userId: widget.userId)),
+      create: (context) => _userBloc,
       child: BlocConsumer<UserBloc, UserState>(
         listener: (context, state) {
+          if (state is UserStateBase) {
+            _isAllPostsLoaded = state.userData.isAllPostsLoaded;
+          }
+
           if (state is UserStateError) {
             context.showSnackBar(text: state.message, color: KlmColors.errorRed);
           }
@@ -77,7 +107,10 @@ class _UserScreenState extends State<UserScreen> {
             appBar: _AppBar(scrollController: _scrollController),
             body: _Body(
               scrollController: _scrollController,
-              scrollPadding: MediaQuery.of(context).viewPadding.top,
+              scrollPadding: MediaQuery
+                  .of(context)
+                  .viewPadding
+                  .top,
               userId: widget.userId,
             ),
           );
@@ -92,9 +125,10 @@ class _Body extends StatelessWidget {
     required AutoScrollController scrollController,
     required double scrollPadding,
     required int userId,
-  }) : _scrollController = scrollController,
-       _scrollPadding = scrollPadding,
-       _userId = userId;
+  })
+      : _scrollController = scrollController,
+        _scrollPadding = scrollPadding,
+        _userId = userId;
 
   final AutoScrollController _scrollController;
 
@@ -119,6 +153,7 @@ class _Body extends StatelessWidget {
         return NotificationListener<ScrollNotification>(
           onNotification: _onScrollNotification,
           child: ListView.builder(
+            shrinkWrap: false,
             key: Key('scroll_profile'),
             padding: EdgeInsets.only(top: _scrollPadding),
             controller: _scrollController,
@@ -126,80 +161,81 @@ class _Body extends StatelessWidget {
             itemBuilder: (context, i) {
               if (i == 0) {
                 return Skeletonizer(
-                enabled: data.isLoading,
-                child: Column(
-                  children: [
-                    AutoScrollTag(
-                      key: Key('top_scroll_tag'),
-                      controller: _scrollController,
-                      index: 0,
-                      highlightColor: Colors.red,
-                      child: Center(
-                        child: UserImage(
-                          url: data.profile?.user.profileImage,
-                          size: 130,
-                          isLoading: data.isLoading,
+                  enabled: data.isLoading,
+                  child: Column(
+                    children: [
+                      AutoScrollTag(
+                        key: Key('top_scroll_tag'),
+                        controller: _scrollController,
+                        index: 0,
+                        highlightColor: Colors.red,
+                        child: Center(
+                          child: UserImage(
+                            url: data.profile?.user.profileImage,
+                            size: 130,
+                            isLoading: data.isLoading,
+                          ),
                         ),
                       ),
-                    ),
-                    AutoScrollTag(
-                      key: Key('bottom_of_username_scroll_tag'),
-                      controller: _scrollController,
-                      index: 1,
-                      highlightColor: Colors.red,
-                      child: const SizedBox(height: 16),
-                    ),
-                    Text(
-                      data.isLoading
-                          ? '--------------'
-                          : data.profile?.user.username ?? 'Failed to load username',
-                      style: context.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 26,
+                      AutoScrollTag(
+                        key: Key('bottom_of_username_scroll_tag'),
+                        controller: _scrollController,
+                        index: 1,
+                        highlightColor: Colors.red,
+                        child: const SizedBox(height: 16),
                       ),
-                    ),
-                    if (data.isLoading ||
-                        (data.profile?.description.isNotEmpty ?? false)) ...[
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(
-                          data.isLoading
-                              ? '-------------'
-                              : data.profile?.description ??
-                                    'Failed to load description',
-                          textAlign: TextAlign.center,
-                          style: context.textTheme.bodyLarge?.copyWith(),
+                      Text(
+                        data.isLoading
+                            ? '--------------'
+                            : data.profile?.user.username ??
+                            'Failed to load username',
+                        style: context.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 26,
                         ),
                       ),
-                    ],
-                    const SizedBox(height: 16),
-                    if (!data.isLoading && data.profile == null) ...[
-                      KlmButton(
-                        onPressed: () {
-                          context.read<UserBloc>().add(
-                            UserEventLoad(userId: _userId),
-                          );
-                        },
-                        text: 'Retry',
-                        width: 120,
-                      ),
+                      if (data.isLoading ||
+                          (data.profile?.description.isNotEmpty ?? false)) ...[
+                        const SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Text(
+                            data.isLoading
+                                ? '-------------'
+                                : data.profile?.description ??
+                                'Failed to load description',
+                            textAlign: TextAlign.center,
+                            style: context.textTheme.bodyLarge?.copyWith(),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      if (!data.isLoading && data.profile == null) ...[
+                        KlmButton(
+                          onPressed: () {
+                            context.read<UserBloc>().add(
+                              UserEventLoad(userId: _userId),
+                            );
+                          },
+                          text: 'Retry',
+                          width: 120,
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                      if (!data.isLoading &&
+                          (data.profile?.user.isCurrent ?? false)) ...[
+                        _postButton(context),
+                        const SizedBox(height: 10),
+                      ],
+                      Divider(thickness: 5, color: Colors.grey.shade300),
                       const SizedBox(height: 10),
-                    ],
-                    if (!data.isLoading &&
-                        (data.profile?.user.isCurrent ?? false)) ...[
-                      _postButton(context),
-                      const SizedBox(height: 10),
-                    ],
-                    Divider(thickness: 5, color: Colors.grey.shade300),
-                    const SizedBox(height: 10),
 
-                    //PostListWidget(key: Key('post_of_user_$_userId'), userId: _userId),
-                  ],
-                ),
-              );
+                      //PostListWidget(key: Key('post_of_user_$_userId'), userId: _userId),
+                    ],
+                  ),
+                );
               } else if (data.profile != null) {
-                return PostWidget(post: data.posts[i + 1]);
+                return PostWidget(post: data.posts[i - 1]);
               }
             },
           ),
@@ -260,7 +296,7 @@ class _Body extends StatelessWidget {
 
 class _AppBar extends StatefulWidget implements PreferredSizeWidget {
   const _AppBar({required AutoScrollController scrollController})
-    : _scrollController = scrollController;
+      : _scrollController = scrollController;
 
   final AutoScrollController _scrollController;
 
@@ -323,9 +359,9 @@ class _AppBarState extends State<_AppBar> {
             !widget._scrollController.hasClients
                 ? 0
                 : widget._scrollController.offset
-                      .remap(0, 90, 0, 255)
-                      .clamp(0, 255)
-                      .toInt(),
+                .remap(0, 90, 0, 255)
+                .clamp(0, 255)
+                .toInt(),
           ),
           surfaceTintColor: Colors.white,
           leading: KlmBackButton(),
@@ -344,7 +380,8 @@ class _AppBarState extends State<_AppBar> {
                     AuthScope.logout(context);
                   }
                 },
-                itemBuilder: (context) => <PopupMenuEntry<String>>[
+                itemBuilder: (context) =>
+                <PopupMenuEntry<String>>[
                   PopupMenuItem<String>(
                     value: 'edit',
                     child: Text(
@@ -373,8 +410,8 @@ class _AppBarState extends State<_AppBar> {
             opacity: !widget._scrollController.hasClients
                 ? 0
                 : widget._scrollController.offset
-                      .remap(110, _appBarUsernameFullShownOffset, 0, 1)
-                      .clamp(0, 1),
+                .remap(110, _appBarUsernameFullShownOffset, 0, 1)
+                .clamp(0, 1),
             child: Text(
               data.isLoading
                   ? '--------------'
@@ -390,11 +427,9 @@ class _AppBarState extends State<_AppBar> {
     );
   }
 
-  Future<void> _editProfile(
-    BuildContext context,
-    UserProfile profile,
-    ValueChanged<UserProfile> onSave,
-  ) async {
+  Future<void> _editProfile(BuildContext context,
+      UserProfile profile,
+      ValueChanged<UserProfile> onSave,) async {
     AppNavigator.of(context)!.showModalBottomSheet(
       context,
       EditProfileBottomSheet(profile: profile, onSave: onSave),

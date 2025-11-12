@@ -17,5 +17,7 @@ abstract class PostApi {
   @GET('/byUserId')
   Future<HttpResponse<PostsResponseDto>> getPostsByUserId({
     @Query('userId') required int userId,
+    @Query('limit') required int limit,
+    @Query('offset') required int offset,
   });
 }

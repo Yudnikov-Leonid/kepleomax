@@ -1078,7 +1078,7 @@ $UserCopyWith<$Res> get user {
 /// @nodoc
 mixin _$UserData {
 
- UserProfile? get profile; List<Post> get posts; bool get isLoading;
+ UserProfile? get profile; List<Post> get posts; bool get isLoading; bool get isNewPostsLoading; bool get isAllPostsLoaded;
 /// Create a copy of UserData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1089,16 +1089,16 @@ $UserDataCopyWith<UserData> get copyWith => _$UserDataCopyWithImpl<UserData>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserData&&(identical(other.profile, profile) || other.profile == profile)&&const DeepCollectionEquality().equals(other.posts, posts)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserData&&(identical(other.profile, profile) || other.profile == profile)&&const DeepCollectionEquality().equals(other.posts, posts)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isNewPostsLoading, isNewPostsLoading) || other.isNewPostsLoading == isNewPostsLoading)&&(identical(other.isAllPostsLoaded, isAllPostsLoaded) || other.isAllPostsLoaded == isAllPostsLoaded));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,profile,const DeepCollectionEquality().hash(posts),isLoading);
+int get hashCode => Object.hash(runtimeType,profile,const DeepCollectionEquality().hash(posts),isLoading,isNewPostsLoading,isAllPostsLoaded);
 
 @override
 String toString() {
-  return 'UserData(profile: $profile, posts: $posts, isLoading: $isLoading)';
+  return 'UserData(profile: $profile, posts: $posts, isLoading: $isLoading, isNewPostsLoading: $isNewPostsLoading, isAllPostsLoaded: $isAllPostsLoaded)';
 }
 
 
@@ -1109,7 +1109,7 @@ abstract mixin class $UserDataCopyWith<$Res>  {
   factory $UserDataCopyWith(UserData value, $Res Function(UserData) _then) = _$UserDataCopyWithImpl;
 @useResult
 $Res call({
- UserProfile? profile, List<Post> posts, bool isLoading
+ UserProfile? profile, List<Post> posts, bool isLoading, bool isNewPostsLoading, bool isAllPostsLoaded
 });
 
 
@@ -1126,11 +1126,13 @@ class _$UserDataCopyWithImpl<$Res>
 
 /// Create a copy of UserData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? profile = freezed,Object? posts = null,Object? isLoading = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? profile = freezed,Object? posts = null,Object? isLoading = null,Object? isNewPostsLoading = null,Object? isAllPostsLoaded = null,}) {
   return _then(_self.copyWith(
 profile: freezed == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
 as UserProfile?,posts: null == posts ? _self.posts : posts // ignore: cast_nullable_to_non_nullable
 as List<Post>,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
+as bool,isNewPostsLoading: null == isNewPostsLoading ? _self.isNewPostsLoading : isNewPostsLoading // ignore: cast_nullable_to_non_nullable
+as bool,isAllPostsLoaded: null == isAllPostsLoaded ? _self.isAllPostsLoaded : isAllPostsLoaded // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -1228,10 +1230,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( UserProfile? profile,  List<Post> posts,  bool isLoading)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( UserProfile? profile,  List<Post> posts,  bool isLoading,  bool isNewPostsLoading,  bool isAllPostsLoaded)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserData() when $default != null:
-return $default(_that.profile,_that.posts,_that.isLoading);case _:
+return $default(_that.profile,_that.posts,_that.isLoading,_that.isNewPostsLoading,_that.isAllPostsLoaded);case _:
   return orElse();
 
 }
@@ -1249,10 +1251,10 @@ return $default(_that.profile,_that.posts,_that.isLoading);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( UserProfile? profile,  List<Post> posts,  bool isLoading)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( UserProfile? profile,  List<Post> posts,  bool isLoading,  bool isNewPostsLoading,  bool isAllPostsLoaded)  $default,) {final _that = this;
 switch (_that) {
 case _UserData():
-return $default(_that.profile,_that.posts,_that.isLoading);case _:
+return $default(_that.profile,_that.posts,_that.isLoading,_that.isNewPostsLoading,_that.isAllPostsLoaded);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1269,10 +1271,10 @@ return $default(_that.profile,_that.posts,_that.isLoading);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( UserProfile? profile,  List<Post> posts,  bool isLoading)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( UserProfile? profile,  List<Post> posts,  bool isLoading,  bool isNewPostsLoading,  bool isAllPostsLoaded)?  $default,) {final _that = this;
 switch (_that) {
 case _UserData() when $default != null:
-return $default(_that.profile,_that.posts,_that.isLoading);case _:
+return $default(_that.profile,_that.posts,_that.isLoading,_that.isNewPostsLoading,_that.isAllPostsLoaded);case _:
   return null;
 
 }
@@ -1284,7 +1286,7 @@ return $default(_that.profile,_that.posts,_that.isLoading);case _:
 
 
 class _UserData implements UserData {
-  const _UserData({required this.profile, required final  List<Post> posts, this.isLoading = true}): _posts = posts;
+  const _UserData({required this.profile, required final  List<Post> posts, this.isLoading = true, this.isNewPostsLoading = false, this.isAllPostsLoaded = false}): _posts = posts;
   
 
 @override final  UserProfile? profile;
@@ -1296,6 +1298,8 @@ class _UserData implements UserData {
 }
 
 @override@JsonKey() final  bool isLoading;
+@override@JsonKey() final  bool isNewPostsLoading;
+@override@JsonKey() final  bool isAllPostsLoaded;
 
 /// Create a copy of UserData
 /// with the given fields replaced by the non-null parameter values.
@@ -1307,16 +1311,16 @@ _$UserDataCopyWith<_UserData> get copyWith => __$UserDataCopyWithImpl<_UserData>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserData&&(identical(other.profile, profile) || other.profile == profile)&&const DeepCollectionEquality().equals(other._posts, _posts)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserData&&(identical(other.profile, profile) || other.profile == profile)&&const DeepCollectionEquality().equals(other._posts, _posts)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isNewPostsLoading, isNewPostsLoading) || other.isNewPostsLoading == isNewPostsLoading)&&(identical(other.isAllPostsLoaded, isAllPostsLoaded) || other.isAllPostsLoaded == isAllPostsLoaded));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,profile,const DeepCollectionEquality().hash(_posts),isLoading);
+int get hashCode => Object.hash(runtimeType,profile,const DeepCollectionEquality().hash(_posts),isLoading,isNewPostsLoading,isAllPostsLoaded);
 
 @override
 String toString() {
-  return 'UserData(profile: $profile, posts: $posts, isLoading: $isLoading)';
+  return 'UserData(profile: $profile, posts: $posts, isLoading: $isLoading, isNewPostsLoading: $isNewPostsLoading, isAllPostsLoaded: $isAllPostsLoaded)';
 }
 
 
@@ -1327,7 +1331,7 @@ abstract mixin class _$UserDataCopyWith<$Res> implements $UserDataCopyWith<$Res>
   factory _$UserDataCopyWith(_UserData value, $Res Function(_UserData) _then) = __$UserDataCopyWithImpl;
 @override @useResult
 $Res call({
- UserProfile? profile, List<Post> posts, bool isLoading
+ UserProfile? profile, List<Post> posts, bool isLoading, bool isNewPostsLoading, bool isAllPostsLoaded
 });
 
 
@@ -1344,11 +1348,13 @@ class __$UserDataCopyWithImpl<$Res>
 
 /// Create a copy of UserData
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? profile = freezed,Object? posts = null,Object? isLoading = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? profile = freezed,Object? posts = null,Object? isLoading = null,Object? isNewPostsLoading = null,Object? isAllPostsLoaded = null,}) {
   return _then(_UserData(
 profile: freezed == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
 as UserProfile?,posts: null == posts ? _self._posts : posts // ignore: cast_nullable_to_non_nullable
 as List<Post>,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
+as bool,isNewPostsLoading: null == isNewPostsLoading ? _self.isNewPostsLoading : isNewPostsLoading // ignore: cast_nullable_to_non_nullable
+as bool,isAllPostsLoaded: null == isAllPostsLoaded ? _self.isAllPostsLoaded : isAllPostsLoaded // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

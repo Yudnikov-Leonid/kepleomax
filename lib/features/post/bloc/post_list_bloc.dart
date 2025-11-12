@@ -16,7 +16,11 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     emit(const PostListStateLoading());
 
     try {
-      final posts = await _postRepository.getPostsByUserId(userId: event.userId);
+      final posts = await _postRepository.getPostsByUserId(
+        userId: event.userId,
+        limit: 3,
+        offset: 0,
+      );
 
       emit(PostListStateBase(posts: posts));
     } catch (e, st) {

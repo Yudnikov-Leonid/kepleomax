@@ -103,8 +103,8 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
                       ),
                 child: ColoredBox(
                   color: Colors.green,
-                  child: Image.network(
-                    flavor.imageUrl + widget.url,
+                  child: KlmCachedImage(
+                    imageUrl:  flavor.imageUrl + widget.url,
                     key: _childKey,
                   ),
                 ),

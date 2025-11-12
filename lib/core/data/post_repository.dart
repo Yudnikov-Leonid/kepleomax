@@ -22,8 +22,16 @@ class PostRepository {
     return Post.fromDto(res.data.data!);
   }
 
-  Future<List<Post>> getPostsByUserId({required int userId}) async {
-    final res = await _postApi.getPostsByUserId(userId: userId);
+  Future<List<Post>> getPostsByUserId({
+    required int userId,
+    required int limit,
+    required int offset,
+  }) async {
+    final res = await _postApi.getPostsByUserId(
+      userId: userId,
+      limit: limit,
+      offset: offset,
+    );
 
     if (res.response.statusCode != 200) {
       throw Exception(res.data.message ?? "Failed to get posts");

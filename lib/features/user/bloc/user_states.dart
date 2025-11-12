@@ -35,6 +35,8 @@ abstract class UserData with _$UserData {
     required UserProfile? profile,
     required List<Post> posts,
     @Default(true) bool isLoading,
+    @Default(false) bool isNewPostsLoading,
+    @Default(false) bool isAllPostsLoaded,
   }) = _UserData;
 
   factory UserData.initial() => UserData(profile: null, posts: []);

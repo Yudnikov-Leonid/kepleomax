@@ -6,6 +6,8 @@ import 'package:kepleomax/core/models/user_profile.dart';
 import 'package:kepleomax/features/user/bloc/user_states.dart';
 import 'package:kepleomax/main.dart';
 
+const int _pagingLimit = 3;
+
 class UserBloc extends Bloc<UserEvent, UserState> {
   final UserRepository _userRepository;
   final PostRepository _postRepository;
@@ -18,12 +20,49 @@ class UserBloc extends Bloc<UserEvent, UserState> {
        super(UserStateBase.initial()) {
     on<UserEventLoad>(_onLoad);
     on<UserEventUpdateProfile>(_onUpdateProfile);
+    on<UserEventLoadMorePosts>(_onLoadMorePosts);
   }
 
   late UserData _userData = UserData.initial();
 
+  void _onLoadMorePosts(
+    UserEventLoadMorePosts event,
+    Emitter<UserState> emit,
+  ) async {
+    if (_userData.isNewPostsLoading) return;
+
+    final oldPosts = _userData.posts;
+    _userData = _userData.copyWith(
+      isNewPostsLoading: true,
+      posts: [...oldPosts, Post.loading()],
+    );
+
+    try {
+      final newPosts = await _postRepository.getPostsByUserId(
+        userId: _userData.profile!.user.id,
+        limit: _pagingLimit,
+        offset: oldPosts.length,
+      );
+
+      _userData = _userData.copyWith(
+        isAllPostsLoaded: newPosts.length < _pagingLimit,
+        posts: [...oldPosts, ...newPosts],
+      );
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
+      emit(UserStateError(message: e.toString()));
+    } finally {
+      _userData = _userData.copyWith(isNewPostsLoading: false);
+      emit(UserStateBase(userData: _userData));
+    }
+  }
+
   void _onLoad(UserEventLoad event, Emitter<UserState> emit) async {
-    _userData = _userData.copyWith(isLoading: true);
+    _userData = _userData.copyWith(
+      isLoading: true,
+      isNewPostsLoading: true,
+      isAllPostsLoaded: false,
+    );
     emit(UserStateBase(userData: _userData));
 
     final userId = event.userId;
@@ -37,7 +76,11 @@ class UserBloc extends Bloc<UserEvent, UserState> {
           profile = await _userRepository.getUserProfile(userId);
         }),
         Future(() async {
-          posts = await _postRepository.getPostsByUserId(userId: userId);
+          posts = await _postRepository.getPostsByUserId(
+            userId: userId,
+            limit: _pagingLimit,
+            offset: 0,
+          );
         }),
       ]);
     } catch (e, st) {
@@ -46,8 +89,10 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     } finally {
       _userData = _userData.copyWith(
         profile: profile,
-        posts: posts,
+        posts: [..._userData.posts, ...posts],
         isLoading: false,
+        isNewPostsLoading: false,
+        isAllPostsLoaded: posts.length < _pagingLimit,
       );
       emit(UserStateBase(userData: _userData));
     }
@@ -91,11 +136,15 @@ abstract class UserEvent {}
 class UserEventLoad implements UserEvent {
   final int userId;
 
-  UserEventLoad({required this.userId});
+  const UserEventLoad({required this.userId});
 }
 
 class UserEventUpdateProfile implements UserEvent {
   final UserProfile newProfile;
 
-  UserEventUpdateProfile({required this.newProfile});
+  const UserEventUpdateProfile({required this.newProfile});
+}
+
+class UserEventLoadMorePosts implements UserEvent {
+  const UserEventLoadMorePosts();
 }
