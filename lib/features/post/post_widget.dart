@@ -110,19 +110,22 @@ class _PostImagesWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = context.screenSize.width;
-    final double maxHeight = _images.length == 4 ? screenWidth : 450;
+    final double maxHeight = _images.length == 1
+        ? 700
+        : _images.length == 4
+        ? screenWidth
+        : 450;
     final double spaceBetween = 4;
     final sizeOffset = spaceBetween / 2;
 
-    return SizedBox(
-      height: maxHeight,
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight),
       child: Builder(
         builder: (context) {
           switch (_images.length) {
             case 1:
               return _PhotoWidget(
                 width: screenWidth,
-                height: maxHeight,
                 index: 0,
                 imagesToOpen: _images,
               );
@@ -317,13 +320,13 @@ class _PhotosRowState extends State<_PhotosRow> {
 class _PhotoWidget extends StatelessWidget {
   const _PhotoWidget({
     required this.width,
-    required this.height,
+    this.height,
     required this.index,
     required this.imagesToOpen,
   });
 
   final double width;
-  final double height;
+  final double? height;
   final int index;
   final List<String> imagesToOpen;
 
@@ -331,19 +334,10 @@ class _PhotoWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        AppNavigator.canPop = false;
-        showGeneralDialog(
-          context: context,
-          useRootNavigator: true,
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              PhotosPreviewScreen(urls: imagesToOpen, initialIndex: index),
-        ).whenComplete(() {
-          AppNavigator.canPop = true;
-        });
-        // AppNavigator.withKeyOf(
-        //   context,
-        //   mainNavigatorKey,
-        // )!.push(PhotosPreviewPage(urls: imagesToOpen, index: index));
+        AppNavigator.of(context)!.showGeneralDialog(
+          context,
+          PhotosPreviewScreen(urls: imagesToOpen, initialIndex: index),
+        );
       },
       child: SizedBox(
         width: width,

@@ -20,6 +20,8 @@ import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../core/presentation/colors.dart';
 
+const int _appBarUsernameFullShownOffset = 130;
+
 class UserScreen extends StatefulWidget {
   const UserScreen({required this.userId, super.key});
 
@@ -35,19 +37,8 @@ class _UserScreenState extends State<UserScreen> {
         Rect.fromLTRB(0, MediaQuery.of(context).viewPadding.top, 0, 0),
   );
 
-  void _onScrolled() {
-    setState(() {});
-  }
-
-  @override
-  void initState() {
-    _scrollController.addListener(_onScrolled);
-    super.initState();
-  }
-
   @override
   void dispose() {
-    _scrollController.removeListener(_onScrolled);
     _scrollController.dispose();
     super.dispose();
   }
@@ -257,11 +248,45 @@ class _Body extends StatelessWidget {
   }
 }
 
-class _AppBar extends StatelessWidget implements PreferredSizeWidget {
+class _AppBar extends StatefulWidget implements PreferredSizeWidget {
   const _AppBar({required AutoScrollController scrollController})
     : _scrollController = scrollController;
 
   final AutoScrollController _scrollController;
+
+  @override
+  State<_AppBar> createState() => _AppBarState();
+
+  @override
+  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+}
+
+class _AppBarState extends State<_AppBar> {
+  @override
+  void initState() {
+    widget._scrollController.addListener(_onScrolledListener);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget._scrollController.removeListener(_onScrolledListener);
+    super.dispose();
+  }
+
+  double _lastScrollPosition = 0;
+
+  void _onScrolledListener() {
+    final currentOffset = widget._scrollController.offset;
+    /// cause you can scroll really fast and skip _appBarUsernameFullShownOffset offset
+    if (currentOffset > _appBarUsernameFullShownOffset &&
+        _lastScrollPosition > _appBarUsernameFullShownOffset) {
+      return;
+    }
+    _lastScrollPosition = currentOffset;
+
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -284,9 +309,9 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
         final data = state.userData;
         return AppBar(
           backgroundColor: Colors.white.withAlpha(
-            !_scrollController.hasClients
+            !widget._scrollController.hasClients
                 ? 0
-                : _scrollController.offset
+                : widget._scrollController.offset
                       .remap(0, 90, 0, 255)
                       .clamp(0, 255)
                       .toInt(),
@@ -334,9 +359,11 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
           ],
           centerTitle: true,
           title: Opacity(
-            opacity: !_scrollController.hasClients
+            opacity: !widget._scrollController.hasClients
                 ? 0
-                : _scrollController.offset.remap(110, 130, 0, 1).clamp(0, 1),
+                : widget._scrollController.offset
+                      .remap(110, _appBarUsernameFullShownOffset, 0, 1)
+                      .clamp(0, 1),
             child: Text(
               data.isLoading
                   ? '--------------'
@@ -357,22 +384,9 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
     UserProfile profile,
     ValueChanged<UserProfile> onSave,
   ) async {
-    AppNavigator.canPop = false;
-    await showModalBottomSheet(
-      context: context,
-      useRootNavigator: true,
-      backgroundColor: Colors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => EditProfileBottomSheet(profile: profile, onSave: onSave),
-      isDismissible: false,
-      //enableDrag: false,
+    AppNavigator.of(context)!.showModalBottomSheet(
+      context,
+      EditProfileBottomSheet(profile: profile, onSave: onSave),
     );
-    AppNavigator.canPop = true;
   }
-
-  @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
 }

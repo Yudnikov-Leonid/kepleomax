@@ -55,19 +55,6 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
   final GlobalKey _childKey = GlobalKey();
   Size? _childSize;
 
-  // EdgeInsets? _getBoundaryMargin() {
-  //   final screenHeight = MediaQuery.of(context).size.height;
-  //
-  //   if (_childSize != null) {
-  //     final verticalMargin = (screenHeight - _childSize!.height) / 2;
-  //     final marginBehindScreen = (2600 - screenHeight) / 2;
-  //     print('verticalMargin: $verticalMargin, childSize: ${_childSize!.height}, marginBehindScreen: $marginBehindScreen');
-  //     return EdgeInsets.symmetric(vertical: verticalMargin + marginBehindScreen);
-  //   }
-  //
-  //   return null;
-  // }
-
   bool get _isOnlyXAxes =>
       _childSize == null
           ? false
@@ -83,41 +70,38 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
 
     return GestureDetector(
       onDoubleTapDown: _onDoubleTap,
-      child: Padding(
-        padding: EdgeInsets.only(top: 0),
-        child: InteractiveViewer(
-          panAxis: _isOnlyXAxes ? PanAxis.horizontal : PanAxis.free,
-          constrained: false,
-          clipBehavior: Clip.none,
-          transformationController: _controller,
-          maxScale: _maxScaleFactor,
-          minScale: 1,
-          boundaryMargin: _isOnlyXAxes
-              ? EdgeInsets.only(bottom: 0)
-              : EdgeInsets.symmetric(vertical: -topPadding),
-          child: SizedBox(
-            width: context.screenSize.width,
-            height: screenHeight,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ConstrainedBox(
-                  constraints: _childSize == null
-                      ? BoxConstraints()
-                      : BoxConstraints(
-                    maxHeight: _childSize!.height > screenHeight
-                        ? screenHeight
-                        : _childSize!.height,
-                  ),
-                  child: KlmCachedImage(
-                    key: _childKey,
-                    imageUrl: flavor.imageUrl + widget.url,
-                    fit: BoxFit.fitWidth,
-                  ),
+      child: InteractiveViewer(
+        panAxis: _isOnlyXAxes ? PanAxis.horizontal : PanAxis.free,
+        constrained: false,
+        clipBehavior: Clip.none,
+        transformationController: _controller,
+        maxScale: _maxScaleFactor,
+        minScale: 1,
+        boundaryMargin: _isOnlyXAxes
+            ? EdgeInsets.zero
+            : EdgeInsets.symmetric(vertical: -topPadding),
+        child: SizedBox(
+          width: context.screenSize.width,
+          height: screenHeight,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ConstrainedBox(
+                constraints: _childSize == null
+                    ? BoxConstraints()
+                    : BoxConstraints(
+                  maxHeight: _childSize!.height > screenHeight
+                      ? screenHeight
+                      : _childSize!.height,
                 ),
-              ],
-            ),
+                child: KlmCachedImage(
+                  key: _childKey,
+                  imageUrl: flavor.imageUrl + widget.url,
+                  fit: BoxFit.fitWidth,
+                ),
+              ),
+            ],
           ),
         ),
       ),

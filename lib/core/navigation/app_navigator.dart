@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as material;
 import 'package:kepleomax/core/navigation/pages.dart';
 
 typedef AppPages = List<AppPage>;
@@ -37,8 +38,6 @@ class AppNavigator extends StatefulWidget {
 
   static void pop(BuildContext context) => of(context)?.pop();
 
-  static bool canPop = true;
-
   @override
   State<AppNavigator> createState() => AppNavigatorState();
 }
@@ -46,6 +45,34 @@ class AppNavigator extends StatefulWidget {
 class AppNavigatorState extends State<AppNavigator> with WidgetsBindingObserver {
   AppPages get state => _state;
   late AppPages _state;
+  static bool _isDialogOpened = false;
+
+  Future<void> showGeneralDialog(BuildContext context, Widget dialog) async {
+    _isDialogOpened = true;
+    await material.showGeneralDialog(
+      context: context,
+      useRootNavigator: true,
+      pageBuilder: (context, _, _) => _PopScope(child: dialog),
+    );
+    _isDialogOpened = false;
+  }
+
+  Future<void> showModalBottomSheet(BuildContext context, Widget bottomSheet) async {
+    _isDialogOpened = true;
+    await material.showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _PopScope(child: bottomSheet),
+      isDismissible: false,
+      //enableDrag: false,
+    );
+    _isDialogOpened = false;
+  }
 
   @override
   void initState() {
@@ -84,7 +111,7 @@ class AppNavigatorState extends State<AppNavigator> with WidgetsBindingObserver 
 
   @override
   Future<bool> didPopRoute() async {
-    if (!AppNavigator.canPop) return true;
+    if (_isDialogOpened) return false;
     if (_state.length <= 1) return false;
     _onDidRemovePage(_state.last);
     return true;
@@ -105,3 +132,38 @@ class AppNavigatorState extends State<AppNavigator> with WidgetsBindingObserver 
     onDidRemovePage: _onDidRemovePage,
   );
 }
+
+class _PopScope extends StatefulWidget {
+  const _PopScope({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_PopScope> createState() => _PopScopeState();
+}
+
+class _PopScopeState extends State<_PopScope> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  Future<bool> didPopRoute() async {
+    Navigator.pop(context);
+    return true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
+  }
+}
+

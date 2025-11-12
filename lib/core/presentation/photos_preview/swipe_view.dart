@@ -25,6 +25,8 @@ class _SwipeViewState extends State<_SwipeView> {
   bool _isScrollingByUser = false;
   ScrollPhysics? _scrollPhysics = const AlwaysScrollableScrollPhysics();
 
+  double get _defaultOffset => (_swipeViewHeight - context.screenSize.height) / 2;
+
   get controller => widget.scrollController;
 
   /// scroll to the edge or default position, depends on current scrollPosition
