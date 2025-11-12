@@ -344,12 +344,9 @@ class _PhotoWidget extends StatelessWidget {
         height: height,
         child: KlmCachedImage(
           imageUrl: flavor.imageUrl + imagesToOpen[index],
+          showProgress: true,
           fit: BoxFit.cover,
         ),
-        // Image.network(
-        //   flavor.imageUrl + imagesToOpen[index],
-        //   fit: BoxFit.cover,
-        // ),
       ),
     );
   }

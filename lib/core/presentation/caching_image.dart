@@ -4,13 +4,16 @@ import 'package:flutter/material.dart';
 class KlmCachedImage extends CachedNetworkImage {
   KlmCachedImage({
     required super.imageUrl,
-    bool showProgress = true,
+    bool showProgress = false,
+    super.color,
     super.fit,
     super.key,
   }) : super(
-         progressIndicatorBuilder: (context, url, downloadProgress) =>
-             showProgress ? const SizedBox() : ColoredBox(color: Colors.grey.shade200),
+         fadeInDuration: const Duration(milliseconds: 75),
+         fadeOutDuration: const Duration(milliseconds: 75),
+         progressIndicatorBuilder: (context, url, downloadProgress) => !showProgress
+             ? const SizedBox()
+             : ColoredBox(color: Colors.grey.shade200),
          errorWidget: (context, url, error) => Icon(Icons.error),
-
        );
 }

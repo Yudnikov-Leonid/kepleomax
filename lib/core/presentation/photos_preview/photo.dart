@@ -29,13 +29,13 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
   void initState() {
     _controller.addListener(_setState);
     _zoomAnimationController =
-    AnimationController(vsync: this, duration: const Duration(milliseconds: 150))
-      ..addListener(() {
-        _controller.value = _zoomAnimation!.value;
-      });
+        AnimationController(vsync: this, duration: const Duration(milliseconds: 150))
+          ..addListener(() {
+            _controller.value = _zoomAnimation!.value;
+          });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final RenderBox? renderBox =
-      _childKey.currentContext?.findRenderObject() as RenderBox?;
+          _childKey.currentContext?.findRenderObject() as RenderBox?;
       if (renderBox != null) {
         setState(() {
           _childSize = renderBox.size;
@@ -55,10 +55,12 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
   final GlobalKey _childKey = GlobalKey();
   Size? _childSize;
 
-  bool get _isOnlyXAxes =>
-      _childSize == null
-          ? false
-          : _childSize!.height / context.screenSize.width < 1 / 1;
+  bool get _isOnlyXAxes => _childSize == null ? false : _childSize!.aspectRatio > 1;
+
+  bool get _isOnlyYAxes => _childSize == null
+      ? false
+      : (_childSize!.aspectRatio * 100).round() / 100 <
+            context.screenSize.aspectRatio;
 
   @override
   Widget build(BuildContext context) {
@@ -71,13 +73,17 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
     return GestureDetector(
       onDoubleTapDown: _onDoubleTap,
       child: InteractiveViewer(
-        panAxis: _isOnlyXAxes ? PanAxis.horizontal : PanAxis.free,
+        panAxis: _isOnlyXAxes
+            ? PanAxis.horizontal
+            : _isOnlyYAxes
+            ? PanAxis.vertical
+            : PanAxis.free,
         constrained: false,
         clipBehavior: Clip.none,
         transformationController: _controller,
         maxScale: _maxScaleFactor,
         minScale: 1,
-        boundaryMargin: _isOnlyXAxes
+        boundaryMargin: _isOnlyXAxes || _isOnlyYAxes
             ? EdgeInsets.zero
             : EdgeInsets.symmetric(vertical: -topPadding),
         child: SizedBox(
@@ -91,14 +97,16 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
                 constraints: _childSize == null
                     ? BoxConstraints()
                     : BoxConstraints(
-                  maxHeight: _childSize!.height > screenHeight
-                      ? screenHeight
-                      : _childSize!.height,
-                ),
-                child: KlmCachedImage(
-                  key: _childKey,
-                  imageUrl: flavor.imageUrl + widget.url,
-                  fit: BoxFit.fitWidth,
+                        maxHeight: _childSize!.height > screenHeight
+                            ? screenHeight
+                            : _childSize!.height,
+                      ),
+                child: ColoredBox(
+                  color: Colors.green,
+                  child: Image.network(
+                    flavor.imageUrl + widget.url,
+                    key: _childKey,
+                  ),
                 ),
               ),
             ],
@@ -123,13 +131,17 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
         return;
       }
 
+      print(
+        'child: ${_childSize!.width}, screen: ${context.screenSize.width}, aspect: ${_childSize!.aspectRatio}, screenAspect: ${context.screenSize.aspectRatio}',
+      );
+
       final double newY;
       if (_childSize == null) {
         newY = center.dy;
       } else if (_isOnlyXAxes) {
         newY = topPadding + _childSize!.height / 2;
       } else {
-        /// 1.668 - magicNumber
+        /// 1.668 - magicNumber, but it works
         final minY = topPadding * 1.668;
         final maxY = screenHeight - minY;
 
@@ -140,10 +152,17 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
             : center.dy;
       }
 
+      final double newX;
+      if (_isOnlyYAxes) {
+        newX = context.screenSize.width / 2;
+      } else {
+        newX = center.dx;
+      }
+
       final Matrix4 matrix = Matrix4.identity()
-        ..translate(center.dx, newY)
-        ..scale(_scaleFactorOnDoubleTap)
-        ..translate(-center.dx, -newY);
+        ..translate(newX, newY)
+        ..scale(_isOnlyYAxes ? 1.4 : _scaleFactorOnDoubleTap)
+        ..translate(-newX, -newY);
 
       endMatrix = matrix;
     }

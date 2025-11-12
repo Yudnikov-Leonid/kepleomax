@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:kepleomax/core/presentation/caching_image.dart';
 import 'package:kepleomax/generated/images_keys.images_keys.dart';
 import 'package:kepleomax/main.dart';
 
@@ -20,7 +21,7 @@ class UserImage extends StatelessWidget {
             ? ColoredBox(color: Colors.grey)
             : url == null || url!.isEmpty
             ? DefaultUserIcon()
-            : Image.network(flavor.imageUrl + url!, fit: BoxFit.cover),
+            : KlmCachedImage(imageUrl: flavor.imageUrl + url!, fit: BoxFit.cover),
       ),
     );
   }
@@ -40,7 +41,7 @@ class DefaultUserIcon extends StatelessWidget {
             child: SvgPicture.asset(ImagesKeys.user_default_icon_svg),
           ),
         );
-      }
+      },
     );
   }
 }

@@ -9,6 +9,7 @@ import 'package:kepleomax/core/presentation/klm_textfield.dart';
 import 'package:kepleomax/core/presentation/validators.dart';
 import 'package:kepleomax/main.dart';
 
+import '../../core/presentation/caching_image.dart';
 import '../../core/presentation/user_image.dart';
 
 class EditProfileBottomSheet extends StatefulWidget {
@@ -73,8 +74,8 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
                           ? DefaultUserIcon()
                           : _isImageEdited
                           ? Image.file(File(_imageUrl!), fit: BoxFit.cover)
-                          : Image.network(
-                              flavor.imageUrl + _imageUrl!,
+                          : KlmCachedImage(
+                              imageUrl: flavor.imageUrl + _imageUrl!,
                               fit: BoxFit.cover,
                             ),
                     ),

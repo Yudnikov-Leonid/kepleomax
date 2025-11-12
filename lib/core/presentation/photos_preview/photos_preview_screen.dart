@@ -1,21 +1,22 @@
+import 'dart:io';
+
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gal/gal.dart';
-import 'package:kepleomax/core/presentation/caching_image.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
 import 'package:kepleomax/main.dart';
 import 'package:num_remap/num_remap.dart';
+import 'package:path_provider/path_provider.dart';
 
 part 'swipe_view.dart';
 
 part 'photo.dart';
 
 /// constants
-// const double _defaultOffset = 843;
 const int _minAlpha = 150;
 const int _distanceToReachMinAlpha = 100;
 const int _distanceToClose = 150;
@@ -104,18 +105,38 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
                 getAlpha: _getAlpha,
                 onSave: () async {
                   try {
-                    final imagePath =
-                        '/storage/emulated/0/Download/${widget.urls[_index]}';
+                    String savedTo = 'gallery';
+                    final String path;
+                    if (Platform.isIOS) {
+                      path = (await getApplicationDocumentsDirectory()).path;
+                    } else {
+                      Directory? directory = Directory(
+                        '/storage/emulated/0/Download',
+                      );
+
+                      if (!await directory.exists()) {
+                        directory = await getExternalStorageDirectory();
+                        savedTo = 'external storage';
+                      }
+
+                      if (directory == null) throw Exception("Can't save image");
+
+                      path = '${directory.path}/${widget.urls[_index]}';
+                    }
+
                     await Dio().download(
                       flavor.imageUrl + widget.urls[_index],
-                      imagePath,
+                      path,
                     );
-                    await Gal.putImage(imagePath);
+                    await Gal.putImage(path);
                     if (mounted) {
-                      Fluttertoast.showToast(msg: 'Photo saved to gallery');
+                      Fluttertoast.showToast(msg: 'Image saved to $savedTo');
                     }
                   } catch (e, st) {
                     logger.e(e, stackTrace: st);
+                    if (mounted) {
+                      Fluttertoast.showToast(msg: 'Failed to save image');
+                    }
                   }
                 },
               )

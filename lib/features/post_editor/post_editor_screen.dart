@@ -8,6 +8,7 @@ import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/main.dart';
 
+import '../../core/presentation/caching_image.dart';
 import 'bloc/post_editor_bloc.dart';
 import 'bloc/post_editor_state.dart';
 
@@ -145,7 +146,10 @@ class _Images extends StatelessWidget {
                   child: DragTarget<int>(
                     onAcceptWithDetails: (details) {
                       context.read<PostEditorBloc>().add(
-                        PostEditorEventSwapPhotos(indexOne: i, indexTwo: details.data),
+                        PostEditorEventSwapPhotos(
+                          indexOne: i,
+                          indexTwo: details.data,
+                        ),
                       );
                     },
                     builder: (context, _, _) {
@@ -165,7 +169,10 @@ class _Images extends StatelessWidget {
                                       PostEditorEventRemovePhoto(index: i),
                                     );
                                   },
-                                  icon: Icon(Icons.close, fontWeight: FontWeight.bold),
+                                  icon: Icon(
+                                    Icons.close,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                   style: IconButton.styleFrom(
                                     backgroundColor: Colors.black.withAlpha(75),
                                     foregroundColor: Colors.white,
@@ -189,7 +196,7 @@ class _Images extends StatelessWidget {
 
   Widget _image(ImageUrlOrFile image, {Color? color}) {
     return image.url != null
-        ? Image.network(flavor.imageUrl + image.url!, color: color)
+        ? KlmCachedImage(imageUrl: flavor.imageUrl + image.url!, color: color)
         : Image.file(image.file!, color: color);
   }
 }

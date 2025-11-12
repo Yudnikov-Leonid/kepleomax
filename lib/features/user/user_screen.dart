@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'
-    show BlocConsumer, BlocProvider, ReadContext, BlocBuilder;
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/models/user_profile.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
@@ -11,7 +10,7 @@ import 'package:kepleomax/core/presentation/klm_button.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
 import 'package:kepleomax/features/editProfile/edit_profile_bottom_sheet.dart';
-import 'package:kepleomax/features/post/post_list_widget.dart';
+import 'package:kepleomax/features/post/post_widget.dart';
 import 'package:kepleomax/features/user/bloc/user_bloc.dart';
 import 'package:kepleomax/features/user/bloc/user_states.dart';
 import 'package:num_remap/num_remap.dart';
@@ -46,9 +45,10 @@ class _UserScreenState extends State<UserScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          UserBloc(userRepository: Dependencies.of(context).userRepository)
-            ..add(UserEventLoad(userId: widget.userId)),
+      create: (context) => UserBloc(
+        userRepository: Dependencies.of(context).userRepository,
+        postRepository: Dependencies.of(context).postRepository,
+      )..add(UserEventLoad(userId: widget.userId)),
       child: BlocConsumer<UserBloc, UserState>(
         listener: (context, state) {
           if (state is UserStateError) {
@@ -118,80 +118,90 @@ class _Body extends StatelessWidget {
         final data = state.userData;
         return NotificationListener<ScrollNotification>(
           onNotification: _onScrollNotification,
-          child: SingleChildScrollView(
+          child: ListView.builder(
             key: Key('scroll_profile'),
             padding: EdgeInsets.only(top: _scrollPadding),
             controller: _scrollController,
-            child: Skeletonizer(
-              enabled: data.isLoading,
-              child: Column(
-                children: [
-                  AutoScrollTag(
-                    key: Key('top_scroll_tag'),
-                    controller: _scrollController,
-                    index: 0,
-                    highlightColor: Colors.red,
-                    child: Center(
-                      child: UserImage(
-                        url: data.profile?.user.profileImage,
-                        size: 130,
-                        isLoading: data.isLoading,
+            itemCount: data.posts.isEmpty ? 1 : data.posts.length + 1,
+            itemBuilder: (context, i) {
+              if (i == 0) {
+                return Skeletonizer(
+                enabled: data.isLoading,
+                child: Column(
+                  children: [
+                    AutoScrollTag(
+                      key: Key('top_scroll_tag'),
+                      controller: _scrollController,
+                      index: 0,
+                      highlightColor: Colors.red,
+                      child: Center(
+                        child: UserImage(
+                          url: data.profile?.user.profileImage,
+                          size: 130,
+                          isLoading: data.isLoading,
+                        ),
                       ),
                     ),
-                  ),
-                  AutoScrollTag(
-                    key: Key('bottom_of_username_scroll_tag'),
-                    controller: _scrollController,
-                    index: 1,
-                    highlightColor: Colors.red,
-                    child: const SizedBox(height: 16),
-                  ),
-                  Text(
-                    data.isLoading
-                        ? '--------------'
-                        : data.profile?.user.username ?? 'Failed to load username',
-                    style: context.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 26,
+                    AutoScrollTag(
+                      key: Key('bottom_of_username_scroll_tag'),
+                      controller: _scrollController,
+                      index: 1,
+                      highlightColor: Colors.red,
+                      child: const SizedBox(height: 16),
                     ),
-                  ),
-                  if (data.isLoading ||
-                      (data.profile?.description.isNotEmpty ?? false)) ...[
-                    const SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Text(
-                        data.isLoading
-                            ? '-------------'
-                            : data.profile?.description ??
-                                  'Failed to load description',
-                        textAlign: TextAlign.center,
-                        style: context.textTheme.bodyLarge?.copyWith(),
+                    Text(
+                      data.isLoading
+                          ? '--------------'
+                          : data.profile?.user.username ?? 'Failed to load username',
+                      style: context.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 26,
                       ),
                     ),
-                  ],
-                  const SizedBox(height: 16),
-                  if (!data.isLoading && data.profile == null) ...[
-                    KlmButton(
-                      onPressed: () {
-                        context.read<UserBloc>().add(UserEventLoad(userId: _userId));
-                      },
-                      text: 'Retry',
-                      width: 120,
-                    ),
+                    if (data.isLoading ||
+                        (data.profile?.description.isNotEmpty ?? false)) ...[
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          data.isLoading
+                              ? '-------------'
+                              : data.profile?.description ??
+                                    'Failed to load description',
+                          textAlign: TextAlign.center,
+                          style: context.textTheme.bodyLarge?.copyWith(),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    if (!data.isLoading && data.profile == null) ...[
+                      KlmButton(
+                        onPressed: () {
+                          context.read<UserBloc>().add(
+                            UserEventLoad(userId: _userId),
+                          );
+                        },
+                        text: 'Retry',
+                        width: 120,
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                    if (!data.isLoading &&
+                        (data.profile?.user.isCurrent ?? false)) ...[
+                      _postButton(context),
+                      const SizedBox(height: 10),
+                    ],
+                    Divider(thickness: 5, color: Colors.grey.shade300),
                     const SizedBox(height: 10),
+
+                    //PostListWidget(key: Key('post_of_user_$_userId'), userId: _userId),
                   ],
-                  if (!data.isLoading &&
-                      (data.profile?.user.isCurrent ?? false)) ...[
-                    _postButton(context),
-                    const SizedBox(height: 10),
-                  ],
-                  Divider(thickness: 5, color: Colors.grey.shade300),
-                  const SizedBox(height: 10),
-                  PostListWidget(key: Key('post_of_user_$_userId'), userId: _userId),
-                ],
-              ),
-            ),
+                ),
+              );
+              } else if (data.profile != null) {
+                return PostWidget(post: data.posts[i + 1]);
+              }
+            },
           ),
         );
       },
@@ -278,6 +288,7 @@ class _AppBarState extends State<_AppBar> {
 
   void _onScrolledListener() {
     final currentOffset = widget._scrollController.offset;
+
     /// cause you can scroll really fast and skip _appBarUsernameFullShownOffset offset
     if (currentOffset > _appBarUsernameFullShownOffset &&
         _lastScrollPosition > _appBarUsernameFullShownOffset) {

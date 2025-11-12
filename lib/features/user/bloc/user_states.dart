@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/models/user_profile.dart';
 
@@ -32,8 +33,9 @@ abstract class UserStateUpdateUser with _$UserStateUpdateUser implements UserSta
 abstract class UserData with _$UserData {
   const factory UserData({
     required UserProfile? profile,
+    required List<Post> posts,
     @Default(true) bool isLoading,
   }) = _UserData;
 
-  factory UserData.initial() => UserData(profile: null);
+  factory UserData.initial() => UserData(profile: null, posts: []);
 }

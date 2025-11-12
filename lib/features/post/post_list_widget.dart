@@ -54,25 +54,23 @@ class PostListWidget extends StatelessWidget {
               ),
             );
           } else if (state is PostListStateBase) {
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  ...state.posts.map((post) => PostWidget(post: post)),
-                  Container(
-                    height: 50,
-                    width: double.infinity,
-                    color: Colors.grey.shade200,
-                    child: Center(
-                      child: Text(
-                        '${state.posts.length} ${state.posts.length == 1 ? 'post' : 'posts'}',
-                        style: context.textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey.shade600,
-                        ),
+            return Column(
+              children: [
+                ...state.posts.map((post) => PostWidget(post: post)),
+                Container(
+                  height: 50,
+                  width: double.infinity,
+                  color: Colors.grey.shade200,
+                  child: Center(
+                    child: Text(
+                      '${state.posts.length} ${state.posts.length == 1 ? 'post' : 'posts'}',
+                      style: context.textTheme.bodyLarge?.copyWith(
+                        color: Colors.grey.shade600,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             );
           }
 
