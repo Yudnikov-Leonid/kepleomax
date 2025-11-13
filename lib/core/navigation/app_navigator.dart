@@ -38,6 +38,12 @@ class AppNavigator extends StatefulWidget {
 
   static void pop(BuildContext context) => of(context)?.pop();
 
+  static Future<void>? showGeneralDialog(BuildContext context, Widget dialog) =>
+      of(context)?.showGeneralDialog(context, dialog);
+
+  static Future<void>? showModalBottomSheet(BuildContext context, Widget bottomSheet) =>
+      of(context)?.showModalBottomSheet(context, bottomSheet);
+
   @override
   State<AppNavigator> createState() => AppNavigatorState();
 }
@@ -102,10 +108,11 @@ class AppNavigatorState extends State<AppNavigator> with WidgetsBindingObserver 
     change((state) => [...state, page]);
   }
 
-  void pop() => change((state) {
-    if (state.length > 1) state.removeLast();
-    return state;
-  });
+  void pop() =>
+      change((state) {
+        if (state.length > 1) state.removeLast();
+        return state;
+      });
 
   String get navigatorKey => widget.navigatorKey;
 
@@ -119,18 +126,20 @@ class AppNavigatorState extends State<AppNavigator> with WidgetsBindingObserver 
 
   void _onDidRemovePage(Page<Object?> page) {
     change(
-      (pages) => pages
+          (pages) =>
+      pages
         ..toList()
         ..removeWhere((e) => e.key == page.key),
     );
   }
 
   @override
-  Widget build(BuildContext context) => Navigator(
-    key: Key(navigatorKey),
-    pages: _state,
-    onDidRemovePage: _onDidRemovePage,
-  );
+  Widget build(BuildContext context) =>
+      Navigator(
+        key: Key(navigatorKey),
+        pages: _state,
+        onDidRemovePage: _onDidRemovePage,
+      );
 }
 
 class _PopScope extends StatefulWidget {

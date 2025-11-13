@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PostEditorStateBase {
 
- PostEditorData get data;
+ PostEditorData get data; bool get updateControllers;
 /// Create a copy of PostEditorStateBase
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $PostEditorStateBaseCopyWith<PostEditorStateBase> get copyWith => _$PostEditorSt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostEditorStateBase&&(identical(other.data, data) || other.data == data));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostEditorStateBase&&(identical(other.data, data) || other.data == data)&&(identical(other.updateControllers, updateControllers) || other.updateControllers == updateControllers));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,data);
+int get hashCode => Object.hash(runtimeType,data,updateControllers);
 
 @override
 String toString() {
-  return 'PostEditorStateBase(data: $data)';
+  return 'PostEditorStateBase(data: $data, updateControllers: $updateControllers)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $PostEditorStateBaseCopyWith<$Res>  {
   factory $PostEditorStateBaseCopyWith(PostEditorStateBase value, $Res Function(PostEditorStateBase) _then) = _$PostEditorStateBaseCopyWithImpl;
 @useResult
 $Res call({
- PostEditorData data
+ PostEditorData data, bool updateControllers
 });
 
 
@@ -62,10 +62,11 @@ class _$PostEditorStateBaseCopyWithImpl<$Res>
 
 /// Create a copy of PostEditorStateBase
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? data = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? data = null,Object? updateControllers = null,}) {
   return _then(_self.copyWith(
 data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
-as PostEditorData,
+as PostEditorData,updateControllers: null == updateControllers ? _self.updateControllers : updateControllers // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 /// Create a copy of PostEditorStateBase
@@ -159,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PostEditorData data)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PostEditorData data,  bool updateControllers)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PostEditorStateBase() when $default != null:
-return $default(_that.data);case _:
+return $default(_that.data,_that.updateControllers);case _:
   return orElse();
 
 }
@@ -180,10 +181,10 @@ return $default(_that.data);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PostEditorData data)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PostEditorData data,  bool updateControllers)  $default,) {final _that = this;
 switch (_that) {
 case _PostEditorStateBase():
-return $default(_that.data);case _:
+return $default(_that.data,_that.updateControllers);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +201,10 @@ return $default(_that.data);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PostEditorData data)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PostEditorData data,  bool updateControllers)?  $default,) {final _that = this;
 switch (_that) {
 case _PostEditorStateBase() when $default != null:
-return $default(_that.data);case _:
+return $default(_that.data,_that.updateControllers);case _:
   return null;
 
 }
@@ -215,10 +216,11 @@ return $default(_that.data);case _:
 
 
 class _PostEditorStateBase implements PostEditorStateBase {
-  const _PostEditorStateBase({required this.data});
+  const _PostEditorStateBase({required this.data, this.updateControllers = false});
   
 
 @override final  PostEditorData data;
+@override@JsonKey() final  bool updateControllers;
 
 /// Create a copy of PostEditorStateBase
 /// with the given fields replaced by the non-null parameter values.
@@ -230,16 +232,16 @@ _$PostEditorStateBaseCopyWith<_PostEditorStateBase> get copyWith => __$PostEdito
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostEditorStateBase&&(identical(other.data, data) || other.data == data));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostEditorStateBase&&(identical(other.data, data) || other.data == data)&&(identical(other.updateControllers, updateControllers) || other.updateControllers == updateControllers));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,data);
+int get hashCode => Object.hash(runtimeType,data,updateControllers);
 
 @override
 String toString() {
-  return 'PostEditorStateBase(data: $data)';
+  return 'PostEditorStateBase(data: $data, updateControllers: $updateControllers)';
 }
 
 
@@ -250,7 +252,7 @@ abstract mixin class _$PostEditorStateBaseCopyWith<$Res> implements $PostEditorS
   factory _$PostEditorStateBaseCopyWith(_PostEditorStateBase value, $Res Function(_PostEditorStateBase) _then) = __$PostEditorStateBaseCopyWithImpl;
 @override @useResult
 $Res call({
- PostEditorData data
+ PostEditorData data, bool updateControllers
 });
 
 
@@ -267,10 +269,11 @@ class __$PostEditorStateBaseCopyWithImpl<$Res>
 
 /// Create a copy of PostEditorStateBase
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? data = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? data = null,Object? updateControllers = null,}) {
   return _then(_PostEditorStateBase(
 data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
-as PostEditorData,
+as PostEditorData,updateControllers: null == updateControllers ? _self.updateControllers : updateControllers // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -803,7 +806,7 @@ as bool,
 /// @nodoc
 mixin _$PostEditorData {
 
- String get text; List<ImageUrlOrFile> get images; bool get isLoading;
+ Post? get originalPost; String get text; List<ImageUrlOrFile> get images; bool get isLoading;
 /// Create a copy of PostEditorData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -814,16 +817,16 @@ $PostEditorDataCopyWith<PostEditorData> get copyWith => _$PostEditorDataCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostEditorData&&(identical(other.text, text) || other.text == text)&&const DeepCollectionEquality().equals(other.images, images)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostEditorData&&(identical(other.originalPost, originalPost) || other.originalPost == originalPost)&&(identical(other.text, text) || other.text == text)&&const DeepCollectionEquality().equals(other.images, images)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,text,const DeepCollectionEquality().hash(images),isLoading);
+int get hashCode => Object.hash(runtimeType,originalPost,text,const DeepCollectionEquality().hash(images),isLoading);
 
 @override
 String toString() {
-  return 'PostEditorData(text: $text, images: $images, isLoading: $isLoading)';
+  return 'PostEditorData(originalPost: $originalPost, text: $text, images: $images, isLoading: $isLoading)';
 }
 
 
@@ -834,11 +837,11 @@ abstract mixin class $PostEditorDataCopyWith<$Res>  {
   factory $PostEditorDataCopyWith(PostEditorData value, $Res Function(PostEditorData) _then) = _$PostEditorDataCopyWithImpl;
 @useResult
 $Res call({
- String text, List<ImageUrlOrFile> images, bool isLoading
+ Post? originalPost, String text, List<ImageUrlOrFile> images, bool isLoading
 });
 
 
-
+$PostCopyWith<$Res>? get originalPost;
 
 }
 /// @nodoc
@@ -851,15 +854,28 @@ class _$PostEditorDataCopyWithImpl<$Res>
 
 /// Create a copy of PostEditorData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? text = null,Object? images = null,Object? isLoading = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? originalPost = freezed,Object? text = null,Object? images = null,Object? isLoading = null,}) {
   return _then(_self.copyWith(
-text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+originalPost: freezed == originalPost ? _self.originalPost : originalPost // ignore: cast_nullable_to_non_nullable
+as Post?,text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
 as String,images: null == images ? _self.images : images // ignore: cast_nullable_to_non_nullable
 as List<ImageUrlOrFile>,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
+/// Create a copy of PostEditorData
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PostCopyWith<$Res>? get originalPost {
+    if (_self.originalPost == null) {
+    return null;
+  }
 
+  return $PostCopyWith<$Res>(_self.originalPost!, (value) {
+    return _then(_self.copyWith(originalPost: value));
+  });
+}
 }
 
 
@@ -941,10 +957,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String text,  List<ImageUrlOrFile> images,  bool isLoading)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Post? originalPost,  String text,  List<ImageUrlOrFile> images,  bool isLoading)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PostEditorData() when $default != null:
-return $default(_that.text,_that.images,_that.isLoading);case _:
+return $default(_that.originalPost,_that.text,_that.images,_that.isLoading);case _:
   return orElse();
 
 }
@@ -962,10 +978,10 @@ return $default(_that.text,_that.images,_that.isLoading);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String text,  List<ImageUrlOrFile> images,  bool isLoading)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Post? originalPost,  String text,  List<ImageUrlOrFile> images,  bool isLoading)  $default,) {final _that = this;
 switch (_that) {
 case _PostEditorData():
-return $default(_that.text,_that.images,_that.isLoading);case _:
+return $default(_that.originalPost,_that.text,_that.images,_that.isLoading);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -982,10 +998,10 @@ return $default(_that.text,_that.images,_that.isLoading);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String text,  List<ImageUrlOrFile> images,  bool isLoading)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Post? originalPost,  String text,  List<ImageUrlOrFile> images,  bool isLoading)?  $default,) {final _that = this;
 switch (_that) {
 case _PostEditorData() when $default != null:
-return $default(_that.text,_that.images,_that.isLoading);case _:
+return $default(_that.originalPost,_that.text,_that.images,_that.isLoading);case _:
   return null;
 
 }
@@ -997,9 +1013,10 @@ return $default(_that.text,_that.images,_that.isLoading);case _:
 
 
 class _PostEditorData extends PostEditorData {
-  const _PostEditorData({required this.text, required final  List<ImageUrlOrFile> images, required this.isLoading}): _images = images,super._();
+  const _PostEditorData({this.originalPost, required this.text, required final  List<ImageUrlOrFile> images, this.isLoading = false}): _images = images,super._();
   
 
+@override final  Post? originalPost;
 @override final  String text;
  final  List<ImageUrlOrFile> _images;
 @override List<ImageUrlOrFile> get images {
@@ -1008,7 +1025,7 @@ class _PostEditorData extends PostEditorData {
   return EqualUnmodifiableListView(_images);
 }
 
-@override final  bool isLoading;
+@override@JsonKey() final  bool isLoading;
 
 /// Create a copy of PostEditorData
 /// with the given fields replaced by the non-null parameter values.
@@ -1020,16 +1037,16 @@ _$PostEditorDataCopyWith<_PostEditorData> get copyWith => __$PostEditorDataCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostEditorData&&(identical(other.text, text) || other.text == text)&&const DeepCollectionEquality().equals(other._images, _images)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostEditorData&&(identical(other.originalPost, originalPost) || other.originalPost == originalPost)&&(identical(other.text, text) || other.text == text)&&const DeepCollectionEquality().equals(other._images, _images)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,text,const DeepCollectionEquality().hash(_images),isLoading);
+int get hashCode => Object.hash(runtimeType,originalPost,text,const DeepCollectionEquality().hash(_images),isLoading);
 
 @override
 String toString() {
-  return 'PostEditorData(text: $text, images: $images, isLoading: $isLoading)';
+  return 'PostEditorData(originalPost: $originalPost, text: $text, images: $images, isLoading: $isLoading)';
 }
 
 
@@ -1040,11 +1057,11 @@ abstract mixin class _$PostEditorDataCopyWith<$Res> implements $PostEditorDataCo
   factory _$PostEditorDataCopyWith(_PostEditorData value, $Res Function(_PostEditorData) _then) = __$PostEditorDataCopyWithImpl;
 @override @useResult
 $Res call({
- String text, List<ImageUrlOrFile> images, bool isLoading
+ Post? originalPost, String text, List<ImageUrlOrFile> images, bool isLoading
 });
 
 
-
+@override $PostCopyWith<$Res>? get originalPost;
 
 }
 /// @nodoc
@@ -1057,16 +1074,29 @@ class __$PostEditorDataCopyWithImpl<$Res>
 
 /// Create a copy of PostEditorData
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? text = null,Object? images = null,Object? isLoading = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? originalPost = freezed,Object? text = null,Object? images = null,Object? isLoading = null,}) {
   return _then(_PostEditorData(
-text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+originalPost: freezed == originalPost ? _self.originalPost : originalPost // ignore: cast_nullable_to_non_nullable
+as Post?,text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
 as String,images: null == images ? _self._images : images // ignore: cast_nullable_to_non_nullable
 as List<ImageUrlOrFile>,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
 
+/// Create a copy of PostEditorData
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PostCopyWith<$Res>? get originalPost {
+    if (_self.originalPost == null) {
+    return null;
+  }
 
+  return $PostCopyWith<$Res>(_self.originalPost!, (value) {
+    return _then(_self.copyWith(originalPost: value));
+  });
+}
 }
 
 // dart format on

@@ -1,5 +1,5 @@
-
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/presentation/image_url_or_file.dart';
 
 part 'post_editor_state.freezed.dart';
@@ -10,8 +10,10 @@ abstract class PostEditorState {}
 abstract class PostEditorStateBase
     with _$PostEditorStateBase
     implements PostEditorState {
-  const factory PostEditorStateBase({required PostEditorData data}) =
-      _PostEditorStateBase;
+  const factory PostEditorStateBase({
+    required PostEditorData data,
+    @Default(false) bool updateControllers,
+  }) = _PostEditorStateBase;
 
   factory PostEditorStateBase.initial() =>
       PostEditorStateBase(data: PostEditorData.initial());
@@ -38,13 +40,19 @@ abstract class PostEditorData with _$PostEditorData {
   const PostEditorData._();
 
   const factory PostEditorData({
+    Post? originalPost,
     required String text,
     required List<ImageUrlOrFile> images,
-    required bool isLoading,
+    @Default(false) bool isLoading,
   }) = _PostEditorData;
 
   bool isEmpty() => text.isEmpty && images.isEmpty;
 
-  factory PostEditorData.initial() =>
-      PostEditorData(text: '', images: [], isLoading: false);
+  factory PostEditorData.initial() => PostEditorData(text: '', images: []);
+
+  factory PostEditorData.fromPost(Post post) => PostEditorData(
+    originalPost: post,
+    text: post.content,
+    images: post.images.map((url) => ImageUrlOrFile(url: url)).toList(),
+  );
 }

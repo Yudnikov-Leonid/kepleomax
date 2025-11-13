@@ -13,10 +13,11 @@ import 'package:kepleomax/main.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class PostWidget extends StatelessWidget {
-  const PostWidget({required this.post, this.onDelete, super.key});
+  const PostWidget({required this.post, this.onDelete, this.onEdit, super.key});
 
   final Post post;
   final VoidCallback? onDelete;
+  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -43,46 +44,47 @@ class PostWidget extends StatelessWidget {
                   ),
                 ),
                 const Expanded(child: SizedBox()),
-                if (post.user.isCurrent) PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') {
-
-                    } else if (value == 'delete') {
-                      onDelete?.call();
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(value: 'edit', child: Text('Edit post')),
-                    if (onDelete != null) PopupMenuItem(
-                      value: 'delete',
-                      child: Text(
-                        'Delete post',
-                        style: context.textTheme.bodyLarge?.copyWith(
-                          color: Colors.red,
-                          fontWeight: FontWeight.w500
+                if (post.user.isCurrent)
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        onEdit?.call();
+                      } else if (value == 'delete') {
+                        onDelete?.call();
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      if (onEdit != null)
+                        PopupMenuItem(value: 'edit', child: Text('Edit post')),
+                      if (onDelete != null)
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Text(
+                            'Delete post',
+                            style: context.textTheme.bodyLarge?.copyWith(
+                              color: Colors.red,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
               ],
             ),
           ),
           const SizedBox(height: 4),
-          if (post.images.isNotEmpty) ...[
-            _PostImagesWidget(images: post.images),
-            const SizedBox(height: 10),
-          ],
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              post.content,
-              style: context.textTheme.bodyLarge?.copyWith(
-                fontSize: 15,
-                fontWeight: FontWeight.w400,
+          if (post.images.isNotEmpty) _PostImagesWidget(images: post.images),
+          if (post.content.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
+              child: Text(
+                post.content,
+                style: context.textTheme.bodyLarge?.copyWith(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                ),
               ),
             ),
-          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
@@ -363,7 +365,7 @@ class _PhotoWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        AppNavigator.of(context)!.showGeneralDialog(
+        AppNavigator.showGeneralDialog(
           context,
           PhotosPreviewScreen(urls: imagesToOpen, initialIndex: index),
         );

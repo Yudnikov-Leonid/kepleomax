@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:kepleomax/core/data/files_repository.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
+import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/presentation/image_url_or_file.dart';
 import 'package:kepleomax/features/post_editor/bloc/post_editor_state.dart';
 import 'package:kepleomax/main.dart';
@@ -15,19 +17,28 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
   final PostRepository _repository;
   final FilesRepository _filesRepository;
 
-  PostEditorBloc(
-      {required PostRepository postRepository, required FilesRepository filesRepository})
-      : _repository = postRepository,
-        _filesRepository = filesRepository,
-        super(PostEditorStateBase.initial()) {
-    on<PostEditorEventPost>(_onPost);
+  PostEditorBloc({
+    required PostRepository postRepository,
+    required FilesRepository filesRepository,
+  }) : _repository = postRepository,
+       _filesRepository = filesRepository,
+       super(PostEditorStateBase.initial()) {
+    on<PostEditorEventSave>(_onSave);
     on<PostEditorEventEditText>(_onEditText);
     on<PostEditorEventAddPhotos>(_onAddPhotos);
     on<PostEditorEventRemovePhoto>(_onRemovePhoto);
     on<PostEditorEventSwapPhotos>(_onSwapPhotos);
+    on<PostEditorEventLoad>(_onLoad);
   }
 
-  void _onPost(PostEditorEventPost post, Emitter<PostEditorState> emit) async {
+  void _onLoad(PostEditorEventLoad event, Emitter<PostEditorState> emit) async {
+    if (event.post == null) return;
+
+    _data = PostEditorData.fromPost(event.post!);
+    emit(PostEditorStateBase(data: _data, updateControllers: true));
+  }
+
+  void _onSave(PostEditorEventSave post, Emitter<PostEditorState> emit) async {
     if (_data.text.isEmpty && _data.images.isEmpty) {
       emit(PostEditorStateError(message: "Post can't be empty"));
     }
@@ -46,9 +57,24 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
         }
       }
 
-      await _repository.createNewPost(content: _data.text, images: imagesList);
+      bool refreshPostsList = true;
+      if (_data.originalPost == null) {
+        await _repository.createNewPost(content: _data.text, images: imagesList);
+      } else {
+        final isSomethingChanged = _data.text != _data.originalPost!.content ||
+            !ListEquality().equals(_data.images, _data.originalPost!.images);
+        if (isSomethingChanged) {
+          await _repository.updatePost(
+            postId: _data.originalPost!.id,
+            content: _data.text,
+            images: imagesList,
+          );
+        } else {
+          refreshPostsList = false;
+        }
+      }
 
-      emit(const PostEditorStateExit(refreshPostsList: true));
+      emit(PostEditorStateExit(refreshPostsList: refreshPostsList));
     } catch (e, st) {
       logger.e(e, stackTrace: st);
       emit(PostEditorStateError(message: e.toString()));
@@ -62,8 +88,10 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
     emit(PostEditorStateBase(data: _data));
   }
 
-  void _onAddPhotos(PostEditorEventAddPhotos event,
-      Emitter<PostEditorState> emit,) async {
+  void _onAddPhotos(
+    PostEditorEventAddPhotos event,
+    Emitter<PostEditorState> emit,
+  ) async {
     if (_data.images.length >= imagesCountLimit) {
       emit(const PostEditorStateError(message: 'Photo limit reached'));
       emit(PostEditorStateBase(data: _data));
@@ -113,8 +141,10 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
     }
   }
 
-  void _onRemovePhoto(PostEditorEventRemovePhoto event,
-      Emitter<PostEditorState> emit,) {
+  void _onRemovePhoto(
+    PostEditorEventRemovePhoto event,
+    Emitter<PostEditorState> emit,
+  ) {
     final index = event.index;
     final newList = <ImageUrlOrFile>[];
 
@@ -127,8 +157,10 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
     emit(PostEditorStateBase(data: _data));
   }
 
-  void _onSwapPhotos(PostEditorEventSwapPhotos event,
-      Emitter<PostEditorState> emit,) {
+  void _onSwapPhotos(
+    PostEditorEventSwapPhotos event,
+    Emitter<PostEditorState> emit,
+  ) {
     final indexOne = event.indexOne;
     final indexTwo = event.indexTwo;
     final oldList = _data.images;
@@ -152,8 +184,8 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
 /// events
 abstract class PostEditorEvent {}
 
-class PostEditorEventPost implements PostEditorEvent {
-  const PostEditorEventPost();
+class PostEditorEventSave implements PostEditorEvent {
+  const PostEditorEventSave();
 }
 
 class PostEditorEventEditText implements PostEditorEvent {
@@ -177,4 +209,10 @@ class PostEditorEventSwapPhotos implements PostEditorEvent {
   final int indexTwo;
 
   PostEditorEventSwapPhotos({required this.indexOne, required this.indexTwo});
+}
+
+class PostEditorEventLoad implements PostEditorEvent {
+  final Post? post;
+
+  PostEditorEventLoad({required this.post});
 }

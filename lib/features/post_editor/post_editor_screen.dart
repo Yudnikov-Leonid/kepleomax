@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
+import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
@@ -14,10 +15,15 @@ import 'bloc/post_editor_bloc.dart';
 import 'bloc/post_editor_state.dart';
 
 class PostEditorScreen extends StatelessWidget {
-  const PostEditorScreen({required void Function() onPostSaved, super.key})
-    : _onPostSaved = onPostSaved;
+  const PostEditorScreen({
+    required Post? post,
+    required void Function() onPostSaved,
+    super.key,
+  }) : _post = post,
+       _onSave = onPostSaved;
 
-  final VoidCallback _onPostSaved;
+  final Post? _post;
+  final VoidCallback _onSave;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +31,7 @@ class PostEditorScreen extends StatelessWidget {
       create: (context) => PostEditorBloc(
         filesRepository: Dependencies.of(context).filesRepository,
         postRepository: Dependencies.of(context).postRepository,
-      ),
+      )..add(PostEditorEventLoad(post: _post)),
       child: BlocListener<PostEditorBloc, PostEditorState>(
         listener: (context, state) {
           if (state is PostEditorStateError) {
@@ -34,7 +40,7 @@ class PostEditorScreen extends StatelessWidget {
 
           if (state is PostEditorStateExit) {
             if (state.refreshPostsList) {
-              _onPostSaved();
+              _onSave();
             }
 
             AppNavigator.withKeyOf(context, mainNavigatorKey)!.pop();
@@ -42,7 +48,7 @@ class PostEditorScreen extends StatelessWidget {
         },
         child: Scaffold(
           resizeToAvoidBottomInset: true,
-          appBar: _AppBar(),
+          appBar: _AppBar(isEditing: _post != null),
           body: _Body(),
         ),
       ),
@@ -50,12 +56,35 @@ class PostEditorScreen extends StatelessWidget {
   }
 }
 
-class _Body extends StatelessWidget {
+class _Body extends StatefulWidget {
   const _Body();
 
   @override
+  State<_Body> createState() => _BodyState();
+}
+
+class _BodyState extends State<_Body> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _updateControllers(PostEditorData data) {
+    _controller.text = data.text;
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PostEditorBloc, PostEditorState>(
+    return BlocConsumer<PostEditorBloc, PostEditorState>(
+      listener: (context, state) {
+        if (state is PostEditorStateBase && state.updateControllers) {
+          _updateControllers(state.data);
+        }
+      },
       buildWhen: (oldState, newState) {
         if (newState is! PostEditorStateBase) return false;
 
@@ -79,6 +108,7 @@ class _Body extends StatelessWidget {
                     children: [
                       _Images(images: data.images, isLoading: data.isLoading),
                       TextFormField(
+                        controller: _controller,
                         maxLines: null,
                         keyboardType: TextInputType.multiline,
                         decoration: InputDecoration(
@@ -210,7 +240,9 @@ class _Images extends StatelessWidget {
 }
 
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _AppBar();
+  const _AppBar({required this.isEditing});
+
+  final bool isEditing;
 
   @override
   Widget build(BuildContext context) {
@@ -231,7 +263,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
           scrolledUnderElevation: 0.0,
           forceMaterialTransparency: true,
           title: Text(
-            'New Post',
+            isEditing ? 'Edit post' : 'New Post',
             style: context.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w600,
               fontSize: 24,
@@ -240,16 +272,12 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
           leading: IconButton(
             icon: Icon(
               Icons.close,
-              color: data.isLoading
-                  ? KlmColors.inactiveColor
-                  : KlmColors.primaryColor,
+              color: KlmColors.primaryColor,
               fontWeight: FontWeight.w500,
             ),
-            onPressed: data.isLoading
-                ? null
-                : () {
-                    AppNavigator.pop(context);
-                  },
+            onPressed: () {
+              AppNavigator.pop(context);
+            },
           ),
           actions: [
             TextButton(
@@ -257,7 +285,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                   ? null
                   : () {
                       context.read<PostEditorBloc>().add(
-                        const PostEditorEventPost(),
+                        const PostEditorEventSave(),
                       );
                     },
               child: data.isLoading
@@ -270,7 +298,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                       ),
                     )
                   : Text(
-                      'Post',
+                      isEditing ? 'Save' : 'Post',
                       style: context.textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w500,
                         fontSize: 18,

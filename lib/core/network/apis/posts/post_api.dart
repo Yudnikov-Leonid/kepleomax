@@ -25,4 +25,10 @@ abstract class PostApi {
   Future<HttpResponse<PostResponseDto>> deletePost({
     @Query('postId') required int postId,
   });
+
+  @PUT('/')
+  Future<HttpResponse<PostResponseDto>> updatePost({
+    @Query('postId') required int postId,
+    @Body() required CreatePostRequestDto data,
+  });
 }

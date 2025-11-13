@@ -259,8 +259,8 @@ class _Body extends StatelessWidget {
           onPressed: () {
             AppNavigator.withKeyOf(context, mainNavigatorKey)!.push(
               PostEditorPage(
+                post: null,
                 onPostSaved: () {
-                  print('onPostSaved');
                   context.read<PostListBloc>().add(const PostListEventLoad());
                 },
               ),

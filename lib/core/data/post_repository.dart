@@ -7,6 +7,23 @@ class PostRepository {
 
   PostRepository({required PostApi postApi}) : _postApi = postApi;
 
+  Future<Post> updatePost({
+    required int postId,
+    required String content,
+    required List<String> images,
+  }) async {
+    final res = await _postApi.updatePost(
+        postId: postId, data: CreatePostRequestDto(content: content, images: images));
+
+    if (res.response.statusCode != 200) {
+      throw Exception(
+        res.data.message ?? "Failed to update the post: ${res.response.statusCode}",
+      );
+    }
+
+    return Post.fromDto(res.data.data!);
+  }
+
   Future<Post> deletePost({required int postId}) async {
     final res = await _postApi.deletePost(postId: postId);
 

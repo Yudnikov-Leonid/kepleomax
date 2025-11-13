@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/features/login/login_screen.dart';
 import 'package:kepleomax/features/music/music_screen.dart';
 import 'package:kepleomax/features/post_editor/post_editor_screen.dart';
@@ -61,10 +62,10 @@ final class MusicPage extends AppPage {
 }
 
 final class PostEditorPage extends AppPage {
-  PostEditorPage({required VoidCallback onPostSaved})
+  PostEditorPage({required Post? post, required VoidCallback onPostSaved})
       : super(
     name: "post_editor",
-    child: PostEditorScreen(onPostSaved: onPostSaved),
+    child: PostEditorScreen(post: post, onPostSaved: onPostSaved),
     key: const ValueKey("post_editor"),
   );
 }

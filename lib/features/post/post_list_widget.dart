@@ -2,6 +2,8 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/models/post.dart';
+import 'package:kepleomax/core/navigation/app_navigator.dart';
+import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_button.dart';
@@ -72,6 +74,18 @@ class PostListWidget extends StatelessWidget {
                   onDelete: () {
                     context.read<PostListBloc>().add(
                       PostListEventDeletePost(index: i, postId: post.id),
+                    );
+                  },
+                  onEdit: () {
+                    AppNavigator.withKeyOf(context, mainNavigatorKey)!.push(
+                      PostEditorPage(
+                        post: post,
+                        onPostSaved: () {
+                          context.read<PostListBloc>().add(
+                            const PostListEventLoad(),
+                          );
+                        },
+                      ),
                     );
                   },
                 ),
