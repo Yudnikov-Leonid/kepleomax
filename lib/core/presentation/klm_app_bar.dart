@@ -24,11 +24,42 @@ class KlmAppBar extends AppBar {
         ),
         titleSpacing: 5,
         backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
         title: Text(
           title,
           style: context.textTheme.labelLarge?.copyWith(fontSize: 24),
         ),
       );
+}
+
+class KlmSliverAppBar extends SliverAppBar {
+  KlmSliverAppBar(
+    BuildContext context,
+    String title, {
+    Widget? leading,
+    super.systemOverlayStyle,
+    super.key,
+  }) : super(
+         leading: InkWell(
+           onTap: () {
+             AppNavigator.of(
+               context,
+             )?.push(UserPage(userId: AuthScope.userOf(context).id));
+           },
+           child:
+               leading ??
+               Container(
+                 margin: const EdgeInsets.all(12),
+                 child: UserImage(url: AuthScope.userOf(context).profileImage),
+               ),
+         ),
+         titleSpacing: 5,
+         backgroundColor: Colors.white,
+         title: Text(
+           title,
+           style: context.textTheme.labelLarge?.copyWith(fontSize: 24),
+         ),
+       );
 }
 
 class KlmBackButton extends StatelessWidget {

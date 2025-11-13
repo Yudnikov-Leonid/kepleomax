@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
+import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/caching_image.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/parse_time.dart';
@@ -13,11 +14,18 @@ import 'package:kepleomax/main.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class PostWidget extends StatelessWidget {
-  const PostWidget({required this.post, this.onDelete, this.onEdit, super.key});
+  const PostWidget({
+    required this.post,
+    this.onDelete,
+    this.onEdit,
+    this.onUserTap,
+    super.key,
+  });
 
   final Post post;
   final VoidCallback? onDelete;
   final VoidCallback? onEdit;
+  final VoidCallback? onUserTap;
 
   @override
   Widget build(BuildContext context) {
@@ -30,21 +38,32 @@ class PostWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                UserImage(
-                  url: post.user.profileImage,
-                  size: 34,
-                  isLoading: post.isMockLoadingPost,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  post.user.username,
-                  style: context.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 19,
+                InkWell(
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  onTap: () {
+                    AppNavigator.of(context)?.push(UserPage(userId: post.user.id));
+                  },
+                  child: Row(
+                    children: [
+                      UserImage(
+                        url: post.user.profileImage,
+                        size: 34,
+                        isLoading: post.isMockLoadingPost,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        post.user.username,
+                        style: context.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 19,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const Expanded(child: SizedBox()),
-                if (post.user.isCurrent)
+                if (post.user.isCurrent && (onEdit != null || onDelete != null))
                   PopupMenuButton<String>(
                     onSelected: (value) {
                       if (value == 'edit') {
@@ -68,7 +87,9 @@ class PostWidget extends StatelessWidget {
                           ),
                         ),
                     ],
-                  ),
+                  )
+                else
+                  SizedBox(height: 42),
               ],
             ),
           ),

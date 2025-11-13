@@ -72,4 +72,22 @@ class PostRepository {
 
     return res.data.data!.map(Post.fromDto).toList();
   }
+
+  Future<List<Post>> getPosts({
+    required int limit,
+    required int offset,
+  }) async {
+    final res = await _postApi.getPosts(
+      limit: limit,
+      offset: offset,
+    );
+
+    if (res.response.statusCode != 200) {
+      throw Exception(
+        res.data.message ?? "Failed to get posts: ${res.response.statusCode}",
+      );
+    }
+
+    return res.data.data!.map(Post.fromDto).toList();
+  }
 }

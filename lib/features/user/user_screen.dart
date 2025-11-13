@@ -167,16 +167,21 @@ class _Body extends StatelessWidget {
                             child: InkWell(
                               splashColor: Colors.transparent,
                               highlightColor: Colors.transparent,
-                              onTap: data.profile == null ? null : () {
-                                AppNavigator.showGeneralDialog(
-                                  context,
-                                  PhotosPreviewScreen(
-                                    urls: [data.profile!.user.profileImage],
-                                    initialIndex: 0,
-                                    isOnePictureMode: true,
-                                  ),
-                                );
-                              },
+                              onTap:
+                                  data.profile == null ||
+                                      (data.profile?.user.profileImage.isEmpty ??
+                                          true)
+                                  ? null
+                                  : () {
+                                      AppNavigator.showGeneralDialog(
+                                        context,
+                                        PhotosPreviewScreen(
+                                          urls: [data.profile!.user.profileImage],
+                                          initialIndex: 0,
+                                          isOnePictureMode: true,
+                                        ),
+                                      );
+                                    },
                               child: UserImage(
                                 url: data.profile?.user.profileImage,
                                 size: 130,
@@ -240,7 +245,7 @@ class _Body extends StatelessWidget {
                       ],
                     ),
                   ),
-                  PostListWidget(key: Key('users_posts')),
+                  PostListWidget(key: Key('users_posts'), isUserPage: true),
                 ],
               ),
             ),

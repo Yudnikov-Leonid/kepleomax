@@ -15,7 +15,9 @@ import 'bloc/post_list_bloc.dart';
 
 /// must be BlocProvider above with PostListBloc
 class PostListWidget extends StatelessWidget {
-  const PostListWidget({super.key});
+  const PostListWidget({required this.isUserPage, super.key});
+
+  final bool isUserPage;
 
   @override
   Widget build(BuildContext context) {
@@ -71,12 +73,12 @@ class PostListWidget extends StatelessWidget {
                 (i, post) => PostWidget(
                   key: Key('post_widget_${post.id}'),
                   post: post,
-                  onDelete: () {
+                  onDelete: !isUserPage ? null : () {
                     context.read<PostListBloc>().add(
                       PostListEventDeletePost(index: i, postId: post.id),
                     );
                   },
-                  onEdit: () {
+                  onEdit: !isUserPage ? null : () {
                     AppNavigator.withKeyOf(context, mainNavigatorKey)!.push(
                       PostEditorPage(
                         post: post,
@@ -91,7 +93,7 @@ class PostListWidget extends StatelessWidget {
                 ),
               ),
 
-              if (data.isAllPostsLoaded)
+              if (data.isAllPostsLoaded && isUserPage)
                 Container(
                   height: 50,
                   width: double.infinity,
@@ -107,7 +109,7 @@ class PostListWidget extends StatelessWidget {
                     ),
                   ),
                 )
-              else
+              else if (!data.isAllPostsLoaded)
                 PostWidget(post: Post.loading()),
             ],
           );

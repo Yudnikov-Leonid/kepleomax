@@ -1,17 +1,18 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
+import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/features/post/bloc/post_list_state.dart';
 import 'package:kepleomax/main.dart';
 
-const int _pagingLimit = 4;
+const int _pagingLimit = 5;
 
 class PostListBloc extends Bloc<PostListEvent, PostListState> {
   final PostRepository _postRepository;
 
   late PostListData _data = PostListData.initial();
-  final int _userId;
+  final int? _userId;
 
-  PostListBloc({required PostRepository postRepository, required int userId})
+  PostListBloc({required PostRepository postRepository, required int? userId})
     : _postRepository = postRepository,
       _userId = userId,
       super(PostListStateBase.initial()) {
@@ -57,11 +58,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
 
     final oldPosts = _data.posts;
     try {
-      final newPosts = await _postRepository.getPostsByUserId(
-        userId: _userId,
-        limit: _pagingLimit,
-        offset: oldPosts.length,
-      );
+      final newPosts = await _getPosts(offset: oldPosts.length);
 
       await Future.delayed(const Duration(seconds: 1));
 
@@ -83,11 +80,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     emit(const PostListStateLoading());
 
     try {
-      final posts = await _postRepository.getPostsByUserId(
-        userId: _userId,
-        limit: _pagingLimit,
-        offset: 0,
-      );
+      final posts = await _getPosts(offset: 0);
 
       _data = _data.copyWith(
         posts: posts,
@@ -98,6 +91,18 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
       emit(PostListStateError(message: e.toString()));
     } finally {
       emit(PostListStateBase(data: _data));
+    }
+  }
+
+  Future<List<Post>> _getPosts({required int offset}) async {
+    if (_userId == null) {
+      return await _postRepository.getPosts(limit: _pagingLimit, offset: offset);
+    } else {
+      return await _postRepository.getPostsByUserId(
+        userId: _userId,
+        limit: _pagingLimit,
+        offset: offset,
+      );
     }
   }
 }
