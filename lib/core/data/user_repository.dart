@@ -18,7 +18,7 @@ class UserRepository {
     final res = await _profileApi.getProfile(userId.toString());
 
     if (res.response.statusCode != 200) {
-      throw Exception(res.data.message ?? "Failed to get user's profile");
+      throw Exception(res.data.message ?? "Failed to get user's profile: ${res.response.statusCode}");
     }
 
     return UserProfile(
@@ -38,7 +38,7 @@ class UserRepository {
       final imageRes = await _filesApi.uploadFile(File(profile.user.profileImage));
 
       if (imageRes.response.statusCode != 201) {
-        throw Exception(imageRes.data.message ?? "Failed to upload image");
+        throw Exception(imageRes.data.message ?? "Failed to upload image: ${imageRes.response.statusCode}");
       }
 
       newImagePath = imageRes.data.data!.path;
@@ -53,7 +53,7 @@ class UserRepository {
     );
 
     if (res.response.statusCode != 200) {
-      throw Exception(res.data.message ?? "Failed to update profile");
+      throw Exception(res.data.message ?? "Failed to update profile: ${res.response.statusCode}");
     }
 
     return profile.copyWith(

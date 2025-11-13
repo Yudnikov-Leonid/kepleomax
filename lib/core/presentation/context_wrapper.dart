@@ -13,7 +13,7 @@ extension GetScreenSize on BuildContext {
 }
 
 extension ShowSnackBar on BuildContext {
-  void showSnackBar({required String text, Color? color, Duration duration = const Duration(seconds: 6)}) => ScaffoldMessenger.of(this).showSnackBar(
+  void showSnackBar({required String text, Color? color, Duration duration = const Duration(seconds: 3)}) => ScaffoldMessenger.of(this).showSnackBar(
     SnackBar(
       behavior: SnackBarBehavior.fixed,
       backgroundColor: color,

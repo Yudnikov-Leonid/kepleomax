@@ -89,7 +89,7 @@ class AuthController {
       try {
         final res = await _userApi.getUser(userId: _user!.id);
         if (res.response.statusCode != 200) {
-          throw Exception(res.data.message ?? 'Failed to get user');
+          throw Exception(res.data.message ?? 'Failed to get user: ${res.response.statusCode}');
         }
         updateUser(User.fromDto(res.data.data!));
       } catch (e, st) {

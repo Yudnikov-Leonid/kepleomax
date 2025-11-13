@@ -11,7 +11,7 @@ class FilesRepository {
     final res = await _filesApi.uploadFile(File(path));
 
     if (res.response.statusCode != 201) {
-      throw Exception(res.data.message ?? "Failed to upload image");
+      throw Exception(res.data.message ?? "Failed to upload image: ${res.response.statusCode}");
     }
 
     return res.data.data!.path;

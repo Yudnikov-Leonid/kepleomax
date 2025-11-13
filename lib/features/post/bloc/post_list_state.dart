@@ -9,7 +9,8 @@ abstract class PostListState {}
 abstract class PostListStateBase with _$PostListStateBase implements PostListState {
   const factory PostListStateBase({required PostListData data}) = _PostListStateBase;
 
-  factory PostListStateBase.initial() => PostListStateBase(data: PostListData.initial());
+  factory PostListStateBase.initial() =>
+      PostListStateBase(data: PostListData.initial());
 }
 
 @freezed
@@ -17,6 +18,16 @@ abstract class PostListStateError
     with _$PostListStateError
     implements PostListState {
   const factory PostListStateError({required String message}) = _PostListStateError;
+}
+
+@freezed
+abstract class PostListStateMessage
+    with _$PostListStateMessage
+    implements PostListState {
+  const factory PostListStateMessage({
+    required String message,
+    @Default(false) bool isError,
+  }) = _PostListStateMessage;
 }
 
 @freezed

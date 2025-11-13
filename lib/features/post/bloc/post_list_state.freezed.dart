@@ -544,6 +544,266 @@ as String,
 }
 
 /// @nodoc
+mixin _$PostListStateMessage {
+
+ String get message; bool get isError;
+/// Create a copy of PostListStateMessage
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PostListStateMessageCopyWith<PostListStateMessage> get copyWith => _$PostListStateMessageCopyWithImpl<PostListStateMessage>(this as PostListStateMessage, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostListStateMessage&&(identical(other.message, message) || other.message == message)&&(identical(other.isError, isError) || other.isError == isError));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,message,isError);
+
+@override
+String toString() {
+  return 'PostListStateMessage(message: $message, isError: $isError)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $PostListStateMessageCopyWith<$Res>  {
+  factory $PostListStateMessageCopyWith(PostListStateMessage value, $Res Function(PostListStateMessage) _then) = _$PostListStateMessageCopyWithImpl;
+@useResult
+$Res call({
+ String message, bool isError
+});
+
+
+
+
+}
+/// @nodoc
+class _$PostListStateMessageCopyWithImpl<$Res>
+    implements $PostListStateMessageCopyWith<$Res> {
+  _$PostListStateMessageCopyWithImpl(this._self, this._then);
+
+  final PostListStateMessage _self;
+  final $Res Function(PostListStateMessage) _then;
+
+/// Create a copy of PostListStateMessage
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? message = null,Object? isError = null,}) {
+  return _then(_self.copyWith(
+message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,isError: null == isError ? _self.isError : isError // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [PostListStateMessage].
+extension PostListStateMessagePatterns on PostListStateMessage {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _PostListStateMessage value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _PostListStateMessage() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _PostListStateMessage value)  $default,){
+final _that = this;
+switch (_that) {
+case _PostListStateMessage():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _PostListStateMessage value)?  $default,){
+final _that = this;
+switch (_that) {
+case _PostListStateMessage() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String message,  bool isError)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _PostListStateMessage() when $default != null:
+return $default(_that.message,_that.isError);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String message,  bool isError)  $default,) {final _that = this;
+switch (_that) {
+case _PostListStateMessage():
+return $default(_that.message,_that.isError);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String message,  bool isError)?  $default,) {final _that = this;
+switch (_that) {
+case _PostListStateMessage() when $default != null:
+return $default(_that.message,_that.isError);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _PostListStateMessage implements PostListStateMessage {
+  const _PostListStateMessage({required this.message, this.isError = false});
+  
+
+@override final  String message;
+@override@JsonKey() final  bool isError;
+
+/// Create a copy of PostListStateMessage
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$PostListStateMessageCopyWith<_PostListStateMessage> get copyWith => __$PostListStateMessageCopyWithImpl<_PostListStateMessage>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostListStateMessage&&(identical(other.message, message) || other.message == message)&&(identical(other.isError, isError) || other.isError == isError));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,message,isError);
+
+@override
+String toString() {
+  return 'PostListStateMessage(message: $message, isError: $isError)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$PostListStateMessageCopyWith<$Res> implements $PostListStateMessageCopyWith<$Res> {
+  factory _$PostListStateMessageCopyWith(_PostListStateMessage value, $Res Function(_PostListStateMessage) _then) = __$PostListStateMessageCopyWithImpl;
+@override @useResult
+$Res call({
+ String message, bool isError
+});
+
+
+
+
+}
+/// @nodoc
+class __$PostListStateMessageCopyWithImpl<$Res>
+    implements _$PostListStateMessageCopyWith<$Res> {
+  __$PostListStateMessageCopyWithImpl(this._self, this._then);
+
+  final _PostListStateMessage _self;
+  final $Res Function(_PostListStateMessage) _then;
+
+/// Create a copy of PostListStateMessage
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? message = null,Object? isError = null,}) {
+  return _then(_PostListStateMessage(
+message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,isError: null == isError ? _self.isError : isError // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$PostListStateLoading {
 
 

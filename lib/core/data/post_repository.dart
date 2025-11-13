@@ -7,6 +7,18 @@ class PostRepository {
 
   PostRepository({required PostApi postApi}) : _postApi = postApi;
 
+  Future<Post> deletePost({required int postId}) async {
+    final res = await _postApi.deletePost(postId: postId);
+
+    if (res.response.statusCode != 200) {
+      throw Exception(
+        res.data.message ?? "Failed to delete the post: ${res.response.statusCode}",
+      );
+    }
+
+    return Post.fromDto(res.data.data!);
+  }
+
   Future<Post> createNewPost({
     required String content,
     required List<String> images,
@@ -16,7 +28,9 @@ class PostRepository {
     );
 
     if (res.response.statusCode != 201) {
-      throw Exception(res.data.message ?? "Failed to create new post");
+      throw Exception(
+        res.data.message ?? "Failed to create new post: ${res.response.statusCode}",
+      );
     }
 
     return Post.fromDto(res.data.data!);
@@ -34,7 +48,9 @@ class PostRepository {
     );
 
     if (res.response.statusCode != 200) {
-      throw Exception(res.data.message ?? "Failed to get posts");
+      throw Exception(
+        res.data.message ?? "Failed to get posts: ${res.response.statusCode}",
+      );
     }
 
     return res.data.data!.map(Post.fromDto).toList();

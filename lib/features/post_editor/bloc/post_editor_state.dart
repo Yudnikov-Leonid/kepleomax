@@ -1,6 +1,6 @@
-import 'dart:io';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kepleomax/core/presentation/image_url_or_file.dart';
 
 part 'post_editor_state.freezed.dart';
 
@@ -47,9 +47,4 @@ abstract class PostEditorData with _$PostEditorData {
 
   factory PostEditorData.initial() =>
       PostEditorData(text: '', images: [], isLoading: false);
-}
-
-@freezed
-abstract class ImageUrlOrFile with _$ImageUrlOrFile {
-  const factory ImageUrlOrFile({String? url, File? file}) = _ImageUrlOrFile;
 }

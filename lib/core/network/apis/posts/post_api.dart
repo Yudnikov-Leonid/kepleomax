@@ -20,4 +20,9 @@ abstract class PostApi {
     @Query('limit') required int limit,
     @Query('offset') required int offset,
   });
+
+  @DELETE('/')
+  Future<HttpResponse<PostResponseDto>> deletePost({
+    @Query('postId') required int postId,
+  });
 }

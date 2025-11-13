@@ -1,6 +1,8 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/models/post.dart';
+import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_button.dart';
 import 'package:kepleomax/features/post/bloc/post_list_state.dart';
@@ -15,7 +17,15 @@ class PostListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PostListBloc, PostListState>(
+    return BlocConsumer<PostListBloc, PostListState>(
+      listener: (context, state) {
+        if (state is PostListStateMessage) {
+          context.showSnackBar(
+            text: state.message,
+            color: state.isError ? KlmColors.errorRed : KlmColors.success,
+          );
+        }
+      },
       builder: (context, state) {
         if (state is PostListStateLoading) {
           return Skeletonizer(
@@ -55,8 +65,16 @@ class PostListWidget extends StatelessWidget {
           final data = state.data;
           return Column(
             children: [
-              ...data.posts.map(
-                (post) => PostWidget(key: Key('post_widget_${post.id}'), post: post),
+              ...data.posts.mapIndexed(
+                (i, post) => PostWidget(
+                  key: Key('post_widget_${post.id}'),
+                  post: post,
+                  onDelete: () {
+                    context.read<PostListBloc>().add(
+                      PostListEventDeletePost(index: i, postId: post.id),
+                    );
+                  },
+                ),
               ),
 
               if (data.isAllPostsLoaded)

@@ -13,9 +13,10 @@ import 'package:kepleomax/main.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class PostWidget extends StatelessWidget {
-  const PostWidget({required this.post, super.key});
+  const PostWidget({required this.post, this.onDelete, super.key});
 
   final Post post;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +29,11 @@ class PostWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                UserImage(url: post.user.profileImage, size: 34, isLoading: post.isMockLoadingPost),
+                UserImage(
+                  url: post.user.profileImage,
+                  size: 34,
+                  isLoading: post.isMockLoadingPost,
+                ),
                 const SizedBox(width: 10),
                 Text(
                   post.user.username,
@@ -38,7 +43,28 @@ class PostWidget extends StatelessWidget {
                   ),
                 ),
                 const Expanded(child: SizedBox()),
-                IconButton(onPressed: () {}, icon: Icon(Icons.edit, size: 20)),
+                if (post.user.isCurrent) PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'edit') {
+
+                    } else if (value == 'delete') {
+                      onDelete?.call();
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(value: 'edit', child: Text('Edit post')),
+                    if (onDelete != null) PopupMenuItem(
+                      value: 'delete',
+                      child: Text(
+                        'Delete post',
+                        style: context.textTheme.bodyLarge?.copyWith(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w500
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
