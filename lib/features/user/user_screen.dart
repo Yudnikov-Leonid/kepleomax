@@ -39,7 +39,8 @@ class _UserScreenState extends State<UserScreen> {
   late PostListBloc _postBloc;
 
   void _onScrollListener() {
-    if (_scrollController.offset > _scrollController.position.maxScrollExtent - 180) {
+    if (_scrollController.offset >
+        _scrollController.position.maxScrollExtent - 180) {
       _postBloc.add(const PostListEventLoadMore());
     }
   }
@@ -256,10 +257,14 @@ class _Body extends StatelessWidget {
         ),
         child: TextButton(
           onPressed: () {
-            AppNavigator.withKeyOf(
-              context,
-              mainNavigatorKey,
-            )!.push(PostEditorPage());
+            AppNavigator.withKeyOf(context, mainNavigatorKey)!.push(
+              PostEditorPage(
+                onPostSaved: () {
+                  print('onPostSaved');
+                  context.read<PostListBloc>().add(const PostListEventLoad());
+                },
+              ),
+            );
           },
           child: Row(
             mainAxisSize: MainAxisSize.min,

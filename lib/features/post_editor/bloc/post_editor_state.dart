@@ -26,8 +26,11 @@ abstract class PostEditorStateError
 }
 
 @freezed
-abstract class PostEditorStateExit with _$PostEditorStateExit implements PostEditorState {
-  const factory PostEditorStateExit() = _PostEditorStateExit;
+abstract class PostEditorStateExit
+    with _$PostEditorStateExit
+    implements PostEditorState {
+  const factory PostEditorStateExit({required bool refreshPostsList}) =
+      _PostEditorStateExit;
 }
 
 @freezed

@@ -47,7 +47,7 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
 
       await _repository.createNewPost(content: _data.text, images: imagesList);
 
-      emit(const PostEditorStateExit());
+      emit(const PostEditorStateExit(refreshPostsList: true));
     } catch (e, st) {
       logger.e(e, stackTrace: st);
       emit(PostEditorStateError(message: e.toString()));

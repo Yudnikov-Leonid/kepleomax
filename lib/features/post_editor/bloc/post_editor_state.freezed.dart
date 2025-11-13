@@ -546,30 +546,61 @@ as String,
 /// @nodoc
 mixin _$PostEditorStateExit {
 
-
+ bool get refreshPostsList;
+/// Create a copy of PostEditorStateExit
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PostEditorStateExitCopyWith<PostEditorStateExit> get copyWith => _$PostEditorStateExitCopyWithImpl<PostEditorStateExit>(this as PostEditorStateExit, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostEditorStateExit);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostEditorStateExit&&(identical(other.refreshPostsList, refreshPostsList) || other.refreshPostsList == refreshPostsList));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,refreshPostsList);
 
 @override
 String toString() {
-  return 'PostEditorStateExit()';
+  return 'PostEditorStateExit(refreshPostsList: $refreshPostsList)';
 }
 
 
 }
 
 /// @nodoc
-class $PostEditorStateExitCopyWith<$Res>  {
-$PostEditorStateExitCopyWith(PostEditorStateExit _, $Res Function(PostEditorStateExit) __);
+abstract mixin class $PostEditorStateExitCopyWith<$Res>  {
+  factory $PostEditorStateExitCopyWith(PostEditorStateExit value, $Res Function(PostEditorStateExit) _then) = _$PostEditorStateExitCopyWithImpl;
+@useResult
+$Res call({
+ bool refreshPostsList
+});
+
+
+
+
+}
+/// @nodoc
+class _$PostEditorStateExitCopyWithImpl<$Res>
+    implements $PostEditorStateExitCopyWith<$Res> {
+  _$PostEditorStateExitCopyWithImpl(this._self, this._then);
+
+  final PostEditorStateExit _self;
+  final $Res Function(PostEditorStateExit) _then;
+
+/// Create a copy of PostEditorStateExit
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? refreshPostsList = null,}) {
+  return _then(_self.copyWith(
+refreshPostsList: null == refreshPostsList ? _self.refreshPostsList : refreshPostsList // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
 }
 
 
@@ -651,10 +682,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function()?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool refreshPostsList)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PostEditorStateExit() when $default != null:
-return $default();case _:
+return $default(_that.refreshPostsList);case _:
   return orElse();
 
 }
@@ -672,10 +703,10 @@ return $default();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function()  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool refreshPostsList)  $default,) {final _that = this;
 switch (_that) {
 case _PostEditorStateExit():
-return $default();case _:
+return $default(_that.refreshPostsList);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -692,10 +723,10 @@ return $default();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function()?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool refreshPostsList)?  $default,) {final _that = this;
 switch (_that) {
 case _PostEditorStateExit() when $default != null:
-return $default();case _:
+return $default(_that.refreshPostsList);case _:
   return null;
 
 }
@@ -707,33 +738,67 @@ return $default();case _:
 
 
 class _PostEditorStateExit implements PostEditorStateExit {
-  const _PostEditorStateExit();
+  const _PostEditorStateExit({required this.refreshPostsList});
   
 
+@override final  bool refreshPostsList;
 
-
+/// Create a copy of PostEditorStateExit
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$PostEditorStateExitCopyWith<_PostEditorStateExit> get copyWith => __$PostEditorStateExitCopyWithImpl<_PostEditorStateExit>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostEditorStateExit);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostEditorStateExit&&(identical(other.refreshPostsList, refreshPostsList) || other.refreshPostsList == refreshPostsList));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,refreshPostsList);
 
 @override
 String toString() {
-  return 'PostEditorStateExit()';
+  return 'PostEditorStateExit(refreshPostsList: $refreshPostsList)';
 }
 
 
 }
 
+/// @nodoc
+abstract mixin class _$PostEditorStateExitCopyWith<$Res> implements $PostEditorStateExitCopyWith<$Res> {
+  factory _$PostEditorStateExitCopyWith(_PostEditorStateExit value, $Res Function(_PostEditorStateExit) _then) = __$PostEditorStateExitCopyWithImpl;
+@override @useResult
+$Res call({
+ bool refreshPostsList
+});
 
 
+
+
+}
+/// @nodoc
+class __$PostEditorStateExitCopyWithImpl<$Res>
+    implements _$PostEditorStateExitCopyWith<$Res> {
+  __$PostEditorStateExitCopyWithImpl(this._self, this._then);
+
+  final _PostEditorStateExit _self;
+  final $Res Function(_PostEditorStateExit) _then;
+
+/// Create a copy of PostEditorStateExit
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? refreshPostsList = null,}) {
+  return _then(_PostEditorStateExit(
+refreshPostsList: null == refreshPostsList ? _self.refreshPostsList : refreshPostsList // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
 
 /// @nodoc
 mixin _$PostEditorData {

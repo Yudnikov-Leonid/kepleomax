@@ -61,10 +61,10 @@ final class MusicPage extends AppPage {
 }
 
 final class PostEditorPage extends AppPage {
-  const PostEditorPage()
+  PostEditorPage({required VoidCallback onPostSaved})
       : super(
     name: "post_editor",
-    child: const PostEditorScreen(),
+    child: PostEditorScreen(onPostSaved: onPostSaved),
     key: const ValueKey("post_editor"),
   );
 }

@@ -3,7 +3,7 @@ import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/features/post/bloc/post_list_state.dart';
 import 'package:kepleomax/main.dart';
 
-const int _pagingLimit = 3;
+const int _pagingLimit = 4;
 
 class PostListBloc extends Bloc<PostListEvent, PostListState> {
   final PostRepository _postRepository;

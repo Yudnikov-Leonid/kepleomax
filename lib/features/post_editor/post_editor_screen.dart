@@ -13,7 +13,10 @@ import 'bloc/post_editor_bloc.dart';
 import 'bloc/post_editor_state.dart';
 
 class PostEditorScreen extends StatelessWidget {
-  const PostEditorScreen({super.key});
+  const PostEditorScreen({required void Function() onPostSaved, super.key})
+    : _onPostSaved = onPostSaved;
+
+  final VoidCallback _onPostSaved;
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +32,10 @@ class PostEditorScreen extends StatelessWidget {
           }
 
           if (state is PostEditorStateExit) {
+            if (state.refreshPostsList) {
+              _onPostSaved();
+            }
+
             AppNavigator.withKeyOf(context, mainNavigatorKey)!.pop();
           }
         },

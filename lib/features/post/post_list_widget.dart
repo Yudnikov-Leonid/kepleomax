@@ -55,7 +55,9 @@ class PostListWidget extends StatelessWidget {
           final data = state.data;
           return Column(
             children: [
-              ...data.posts.map((post) => PostWidget(post: post)),
+              ...data.posts.map(
+                (post) => PostWidget(key: Key('post_widget_${post.id}'), post: post),
+              ),
 
               if (data.isAllPostsLoaded)
                 Container(
