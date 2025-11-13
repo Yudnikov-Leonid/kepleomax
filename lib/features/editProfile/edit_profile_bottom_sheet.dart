@@ -157,7 +157,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
           const SizedBox(height: 20),
           KlmTextField(
             controller: _descriptionController,
-            multiline: true,
+            multiline: false,
             maxLength: 200,
             label: 'Description',
             onChanged: (newName) {},

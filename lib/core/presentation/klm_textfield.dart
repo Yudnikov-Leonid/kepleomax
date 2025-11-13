@@ -139,7 +139,10 @@ class _KlmTextFieldState extends State<KlmTextField> {
             Positioned(
               bottom: _error() != null ? 32 : 4,
               right: 10,
-              child: Text('${widget.controller.text.length}/${widget.maxLength}'),
+              child: Text(
+                '${widget.controller.text.length}/${widget.maxLength}',
+                style: context.textTheme.bodySmall,
+              ),
             ),
         ],
       ),

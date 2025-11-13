@@ -98,7 +98,9 @@ class PostListWidget extends StatelessWidget {
                   color: Colors.grey.shade200,
                   child: Center(
                     child: Text(
-                      '${data.posts.length} ${data.posts.length == 1 ? 'post' : 'posts'}',
+                      data.posts.isEmpty
+                          ? 'No posts'
+                          : '${data.posts.length} ${data.posts.length == 1 ? 'post' : 'posts'}',
                       style: context.textTheme.bodyLarge?.copyWith(
                         color: Colors.grey.shade600,
                       ),

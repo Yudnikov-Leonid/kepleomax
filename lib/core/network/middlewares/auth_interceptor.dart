@@ -40,6 +40,7 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
     final refreshTokenHasExpired = JwtDecoder.isExpired(refreshToken!);
 
     if (refreshTokenHasExpired) {
+      logger.i('refresh token has expired');
       _logout();
       return handler.reject(
         DioException(
@@ -51,6 +52,7 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
     } else if (accessTokenHasExpired) {
       final newAccessToken = await _refreshToken(refreshToken);
       if (newAccessToken == null) {
+        logger.i('access token has expired, failed to refresh');
         _logout();
         return handler.reject(
           DioException(
@@ -60,6 +62,7 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
           ),
         );
       } else {
+        logger.i('access token has expired, success to refresh');
         await _tokenProvider.saveAccessToken(newAccessToken);
         accessToken = newAccessToken;
       }

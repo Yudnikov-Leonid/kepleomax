@@ -19,6 +19,7 @@ import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../core/presentation/colors.dart';
+import '../../core/presentation/photos_preview/photos_preview_screen.dart';
 
 const int _appBarUsernameFullShownOffset = 130;
 
@@ -90,6 +91,7 @@ class _UserScreenState extends State<UserScreen> {
 
           if (state is UserStateUpdateUser) {
             AuthScope.updateUser(context, state.user);
+            context.read<PostListBloc>().add(const PostListEventLoad());
           }
         },
         builder: (context, state) {
@@ -120,7 +122,7 @@ class _Body extends StatelessWidget {
 
   final AutoScrollController _scrollController;
 
-  // MediaQuery.of(context).viewPadding.top inside this widget will be 0
+  /// inside this widget MediaQuery.of(context).viewPadding.top will be 0
   final double _scrollPadding;
 
   @override
@@ -137,15 +139,16 @@ class _Body extends StatelessWidget {
         if (state is! UserStateBase) return SizedBox();
 
         final data = state.userData;
-        return RefreshIndicator(
-          onRefresh: () async {
-            context.read<UserBloc>().add(const UserEventLoad());
-            context.read<PostListBloc>().add(const PostListEventLoad());
-          },
-          child: NotificationListener<ScrollNotification>(
-            onNotification: _onScrollNotification,
+        return NotificationListener<ScrollNotification>(
+          onNotification: _onScrollNotification,
+          child: RefreshIndicator(
+            onRefresh: () async {
+              context.read<UserBloc>().add(const UserEventLoad());
+              context.read<PostListBloc>().add(const PostListEventLoad());
+            },
             child: SingleChildScrollView(
               key: Key('scroll_profile'),
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.only(top: _scrollPadding),
               controller: _scrollController,
               child: Column(
@@ -161,10 +164,24 @@ class _Body extends StatelessWidget {
                           index: 0,
                           highlightColor: Colors.red,
                           child: Center(
-                            child: UserImage(
-                              url: data.profile?.user.profileImage,
-                              size: 130,
-                              isLoading: data.isLoading,
+                            child: InkWell(
+                              splashColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              onTap: data.profile == null ? null : () {
+                                AppNavigator.showGeneralDialog(
+                                  context,
+                                  PhotosPreviewScreen(
+                                    urls: [data.profile!.user.profileImage],
+                                    initialIndex: 0,
+                                    isOnePictureMode: true,
+                                  ),
+                                );
+                              },
+                              child: UserImage(
+                                url: data.profile?.user.profileImage,
+                                size: 130,
+                                isLoading: data.isLoading,
+                              ),
                             ),
                           ),
                         ),

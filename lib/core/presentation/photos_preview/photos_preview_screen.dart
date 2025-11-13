@@ -25,6 +25,7 @@ const double _maxScaleFactor = 4;
 const double _swipeViewHeight = 2600;
 
 const double _scaleFactorOnDoubleTapWhenOnlyYAxes = 1.5;
+
 /// change carefully
 const double _scaleFactorOnDoubleTap = 2.5;
 
@@ -32,11 +33,13 @@ class PhotosPreviewScreen extends StatefulWidget {
   const PhotosPreviewScreen({
     required this.urls,
     required this.initialIndex,
+    this.isOnePictureMode = false,
     super.key,
   });
 
   final List<String> urls;
   final int initialIndex;
+  final bool isOnePictureMode;
 
   @override
   State<PhotosPreviewScreen> createState() => _PhotosPreviewScreenState();
@@ -96,128 +99,126 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      onPopInvokedWithResult: (didPop, _) {},
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        backgroundColor: Colors.black.withAlpha(_getAlpha()),
-        appBar: _showAppBar
-            ? _AppBar(
-                title: '${_index + 1}/${widget.urls.length}',
-                getAlpha: _getAlpha,
-                onSave: () async {
-                  try {
-                    String savedTo = 'gallery';
-                    final String path;
-                    if (Platform.isIOS) {
-                      path = (await getApplicationDocumentsDirectory()).path;
-                    } else {
-                      Directory? directory = Directory(
-                        '/storage/emulated/0/Download',
-                      );
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.black.withAlpha(_getAlpha()),
+      appBar: _showAppBar
+          ? _AppBar(
+              title: widget.isOnePictureMode
+                  ? ''
+                  : '${_index + 1}/${widget.urls.length}',
+              getAlpha: _getAlpha,
+              onSave: _saveToGallery,
+            )
+          : null,
+      body: GestureDetector(
+        onTap: () {
+          setState(() {
+            _showAppBar = !_showAppBar;
+            if (_showAppBar) {
+              SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+            } else {
+              SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+            }
+          });
+        },
 
-                      if (!await directory.exists()) {
-                        directory = await getExternalStorageDirectory();
-                        savedTo = 'external storage';
-                      }
-
-                      if (directory == null) throw Exception("Can't save image");
-
-                      path = '${directory.path}/${widget.urls[_index]}';
-                    }
-
-                    await Dio().download(
-                      flavor.imageUrl + widget.urls[_index],
-                      path,
-                    );
-                    await Gal.putImage(path);
-                    if (mounted) {
-                      Fluttertoast.showToast(msg: 'Image saved to $savedTo');
-                    }
-                  } catch (e, st) {
-                    logger.e(e, stackTrace: st);
-                    if (mounted) {
-                      Fluttertoast.showToast(msg: 'Failed to save image');
-                    }
-                  }
-                },
-              )
-            : null,
-        body: GestureDetector(
-          onTap: () {
-            setState(() {
-              _showAppBar = !_showAppBar;
-              if (_showAppBar) {
-                SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-              } else {
-                SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-              }
-            });
+        /// need here so zoom by double tap can work
+        onDoubleTap: () {},
+        child: _SwipeView(
+          scrollController: _scrollController,
+          onExit: () {
+            Navigator.pop(context);
           },
-
-          /// need here so zoom by double tap can work
-          onDoubleTap: () {},
-          child: _SwipeView(
-            scrollController: _scrollController,
-            onExit: () {
-              Navigator.pop(context);
-            },
-            canScroll: () => !_isInZoom,
-            child: SizedBox(
-              height: _swipeViewHeight,
-              child: PageView(
-                physics: _isInZoom ? NeverScrollableScrollPhysics() : null,
-                controller: _pageController,
-                onPageChanged: (newIndex) {
-                  setState(() {
-                    // for (final controller in _transformControllers) {
-                    //   controller.value = Matrix4.identity();
-                    // }
-                    _index = newIndex;
-                  });
-                },
-                children: widget.urls
-                    .mapIndexed(
-                      (i, url) => Stack(
-                        children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxHeight: context.screenSize.height,
-                                ),
-                                child: _Photo(
-                                  key: Key('photo_${i}_$url'),
-                                  url: url,
-                                  transformationController: _transformControllers[i],
-                                ),
+          canScroll: () => !_isInZoom,
+          child: SizedBox(
+            height: _swipeViewHeight,
+            child: PageView(
+              physics: _isInZoom || widget.isOnePictureMode
+                  ? NeverScrollableScrollPhysics()
+                  : null,
+              controller: _pageController,
+              onPageChanged: (newIndex) {
+                setState(() {
+                  // for (final controller in _transformControllers) {
+                  //   controller.value = Matrix4.identity();
+                  // }
+                  _index = newIndex;
+                });
+              },
+              children: widget.urls
+                  .mapIndexed(
+                    (i, url) => Stack(
+                      children: [
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxHeight: context.screenSize.height,
                               ),
-                            ],
-                          ),
-                          Container(
-                            height: double.infinity,
-                            width: _getLeftLineWidth(),
+                              child: _Photo(
+                                key: Key('photo_${i}_$url'),
+                                url: url,
+                                transformationController: _transformControllers[i],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          height: double.infinity,
+                          width: _getLeftLineWidth(),
+                          color: Colors.black,
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Container(
+                            height: context.screenSize.height,
+                            width: _getRightLineWidth(),
                             color: Colors.black,
                           ),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: Container(
-                              height: context.screenSize.height,
-                              width: _getRightLineWidth(),
-                              color: Colors.black,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                    .toList(),
-              ),
+                        ),
+                      ],
+                    ),
+                  )
+                  .toList(),
             ),
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _saveToGallery() async {
+    try {
+      String savedTo = 'gallery';
+      final String path;
+      if (Platform.isIOS) {
+        path = (await getApplicationDocumentsDirectory()).path;
+      } else {
+        Directory? directory = Directory('/storage/emulated/0/Download');
+
+        if (!await directory.exists()) {
+          directory = await getExternalStorageDirectory();
+          savedTo = 'external storage';
+        }
+
+        if (directory == null) throw Exception("Can't save image");
+
+        path = '${directory.path}/${widget.urls[_index]}';
+      }
+
+      await Dio().download(flavor.imageUrl + widget.urls[_index], path);
+      await Gal.putImage(path);
+      if (mounted) {
+        Fluttertoast.showToast(msg: 'Image saved to $savedTo');
+      }
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
+      if (mounted) {
+        Fluttertoast.showToast(msg: 'Failed to save image');
+      }
+    }
   }
 
   double get _maxLinesWidth => context.screenSize.width * 0.1;
