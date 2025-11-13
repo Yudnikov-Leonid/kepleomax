@@ -220,25 +220,27 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
     );
   }
 
+  double get _maxLinesWidth => context.screenSize.width * 0.1;
+
   double _getRightLineWidth() {
     final pos = _viewPagePos;
     if (pos < 0.1) {
       return 0;
     } else if (pos < 0.7) {
-      return pos.remap(0.1, 0.7, 0, 42);
+      return pos.remap(0.1, 0.7, 0, _maxLinesWidth);
     } else if (pos < 0.9) {
-      return 42;
+      return _maxLinesWidth;
     }
 
-    return pos.remap(0.9, 1, 42, 0);
+    return pos.remap(0.9, 1, _maxLinesWidth, 0);
   }
 
   double _getLeftLineWidth() {
     final pos = _viewPagePos;
     if (pos < 0.1) {
-      return pos.remap(0, 0.1, 0, 42);
+      return pos.remap(0, 0.1, 0, _maxLinesWidth);
     } else if (pos < 0.7) {
-      return pos.remap(0.1, 0.7, 42, 0);
+      return pos.remap(0.1, 0.7, _maxLinesWidth, 0);
     }
 
     return 0;
