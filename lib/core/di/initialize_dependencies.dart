@@ -94,6 +94,7 @@ List<_InitializationStep> _steps = [
       dependencies.userRepository = UserRepository(
         profileApi: dependencies.profileApi,
         filesApi: dependencies.filesApi,
+        userApi: dependencies.userApi,
       );
       dependencies.filesRepository = FilesRepository(
         filesApi: dependencies.filesApi,

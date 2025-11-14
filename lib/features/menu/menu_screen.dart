@@ -18,8 +18,9 @@ class MenuScreen extends StatelessWidget {
         crossAxisSpacing: 10,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 6),
         children: [
-          _MenuItem(title: 'Followers', onTap: () {}),
-          _MenuItem(title: 'Following', onTap: () {}),
+          _MenuItem(title: 'People', onTap: () {
+            AppNavigator.push(context, PeoplePage());
+          }),
           _MenuItem(title: 'Music', onTap: () {
             AppNavigator.withKeyOf(context, mainNavigatorKey)?.push(MusicPage());
           }),

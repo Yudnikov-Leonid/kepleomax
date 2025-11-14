@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:kepleomax/core/network/apis/user/get_user_dto.dart';
+import 'package:kepleomax/core/network/apis/user/get_user_dtos.dart';
 import 'package:retrofit/retrofit.dart';
 
 part 'user_api.g.dart';
@@ -11,4 +11,11 @@ abstract class UserApi {
 
   @GET('/')
   Future<HttpResponse<GetUserDto>> getUser({@Query('userId') required int userId});
+
+  @GET('/search')
+  Future<HttpResponse<GetUsersDto>> searchUsers({
+    @Query('search') required String search,
+    @Query('limit') required int limit,
+    @Query('offset') required int offset,
+  });
 }

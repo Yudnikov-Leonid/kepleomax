@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/features/login/login_screen.dart';
 import 'package:kepleomax/features/music/music_screen.dart';
+import 'package:kepleomax/features/people/people_screen.dart';
 import 'package:kepleomax/features/post_editor/post_editor_screen.dart';
 import 'package:kepleomax/features/user/user_screen.dart';
 
@@ -27,47 +28,44 @@ class AppPage extends MaterialPage<void> {
 
 final class LoginPage extends AppPage {
   const LoginPage()
-      : super(
-    name: "login",
-    child: const LoginScreen(),
-    key: const ValueKey("login"),
-  );
+    : super(name: "login", child: const LoginScreen(), key: const ValueKey("login"));
 }
 
 final class UserPage extends AppPage {
   UserPage({required int userId})
-      : super(
-    name: "user_page_$userId",
-    child: UserScreen(userId: userId),
-    key: ValueKey("user_page_$userId"),
-  );
+    : super(
+        name: "user_page_$userId",
+        child: UserScreen(userId: userId),
+        key: ValueKey("user_page_$userId"),
+      );
 }
 
 final class MainPage extends AppPage {
   const MainPage()
-    : super(
-        name: "main",
-        child: const MainScreen(),
-        key: const ValueKey("main"),
-      );
+    : super(name: "main", child: const MainScreen(), key: const ValueKey("main"));
 }
 
 final class MusicPage extends AppPage {
   const MusicPage()
-      : super(
-    name: "music",
-    child: const MusicScreen(),
-    key: const ValueKey("music"),
-  );
+    : super(name: "music", child: const MusicScreen(), key: const ValueKey("music"));
 }
 
 final class PostEditorPage extends AppPage {
   PostEditorPage({required Post? post, required VoidCallback onPostSaved})
-      : super(
-    name: "post_editor",
-    child: PostEditorScreen(post: post, onPostSaved: onPostSaved),
-    key: const ValueKey("post_editor"),
-  );
+    : super(
+        name: "post_editor",
+        child: PostEditorScreen(post: post, onPostSaved: onPostSaved),
+        key: const ValueKey("post_editor"),
+      );
+}
+
+final class PeoplePage extends AppPage {
+  const PeoplePage()
+    : super(
+        name: "post_editor",
+        child: const PeopleScreen(),
+        key: const ValueKey("post_editor"),
+      );
 }
 
 // final class PhotosPreviewPage extends AppPage {
