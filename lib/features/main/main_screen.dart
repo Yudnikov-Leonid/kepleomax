@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
+import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
 import 'package:kepleomax/features/feed/feed_navigator.dart';
 import 'package:kepleomax/features/menu/menu_navigator.dart';
 import 'package:kepleomax/generated/images_keys.images_keys.dart';
@@ -13,10 +14,11 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+  int _currentIndex = 1;
 
   final _pages = [
     const FeedNavigator(),
+    const ChatsNavigator(),
     const MenuNavigator(),
   ];
 
@@ -48,12 +50,13 @@ class _MainScreenState extends State<MainScreen> {
             unselectedItemColor: KlmColors.inactiveColor,
             items: [
               BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Feed'),
+              BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Chats'),
               BottomNavigationBarItem(
                 icon: SvgPicture.asset(
                   ImagesKeys.hub_icon_svg,
                   height: 25,
                   width: 25,
-                  color: _currentIndex == 1
+                  color: _currentIndex == 2
                       ? KlmColors.primaryColor
                       : KlmColors.inactiveColor,
                 ),

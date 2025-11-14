@@ -7,4 +7,5 @@ class KlmColors {
   static const inactiveColor = Colors.blueGrey;
   static const errorRed = Colors.red;
   static const success = Colors.green;
+  static const readMessage = Colors.indigoAccent;
 }

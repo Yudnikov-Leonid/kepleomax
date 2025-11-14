@@ -87,8 +87,8 @@ class _KlmTextFieldState extends State<KlmTextField> {
                   ? null
                   : widget.controller.text.isNotEmpty
                   ? SizedBox(
-                      height: 22,
-                      width: 22,
+                      height: 17,
+                      width: 17,
                       child: InkWell(
                         onTap: () {
                           widget.controller.clear();
@@ -98,7 +98,7 @@ class _KlmTextFieldState extends State<KlmTextField> {
                         child: const Icon(
                           Icons.close,
                           color: Colors.black,
-                          size: 20,
+                          size: 17,
                         ),
                       ),
                     )
@@ -126,9 +126,7 @@ class _KlmTextFieldState extends State<KlmTextField> {
                         style: context.textTheme.bodyMedium,
                       ),
                     ),
-              hintText: _focusNode.hasFocus || widget.controller.text.isNotEmpty
-                  ? ''
-                  : widget.hint,
+              hintText: widget.hint,
               hintStyle: const TextStyle(color: Colors.grey),
               labelStyle: context.textTheme.titleLarge?.copyWith(color: Colors.grey),
               fillColor: Colors.white,
