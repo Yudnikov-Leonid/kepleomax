@@ -90,6 +90,9 @@ class PostListWidget extends StatelessWidget {
                       ),
                     );
                   },
+                  onUserTap: isUserPage ? null : () {
+                    AppNavigator.of(context)?.push(UserPage(userId: post.user.id));
+                  },
                 ),
               ),
 

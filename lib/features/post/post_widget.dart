@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
-import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/caching_image.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/parse_time.dart';
@@ -41,9 +40,7 @@ class PostWidget extends StatelessWidget {
                 InkWell(
                   splashColor: Colors.transparent,
                   highlightColor: Colors.transparent,
-                  onTap: () {
-                    AppNavigator.of(context)?.push(UserPage(userId: post.user.id));
-                  },
+                  onTap: onUserTap,
                   child: Row(
                     children: [
                       UserImage(
