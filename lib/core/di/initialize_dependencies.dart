@@ -3,12 +3,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
 import 'package:kepleomax/core/auth/user_provider.dart';
+import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/files_repository.dart';
+import 'package:kepleomax/core/data/messages_repository.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
+import 'package:kepleomax/core/network/apis/chats/chats_api.dart';
 import 'package:kepleomax/core/network/apis/files/files_api.dart';
+import 'package:kepleomax/core/network/apis/messages/messages_api.dart';
 import 'package:kepleomax/core/network/apis/posts/post_api.dart';
 import 'package:kepleomax/core/network/apis/profile/profile_api.dart';
 import 'package:kepleomax/core/network/apis/user/user_api.dart';
@@ -90,6 +94,8 @@ List<_InitializationStep> _steps = [
       dependencies.profileApi = ProfileApi(dependencies.dio, flavor.baseUrl);
       dependencies.filesApi = FilesApi(dependencies.dio, flavor.baseUrl);
       dependencies.postApi = PostApi(dependencies.dio, flavor.baseUrl);
+      dependencies.messagesApi = MessagesApi(dependencies.dio, flavor.baseUrl);
+      dependencies.chatsApi = ChatsApi(dependencies.dio, flavor.baseUrl);
 
       dependencies.userRepository = UserRepository(
         profileApi: dependencies.profileApi,
@@ -100,6 +106,12 @@ List<_InitializationStep> _steps = [
         filesApi: dependencies.filesApi,
       );
       dependencies.postRepository = PostRepository(postApi: dependencies.postApi);
+      dependencies.messagesRepository = MessagesRepository(
+        messagesApi: dependencies.messagesApi,
+      );
+      dependencies.chatsRepository = ChatsRepository(
+        chatsApi: dependencies.chatsApi,
+      );
     },
   ),
 ];

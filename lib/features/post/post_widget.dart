@@ -134,7 +134,7 @@ class PostWidget extends StatelessWidget {
                   preferBelow: false,
                   showDuration: Duration(seconds: 5),
                   child: Text(
-                    ParseTime.unixTimeToDate(post.createdAt),
+                    ParseTime.unixTimeToPassTime(post.createdAt),
                     style: context.textTheme.bodyMedium?.copyWith(
                       color: Colors.grey,
                       fontWeight: FontWeight.w500,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
+import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
@@ -9,6 +10,7 @@ import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
 import 'package:kepleomax/core/presentation/klm_textfield.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
+import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
 import 'package:kepleomax/features/people/bloc/people_state.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -171,7 +173,12 @@ class _UserCard extends StatelessWidget {
                 ),
               ),
             ),
-            IconButton(onPressed: () {}, icon: Icon(Icons.chat_outlined)),
+            IconButton(onPressed: () {
+              AppNavigator.withKeyOf(
+                context,
+                mainNavigatorKey,
+              )!.push(ChatPage(chat: Chat.newWithUser(user)));
+            }, icon: Icon(Icons.chat_outlined)),
           ],
         ),
       ),

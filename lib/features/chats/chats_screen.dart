@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kepleomax/core/di/dependencies.dart';
+import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
+import 'package:kepleomax/core/presentation/parse_time.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
+import 'package:kepleomax/features/chats/bloc/chats_bloc.dart';
+import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
 
 class ChatsScreen extends StatelessWidget {
@@ -10,7 +16,16 @@ class ChatsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar: KlmAppBar(context, 'Chats'), body: _Body());
+    return BlocProvider<ChatsBloc>(
+      create: (context) => ChatsBloc(
+        chatsRepository: Dependencies.of(context).chatsRepository,
+        messagesRepository: Dependencies.of(context).messagesRepository,
+      )..add(const ChatsEventLoad()),
+      child: Scaffold(
+        appBar: KlmAppBar(context, 'Chats'),
+        body: _Body(key: Key('chats_body')),
+      ),
+    );
   }
 }
 
@@ -19,15 +34,30 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Column(children: [_ChatWidget(), _ChatWidget()]),
+    return BlocBuilder<ChatsBloc, ChatsState>(
+      builder: (context, state) {
+        if (state is ChatsStateError) return Center(child: Text(state.message));
+
+        if (state is! ChatsStateBase) return SizedBox();
+
+        final data = state.data;
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Column(
+            children: data.chats
+                .map((chat) => _ChatWidget(key: Key('chat-${chat.id}'), chat: chat))
+                .toList(),
+          ),
+        );
+      },
     );
   }
 }
 
 class _ChatWidget extends StatelessWidget {
-  const _ChatWidget({super.key});
+  const _ChatWidget({required this.chat, super.key});
+
+  final Chat chat;
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +66,21 @@ class _ChatWidget extends StatelessWidget {
       height: 70,
       child: InkWell(
         onTap: () {
-          AppNavigator.withKeyOf(context, mainNavigatorKey)!.push(const ChatPage());
+          AppNavigator.withKeyOf(
+            context,
+            mainNavigatorKey,
+          )!.push(ChatPage(chat: chat));
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SizedBox(height: 60, width: 60, child: UserImage(url: '')),
+              SizedBox(
+                height: 60,
+                width: 60,
+                child: UserImage(url: chat.otherUser.profileImage),
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -51,41 +88,48 @@ class _ChatWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Chat name',
+                      chat.otherUser.username,
                       style: context.textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w700,
                         fontSize: 20,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Text(
-                          'You: ',
-                          style: context.textTheme.bodyLarge?.copyWith(color: Colors.grey),
-                        ),
-                        Expanded(
-                          child: Column(
-                            children: [
-                              Text(
-                                'Some very long text some very long text some very long text',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: context.textTheme.bodyLarge?.copyWith(
-                                  fontSize: 15,
-                                  color: Colors.grey.shade700,
-                                ),
+
+                    if (chat.lastMessage != null) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          if (chat.lastMessage!.user.isCurrent)
+                            Text(
+                              'You: ',
+                              style: context.textTheme.bodyLarge?.copyWith(
+                                color: Colors.grey,
                               ),
-                            ],
+                            ),
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: context.screenSize.width * 0.42,
+                            ),
+                            child: Text(
+                              chat.lastMessage!.message,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: context.textTheme.bodyLarge?.copyWith(
+                                fontSize: 15,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          ' • 5d',
-                          style: context.textTheme.bodyLarge?.copyWith(color: Colors.grey),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(width: 4),
+                          Text(
+                            ' • ${ParseTime.unixTimeToPassTimeSlim(chat.lastMessage!.createdAt)}',
+                            style: context.textTheme.bodyLarge?.copyWith(
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
