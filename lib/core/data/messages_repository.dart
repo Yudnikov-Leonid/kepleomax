@@ -10,6 +10,8 @@ class MessagesRepository {
   final MessagesApi _messagesApi;
   late Socket _socket;
   final _messageStreamController = StreamController<Message>.broadcast();
+  final _readMessagesStreamController =
+      StreamController<ReadMessagesUpdate>.broadcast();
 
   MessagesRepository({required MessagesApi messagesApi})
     : _messagesApi = messagesApi;
@@ -32,6 +34,10 @@ class MessagesRepository {
       final messageDto = MessageDto.fromJson(data);
       _messageStreamController.add(Message.fromDto(messageDto));
     });
+    _socket.on('read_messages', (data) {
+      print('MyLog read_messages: $data');
+      _readMessagesStreamController.add(ReadMessagesUpdate.fromJson(data));
+    });
     // _socket.on('new_chat', (data) {
     //   print('new_chat: $data');
     //   _chatsStreamController.add(Chat.fromDto(data));
@@ -40,7 +46,13 @@ class MessagesRepository {
 
   Stream<Message> get messagesStream => _messageStreamController.stream;
 
-  Future<List<Message>> getMessages({required int chatId, required int userId}) async {
+  Stream<ReadMessagesUpdate> get readMessagesStream =>
+      _readMessagesStreamController.stream;
+
+  Future<List<Message>> getMessages({
+    required int chatId,
+    required int userId,
+  }) async {
     final res = await _messagesApi.getMessages(chatId: chatId);
 
     if (res.response.statusCode != 200) {
@@ -59,4 +71,25 @@ class MessagesRepository {
   void dispose() {
     _messageStreamController.close();
   }
+}
+
+class ReadMessagesUpdate {
+  final int chatId;
+  final int senderId;
+  final List<int> messagesIds;
+
+  ReadMessagesUpdate({
+    required this.chatId,
+    required this.senderId,
+    required this.messagesIds,
+  });
+
+  factory ReadMessagesUpdate.fromJson(Map<String, dynamic> json) =>
+      ReadMessagesUpdate(
+        chatId: json['chat_id'],
+        senderId: json['sender_id'],
+        messagesIds: json['messages_ids']
+            .map<int>((e) => int.parse(e.toString()))
+            .toList(),
+      );
 }

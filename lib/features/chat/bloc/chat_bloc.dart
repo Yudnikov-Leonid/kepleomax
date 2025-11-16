@@ -13,7 +13,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final ChatsRepository _chatsRepository;
   final int _userId;
   late ChatData _data = ChatData.initial();
-  late StreamSubscription _sub;
+  late StreamSubscription _subMessages;
+  late StreamSubscription _subReadMessages;
 
   ChatBloc({
     required int userId,
@@ -24,13 +25,34 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
        _userId = userId,
        super(ChatStateBase.initial()) {
     _messagesRepository.initSocket(userId: userId);
-    _sub = _messagesRepository.messagesStream.listen((message) {
+    _subMessages = _messagesRepository.messagesStream.listen((message) {
       add(ChatEventNewMessage(newMessage: message));
+    });
+    _subReadMessages = _messagesRepository.readMessagesStream.listen((data) {
+      add(ChatEventReadMessages(updates: data));
     });
 
     on<ChatEventLoad>(_onLoad);
     on<ChatEventNewMessage>(_onNewMessage);
     on<ChatEventSendMessage>(_onSendMessage);
+    on<ChatEventReadMessages>(_onReadMessages);
+  }
+
+  void _onReadMessages(ChatEventReadMessages event, Emitter<ChatState> emit) {
+    if (_data.chatId != event.updates.chatId) return;
+
+    final updates = event.updates.messagesIds;
+    final newMessages = <Message>[];
+    for (final message in _data.messages) {
+      /// TODO bigO
+      if (updates.contains(message.id)) {
+        newMessages.add(message.copyWith(isRead: true));
+      } else {
+        newMessages.add(message);
+      }
+    }
+    _data = _data.copyWith(messages: newMessages);
+    emit(ChatStateBase(data: _data));
   }
 
   void _onSendMessage(ChatEventSendMessage event, Emitter<ChatState> emit) {
@@ -77,7 +99,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   @override
   Future<void> close() {
-    _sub.cancel();
+    _subMessages.cancel();
+    _subReadMessages.cancel();
     _messagesRepository.dispose();
     return super.close();
   }
@@ -106,4 +129,10 @@ class ChatEventSendMessage implements ChatEvent {
   final int otherUserId;
 
   const ChatEventSendMessage({required this.message, required this.otherUserId});
+}
+
+class ChatEventReadMessages implements ChatEvent {
+  final ReadMessagesUpdate updates;
+
+  const ChatEventReadMessages({required this.updates});
 }

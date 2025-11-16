@@ -11,6 +11,7 @@ abstract class Message with _$Message {
     required User user,
     required String message,
     required int chatId,
+    required bool isRead,
     required int createdAt,
     required int? editedAt,
   }) = _Message;
@@ -26,6 +27,7 @@ abstract class Message with _$Message {
     id: dto.id,
     message: dto.message,
     chatId: dto.chatId,
+    isRead: dto.isRead,
     createdAt: int.parse(dto.createdAt),
     editedAt: dto.editedAt == null ? null : int.parse(dto.editedAt!),
   );

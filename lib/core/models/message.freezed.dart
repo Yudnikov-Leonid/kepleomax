@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Message {
 
- int get id; User get user; String get message; int get chatId; int get createdAt; int? get editedAt;
+ int get id; User get user; String get message; int get chatId; bool get isRead; int get createdAt; int? get editedAt;
 /// Create a copy of Message
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $MessageCopyWith<Message> get copyWith => _$MessageCopyWithImpl<Message>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Message&&(identical(other.id, id) || other.id == id)&&(identical(other.user, user) || other.user == user)&&(identical(other.message, message) || other.message == message)&&(identical(other.chatId, chatId) || other.chatId == chatId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Message&&(identical(other.id, id) || other.id == id)&&(identical(other.user, user) || other.user == user)&&(identical(other.message, message) || other.message == message)&&(identical(other.chatId, chatId) || other.chatId == chatId)&&(identical(other.isRead, isRead) || other.isRead == isRead)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,user,message,chatId,createdAt,editedAt);
+int get hashCode => Object.hash(runtimeType,id,user,message,chatId,isRead,createdAt,editedAt);
 
 @override
 String toString() {
-  return 'Message(id: $id, user: $user, message: $message, chatId: $chatId, createdAt: $createdAt, editedAt: $editedAt)';
+  return 'Message(id: $id, user: $user, message: $message, chatId: $chatId, isRead: $isRead, createdAt: $createdAt, editedAt: $editedAt)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $MessageCopyWith<$Res>  {
   factory $MessageCopyWith(Message value, $Res Function(Message) _then) = _$MessageCopyWithImpl;
 @useResult
 $Res call({
- int id, User user, String message, int chatId, int createdAt, int? editedAt
+ int id, User user, String message, int chatId, bool isRead, int createdAt, int? editedAt
 });
 
 
@@ -62,13 +62,14 @@ class _$MessageCopyWithImpl<$Res>
 
 /// Create a copy of Message
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? user = null,Object? message = null,Object? chatId = null,Object? createdAt = null,Object? editedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? user = null,Object? message = null,Object? chatId = null,Object? isRead = null,Object? createdAt = null,Object? editedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as User,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,chatId: null == chatId ? _self.chatId : chatId // ignore: cast_nullable_to_non_nullable
-as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as int,isRead: null == isRead ? _self.isRead : isRead // ignore: cast_nullable_to_non_nullable
+as bool,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as int,editedAt: freezed == editedAt ? _self.editedAt : editedAt // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
@@ -164,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  User user,  String message,  int chatId,  int createdAt,  int? editedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  User user,  String message,  int chatId,  bool isRead,  int createdAt,  int? editedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Message() when $default != null:
-return $default(_that.id,_that.user,_that.message,_that.chatId,_that.createdAt,_that.editedAt);case _:
+return $default(_that.id,_that.user,_that.message,_that.chatId,_that.isRead,_that.createdAt,_that.editedAt);case _:
   return orElse();
 
 }
@@ -185,10 +186,10 @@ return $default(_that.id,_that.user,_that.message,_that.chatId,_that.createdAt,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  User user,  String message,  int chatId,  int createdAt,  int? editedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  User user,  String message,  int chatId,  bool isRead,  int createdAt,  int? editedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Message():
-return $default(_that.id,_that.user,_that.message,_that.chatId,_that.createdAt,_that.editedAt);case _:
+return $default(_that.id,_that.user,_that.message,_that.chatId,_that.isRead,_that.createdAt,_that.editedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +206,10 @@ return $default(_that.id,_that.user,_that.message,_that.chatId,_that.createdAt,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  User user,  String message,  int chatId,  int createdAt,  int? editedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  User user,  String message,  int chatId,  bool isRead,  int createdAt,  int? editedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Message() when $default != null:
-return $default(_that.id,_that.user,_that.message,_that.chatId,_that.createdAt,_that.editedAt);case _:
+return $default(_that.id,_that.user,_that.message,_that.chatId,_that.isRead,_that.createdAt,_that.editedAt);case _:
   return null;
 
 }
@@ -220,13 +221,14 @@ return $default(_that.id,_that.user,_that.message,_that.chatId,_that.createdAt,_
 
 
 class _Message implements Message {
-  const _Message({required this.id, required this.user, required this.message, required this.chatId, required this.createdAt, required this.editedAt});
+  const _Message({required this.id, required this.user, required this.message, required this.chatId, required this.isRead, required this.createdAt, required this.editedAt});
   
 
 @override final  int id;
 @override final  User user;
 @override final  String message;
 @override final  int chatId;
+@override final  bool isRead;
 @override final  int createdAt;
 @override final  int? editedAt;
 
@@ -240,16 +242,16 @@ _$MessageCopyWith<_Message> get copyWith => __$MessageCopyWithImpl<_Message>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Message&&(identical(other.id, id) || other.id == id)&&(identical(other.user, user) || other.user == user)&&(identical(other.message, message) || other.message == message)&&(identical(other.chatId, chatId) || other.chatId == chatId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Message&&(identical(other.id, id) || other.id == id)&&(identical(other.user, user) || other.user == user)&&(identical(other.message, message) || other.message == message)&&(identical(other.chatId, chatId) || other.chatId == chatId)&&(identical(other.isRead, isRead) || other.isRead == isRead)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,user,message,chatId,createdAt,editedAt);
+int get hashCode => Object.hash(runtimeType,id,user,message,chatId,isRead,createdAt,editedAt);
 
 @override
 String toString() {
-  return 'Message(id: $id, user: $user, message: $message, chatId: $chatId, createdAt: $createdAt, editedAt: $editedAt)';
+  return 'Message(id: $id, user: $user, message: $message, chatId: $chatId, isRead: $isRead, createdAt: $createdAt, editedAt: $editedAt)';
 }
 
 
@@ -260,7 +262,7 @@ abstract mixin class _$MessageCopyWith<$Res> implements $MessageCopyWith<$Res> {
   factory _$MessageCopyWith(_Message value, $Res Function(_Message) _then) = __$MessageCopyWithImpl;
 @override @useResult
 $Res call({
- int id, User user, String message, int chatId, int createdAt, int? editedAt
+ int id, User user, String message, int chatId, bool isRead, int createdAt, int? editedAt
 });
 
 
@@ -277,13 +279,14 @@ class __$MessageCopyWithImpl<$Res>
 
 /// Create a copy of Message
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? user = null,Object? message = null,Object? chatId = null,Object? createdAt = null,Object? editedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? user = null,Object? message = null,Object? chatId = null,Object? isRead = null,Object? createdAt = null,Object? editedAt = freezed,}) {
   return _then(_Message(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as User,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,chatId: null == chatId ? _self.chatId : chatId // ignore: cast_nullable_to_non_nullable
-as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as int,isRead: null == isRead ? _self.isRead : isRead // ignore: cast_nullable_to_non_nullable
+as bool,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as int,editedAt: freezed == editedAt ? _self.editedAt : editedAt // ignore: cast_nullable_to_non_nullable
 as int?,
   ));

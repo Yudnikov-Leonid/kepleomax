@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Chat {
 
- int get id; User get otherUser; Message? get lastMessage;
+ int get id; User get otherUser; Message? get lastMessage; int get unreadCount;
 /// Create a copy of Chat
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $ChatCopyWith<Chat> get copyWith => _$ChatCopyWithImpl<Chat>(this as Chat, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Chat&&(identical(other.id, id) || other.id == id)&&(identical(other.otherUser, otherUser) || other.otherUser == otherUser)&&(identical(other.lastMessage, lastMessage) || other.lastMessage == lastMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Chat&&(identical(other.id, id) || other.id == id)&&(identical(other.otherUser, otherUser) || other.otherUser == otherUser)&&(identical(other.lastMessage, lastMessage) || other.lastMessage == lastMessage)&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,otherUser,lastMessage);
+int get hashCode => Object.hash(runtimeType,id,otherUser,lastMessage,unreadCount);
 
 @override
 String toString() {
-  return 'Chat(id: $id, otherUser: $otherUser, lastMessage: $lastMessage)';
+  return 'Chat(id: $id, otherUser: $otherUser, lastMessage: $lastMessage, unreadCount: $unreadCount)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $ChatCopyWith<$Res>  {
   factory $ChatCopyWith(Chat value, $Res Function(Chat) _then) = _$ChatCopyWithImpl;
 @useResult
 $Res call({
- int id, User otherUser, Message? lastMessage
+ int id, User otherUser, Message? lastMessage, int unreadCount
 });
 
 
@@ -62,12 +62,13 @@ class _$ChatCopyWithImpl<$Res>
 
 /// Create a copy of Chat
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? otherUser = null,Object? lastMessage = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? otherUser = null,Object? lastMessage = freezed,Object? unreadCount = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,otherUser: null == otherUser ? _self.otherUser : otherUser // ignore: cast_nullable_to_non_nullable
 as User,lastMessage: freezed == lastMessage ? _self.lastMessage : lastMessage // ignore: cast_nullable_to_non_nullable
-as Message?,
+as Message?,unreadCount: null == unreadCount ? _self.unreadCount : unreadCount // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 /// Create a copy of Chat
@@ -173,10 +174,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  User otherUser,  Message? lastMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  User otherUser,  Message? lastMessage,  int unreadCount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Chat() when $default != null:
-return $default(_that.id,_that.otherUser,_that.lastMessage);case _:
+return $default(_that.id,_that.otherUser,_that.lastMessage,_that.unreadCount);case _:
   return orElse();
 
 }
@@ -194,10 +195,10 @@ return $default(_that.id,_that.otherUser,_that.lastMessage);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  User otherUser,  Message? lastMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  User otherUser,  Message? lastMessage,  int unreadCount)  $default,) {final _that = this;
 switch (_that) {
 case _Chat():
-return $default(_that.id,_that.otherUser,_that.lastMessage);case _:
+return $default(_that.id,_that.otherUser,_that.lastMessage,_that.unreadCount);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -214,10 +215,10 @@ return $default(_that.id,_that.otherUser,_that.lastMessage);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  User otherUser,  Message? lastMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  User otherUser,  Message? lastMessage,  int unreadCount)?  $default,) {final _that = this;
 switch (_that) {
 case _Chat() when $default != null:
-return $default(_that.id,_that.otherUser,_that.lastMessage);case _:
+return $default(_that.id,_that.otherUser,_that.lastMessage,_that.unreadCount);case _:
   return null;
 
 }
@@ -229,12 +230,13 @@ return $default(_that.id,_that.otherUser,_that.lastMessage);case _:
 
 
 class _Chat implements Chat {
-  const _Chat({required this.id, required this.otherUser, required this.lastMessage});
+  const _Chat({required this.id, required this.otherUser, required this.lastMessage, required this.unreadCount});
   
 
 @override final  int id;
 @override final  User otherUser;
 @override final  Message? lastMessage;
+@override final  int unreadCount;
 
 /// Create a copy of Chat
 /// with the given fields replaced by the non-null parameter values.
@@ -246,16 +248,16 @@ _$ChatCopyWith<_Chat> get copyWith => __$ChatCopyWithImpl<_Chat>(this, _$identit
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Chat&&(identical(other.id, id) || other.id == id)&&(identical(other.otherUser, otherUser) || other.otherUser == otherUser)&&(identical(other.lastMessage, lastMessage) || other.lastMessage == lastMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Chat&&(identical(other.id, id) || other.id == id)&&(identical(other.otherUser, otherUser) || other.otherUser == otherUser)&&(identical(other.lastMessage, lastMessage) || other.lastMessage == lastMessage)&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,otherUser,lastMessage);
+int get hashCode => Object.hash(runtimeType,id,otherUser,lastMessage,unreadCount);
 
 @override
 String toString() {
-  return 'Chat(id: $id, otherUser: $otherUser, lastMessage: $lastMessage)';
+  return 'Chat(id: $id, otherUser: $otherUser, lastMessage: $lastMessage, unreadCount: $unreadCount)';
 }
 
 
@@ -266,7 +268,7 @@ abstract mixin class _$ChatCopyWith<$Res> implements $ChatCopyWith<$Res> {
   factory _$ChatCopyWith(_Chat value, $Res Function(_Chat) _then) = __$ChatCopyWithImpl;
 @override @useResult
 $Res call({
- int id, User otherUser, Message? lastMessage
+ int id, User otherUser, Message? lastMessage, int unreadCount
 });
 
 
@@ -283,12 +285,13 @@ class __$ChatCopyWithImpl<$Res>
 
 /// Create a copy of Chat
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? otherUser = null,Object? lastMessage = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? otherUser = null,Object? lastMessage = freezed,Object? unreadCount = null,}) {
   return _then(_Chat(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,otherUser: null == otherUser ? _self.otherUser : otherUser // ignore: cast_nullable_to_non_nullable
 as User,lastMessage: freezed == lastMessage ? _self.lastMessage : lastMessage // ignore: cast_nullable_to_non_nullable
-as Message?,
+as Message?,unreadCount: null == unreadCount ? _self.unreadCount : unreadCount // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

@@ -37,8 +37,15 @@ class ChatDto {
   final UserDto otherUser;
   @JsonKey(name: 'last_message')
   final MessageDto? lastMessage;
+  @JsonKey(name: 'unread_count')
+  final int unreadCount;
 
-  ChatDto({required this.id, required this.otherUser, required this.lastMessage});
+  ChatDto({
+    required this.id,
+    required this.otherUser,
+    required this.lastMessage,
+    required this.unreadCount,
+  });
 
   factory ChatDto.fromJson(Map<String, dynamic> json) => _$ChatDtoFromJson(json);
 

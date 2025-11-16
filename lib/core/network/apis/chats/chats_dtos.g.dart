@@ -33,10 +33,12 @@ ChatDto _$ChatDtoFromJson(Map<String, dynamic> json) => ChatDto(
   lastMessage: json['last_message'] == null
       ? null
       : MessageDto.fromJson(json['last_message'] as Map<String, dynamic>),
+  unreadCount: (json['unread_count'] as num).toInt(),
 );
 
 Map<String, dynamic> _$ChatDtoToJson(ChatDto instance) => <String, dynamic>{
   'id': instance.id,
   'other_user': instance.otherUser,
   'last_message': instance.lastMessage,
+  'unread_count': instance.unreadCount,
 };

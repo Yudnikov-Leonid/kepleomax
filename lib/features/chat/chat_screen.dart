@@ -25,8 +25,8 @@ class ChatScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: _AppBar(user: chat.otherUser, key: Key('chat_appbar'),),
-      body: _Body(chat: chat, key: Key('chat_body'),),
+      appBar: _AppBar(user: chat.otherUser, key: Key('chat_appbar')),
+      body: _Body(chat: chat, key: Key('chat_body')),
     );
   }
 }
@@ -250,7 +250,11 @@ class _MessageWidget extends StatelessWidget {
                         ),
                       ),
                       if (_isCurrent)
-                        Icon(Icons.check, size: 14, color: KlmColors.readMessage),
+                        Icon(
+                          message.isRead ? Icons.check_box : Icons.check,
+                          size: 14,
+                          color: KlmColors.readMessage,
+                        ),
                     ],
                   ),
                 ),

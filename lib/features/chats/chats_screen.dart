@@ -3,10 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
+import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
 import 'package:kepleomax/core/presentation/parse_time.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
+import 'package:kepleomax/core/scopes/auth_scope.dart';
 import 'package:kepleomax/features/chats/bloc/chats_bloc.dart';
 import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
@@ -18,6 +20,7 @@ class ChatsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<ChatsBloc>(
       create: (context) => ChatsBloc(
+        userId: AuthScope.userOf(context).id,
         chatsRepository: Dependencies.of(context).chatsRepository,
         messagesRepository: Dependencies.of(context).messagesRepository,
       )..add(const ChatsEventLoad()),
@@ -134,7 +137,23 @@ class _ChatWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              Icon(Icons.check),
+              if (chat.lastMessage?.user.isCurrent ?? false || true)
+                Icon(chat.lastMessage!.isRead ? Icons.check_box : Icons.check),
+              if (chat.lastMessage != null || true)
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: KlmColors.primaryColor,
+                  ),
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    chat.unreadCount.toString(),
+                    style: context.textTheme.bodyLarge?.copyWith(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
