@@ -234,6 +234,7 @@ class _BottomState extends State<_Bottom> {
                 onChanged: (newText) {},
                 multiline: true,
                 maxLength: 4000,
+                textCapitalization: TextCapitalization.sentences,
               ),
             ),
             const SizedBox(width: 6),

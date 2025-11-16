@@ -27,6 +27,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     on<ChatsEventLoad>(_onLoad);
     on<ChatsEventNewMessage>(_onNewMessage);
     on<ChatsEventReadMessages>(_onReadMessages);
+    on<ChatsEventLoading>(_onLoading);
 
     _subMessages = _messagesRepository.messagesStream.listen((newMessage) {
       add(ChatsEventNewMessage(message: newMessage));
@@ -39,8 +40,15 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
         ) {
       if (isConnected) {
         add(const ChatsEventLoad());
+      } else {
+        add(const ChatsEventLoading());
       }
     });
+  }
+
+  void _onLoading(ChatsEventLoading event, Emitter<ChatsState> emit) {
+    _data = _data.copyWith(isLoading: true);
+    emit(ChatsStateBase(data: _data));
   }
 
   void _onReadMessages(
@@ -104,7 +112,14 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     emit(ChatsStateBase(data: _data));
   }
 
+  int _lastTimeLoadWasCalled = 0;
   void _onLoad(ChatsEventLoad event, Emitter<ChatsState> emit) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (now - 300 < _lastTimeLoadWasCalled) {
+      return;
+    }
+    _lastTimeLoadWasCalled = now;
+
     _data = _data.copyWith(isLoading: true);
     emit(ChatsStateBase(data: _data));
 
@@ -134,6 +149,10 @@ abstract class ChatsEvent {}
 
 class ChatsEventLoad implements ChatsEvent {
   const ChatsEventLoad();
+}
+
+class ChatsEventLoading implements ChatsEvent {
+  const ChatsEventLoading();
 }
 
 class ChatsEventNewMessage implements ChatsEvent {

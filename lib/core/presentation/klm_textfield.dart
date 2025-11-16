@@ -15,6 +15,7 @@ class KlmTextField extends StatefulWidget {
     this.maxLength,
     this.readOnly = false,
     this.multiline = false,
+    this.textCapitalization = TextCapitalization.none,
     super.key,
   });
 
@@ -29,6 +30,7 @@ class KlmTextField extends StatefulWidget {
   final int? maxLength;
   final bool readOnly;
   final bool multiline;
+  final TextCapitalization textCapitalization;
 
   @override
   State<KlmTextField> createState() => _KlmTextFieldState();
@@ -67,6 +69,7 @@ class _KlmTextFieldState extends State<KlmTextField> {
       child: Stack(
         children: [
           TextFormField(
+            obscureText: widget.isPassword,
             controller: widget.controller,
             focusNode: _focusNode,
             maxLines: widget.multiline ? null : 1,
@@ -78,6 +81,7 @@ class _KlmTextFieldState extends State<KlmTextField> {
             },
             validator: widget.validator,
             readOnly: widget.readOnly,
+            textCapitalization: widget.textCapitalization,
             decoration: InputDecoration(
               floatingLabelStyle: context.textTheme.bodySmall?.copyWith(
                 color: Colors.grey,

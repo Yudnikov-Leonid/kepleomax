@@ -25,6 +25,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
        _chatsRepository = chatsRepository,
        _userId = userId,
        super(ChatStateBase.initial()) {
+    print('MyLog chatBloc init');
     _messagesRepository.initSocket(userId: userId);
     _subMessages = _messagesRepository.messagesStream.listen((message) {
       add(ChatEventNewMessage(newMessage: message));
@@ -35,8 +36,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _subConnectionState = _messagesRepository.connectionStateStream.listen((
       isConnected,
     ) {
-      if (isConnected && _data.chatId != -1 && _data.otherUserId != -1) {
+      if (_data.chatId == -1 || _data.otherUserId == -1) return;
+      if (isConnected) {
         add(ChatEventLoad(chatId: _data.chatId, otherUserId: _data.otherUserId));
+      } else {
+        add(const ChatEventLoading());
       }
     });
 
@@ -46,6 +50,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatEventReadMessagesUpdate>(_onReadMessagesUpdate);
     on<ChatEventReadAllMessages>(_onReadAllMessages);
     on<ChatEventClear>(_onClear);
+    on<ChatEventLoading>(_onLoading);
+  }
+
+  void _onLoading(ChatEventLoading event, Emitter<ChatState> emit) {
+    _data = _data.copyWith(isLoading: true);
+    emit(ChatStateBase(data: _data));
   }
 
   void _onClear(ChatEventClear event, Emitter<ChatState> emit) {
@@ -93,7 +103,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(ChatStateBase(data: _data));
   }
 
+  int _lastTimeLoadWasCalled = 0;
+
   void _onLoad(ChatEventLoad event, Emitter<ChatState> emit) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (now - 300 < _lastTimeLoadWasCalled) {
+      return;
+    }
+    _lastTimeLoadWasCalled = now;
+
     _data = _data.copyWith(
       chatId: event.chatId,
       otherUserId: event.otherUserId,
@@ -144,10 +162,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   @override
   Future<void> close() {
+    print('MyLog bloc close');
     _subMessages.cancel();
     _subReadMessages.cancel();
     _subConnectionState.cancel();
-    _messagesRepository.dispose();
+    _messagesRepository.close();
     return super.close();
   }
 }
@@ -166,6 +185,11 @@ class ChatEventLoad implements ChatEvent {
 
 class ChatEventClear implements ChatEvent {
   const ChatEventClear();
+}
+
+class ChatEventLoading implements ChatEvent {
+  /// or ChatEventHide
+  const ChatEventLoading();
 }
 
 class ChatEventNewMessage implements ChatEvent {

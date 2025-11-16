@@ -9,9 +9,9 @@ import 'package:socket_io_client/socket_io_client.dart';
 class MessagesRepository {
   final MessagesApi _messagesApi;
   late Socket _socket;
-  late final StreamController<Message> _messageController;
-  late final StreamController<ReadMessagesUpdate> _readMessagesController;
-  late final StreamController<bool> _connectedController;
+  late StreamController<Message> _messageController;
+  late StreamController<ReadMessagesUpdate> _readMessagesController;
+  late StreamController<bool> _connectionController;
 
   MessagesRepository({required MessagesApi messagesApi})
     : _messagesApi = messagesApi;
@@ -19,7 +19,7 @@ class MessagesRepository {
   void initSocket({required int userId}) {
     _messageController = StreamController<Message>.broadcast();
     _readMessagesController = StreamController<ReadMessagesUpdate>.broadcast();
-    _connectedController = StreamController<bool>.broadcast();
+    _connectionController = StreamController<bool>.broadcast();
     _socket = io(
       flavor.baseUrl,
       OptionBuilder().setTransports(['websocket']).enableAutoConnect().setQuery({
@@ -28,11 +28,11 @@ class MessagesRepository {
     );
     _socket.on('connect', (_) {
       print('MyLog Connected');
-      _connectedController.add(true);
+      _connectionController.add(true);
     });
     _socket.on('disconnect', (_) {
       print('MyLog Disconnected');
-      _connectedController.add(false);
+      _connectionController.add(false);
     });
     _socket.on('new_message', (data) {
       print('MyLog new_message: $data');
@@ -54,7 +54,7 @@ class MessagesRepository {
   Stream<ReadMessagesUpdate> get readMessagesStream =>
       _readMessagesController.stream;
 
-  Stream<bool> get connectionStateStream => _connectedController.stream;
+  Stream<bool> get connectionStateStream => _connectionController.stream;
 
   Future<List<Message>> getMessages({
     required int chatId,
@@ -79,8 +79,11 @@ class MessagesRepository {
     _socket.emit('read_all', {'chat_id': chatId});
   }
 
-  void dispose() {
+  void close() {
+    _socket.disconnect();
     _messageController.close();
+    _connectionController.close();
+    _readMessagesController.close();
   }
 }
 

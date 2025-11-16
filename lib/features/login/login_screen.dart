@@ -89,6 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         );
                       },
                       label: 'Password',
+                      isPassword: true,
                       showErrors: state.loginData.isButtonPressed,
                       readOnly: state.loginData.isLoading,
                     ),
@@ -107,6 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                         },
                         label: 'Confirm password',
+                        isPassword: true,
                         showErrors: state.loginData.isButtonPressed,
                         readOnly: state.loginData.isLoading,
                       ),
