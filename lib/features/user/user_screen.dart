@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
+import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/models/user_profile.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
@@ -9,6 +10,7 @@ import 'package:kepleomax/core/presentation/klm_app_bar.dart';
 import 'package:kepleomax/core/presentation/klm_button.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
+import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
 import 'package:kepleomax/features/editProfile/edit_profile_bottom_sheet.dart';
 import 'package:kepleomax/features/post/bloc/post_list_bloc.dart';
 import 'package:kepleomax/features/post/post_list_widget.dart';
@@ -233,9 +235,44 @@ class _Body extends StatelessWidget {
                           ),
                           const SizedBox(height: 10),
                         ],
-                        if (!data.isLoading &&
-                            (data.profile?.user.isCurrent ?? false)) ...[
-                          _postButton(context),
+                        if (!data.isLoading && data.profile != null) ...[
+                          if (data.profile?.user.isCurrent ?? false)
+                            _actionButton(
+                              context,
+                              text: 'Post',
+                              icon: Icons.add,
+                              action: () {
+                                AppNavigator.withKeyOf(
+                                  context,
+                                  mainNavigatorKey,
+                                )!.push(
+                                  PostEditorPage(
+                                    post: null,
+                                    onPostSaved: () {
+                                      context.read<PostListBloc>().add(
+                                        const PostListEventLoad(),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            )
+                          else
+                            _actionButton(
+                              context,
+                              text: 'Message',
+                              icon: Icons.message_sharp,
+                              action: () {
+                                AppNavigator.withKeyOf(
+                                  context,
+                                  mainNavigatorKey,
+                                )!.push(
+                                  ChatPage(
+                                    chat: Chat.newWithUser(data.profile!.user),
+                                  ),
+                                );
+                              },
+                            ),
                           const SizedBox(height: 10),
                         ],
                         Divider(thickness: 5, color: Colors.grey.shade300),
@@ -267,7 +304,12 @@ class _Body extends StatelessWidget {
     return false;
   }
 
-  Widget _postButton(BuildContext context) {
+  Widget _actionButton(
+    BuildContext context, {
+    required String text,
+    required IconData icon,
+    required VoidCallback action,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
@@ -278,23 +320,14 @@ class _Body extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
         ),
         child: TextButton(
-          onPressed: () {
-            AppNavigator.withKeyOf(context, mainNavigatorKey)!.push(
-              PostEditorPage(
-                post: null,
-                onPostSaved: () {
-                  context.read<PostListBloc>().add(const PostListEventLoad());
-                },
-              ),
-            );
-          },
+          onPressed: action,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.add, weight: 4, color: Colors.white, size: 24),
-              const SizedBox(width: 2),
+              Icon(icon, weight: 4, color: Colors.white, size: 24),
+              const SizedBox(width: 4),
               Text(
-                'Post',
+                text,
                 style: context.textTheme.bodyLarge?.copyWith(
                   fontSize: 20,
                   color: Colors.white,

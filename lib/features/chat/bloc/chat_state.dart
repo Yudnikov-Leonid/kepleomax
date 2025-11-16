@@ -21,9 +21,10 @@ abstract class ChatStateError with _$ChatStateError implements ChatState {
 abstract class ChatData with _$ChatData implements ChatState {
   const factory ChatData({
     required int chatId,
+    required int otherUserId,
     required List<Message> messages,
     @Default(false) bool isLoading,
   }) = _ChatData;
 
-  factory ChatData.initial() => ChatData(chatId: -1, messages: []);
+  factory ChatData.initial() => ChatData(chatId: -1, otherUserId: -1, messages: []);
 }

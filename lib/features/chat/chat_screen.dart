@@ -25,8 +25,71 @@ class ChatScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
+      floatingActionButton: _ReadButton(),
       appBar: _AppBar(user: chat.otherUser, key: Key('chat_appbar')),
       body: _Body(chat: chat, key: Key('chat_body')),
+    );
+  }
+}
+
+class _ReadButton extends StatelessWidget {
+  const _ReadButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ChatBloc, ChatState>(
+      builder: (context, state) {
+        if (state is! ChatStateBase) return SizedBox();
+
+        final data = state.data;
+        if (state.data.messages.isEmpty) return SizedBox();
+        final allMessagesIsRead =
+            data.messages.first.user.isCurrent || data.messages.first.isRead;
+        if (allMessagesIsRead) return SizedBox();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 75),
+          child: Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
+              FloatingActionButton(
+                shape: const CircleBorder(),
+                elevation: 1,
+                backgroundColor: Colors.white,
+                isExtended: true,
+                child: Transform.rotate(
+                  angle: 270 * math.pi / 180,
+                  child: Icon(Icons.arrow_back_ios_new, color: Colors.black),
+                ),
+                onPressed: () {
+                  context.read<ChatBloc>().add(const ChatEventReadAllMessages());
+                },
+              ),
+              Positioned(
+                top: -14,
+                child: Container(
+                  width: 35,
+                  decoration: BoxDecoration(
+                    color: KlmColors.primaryColor,
+                    shape: BoxShape.circle,
+                  ),
+                  padding: const EdgeInsets.all(3),
+                  child: Center(
+                    child: Text(
+                      data.messages.where((e) => !e.isRead).length.toString(),
+                      style: context.textTheme.bodyLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -41,12 +104,20 @@ class _Body extends StatefulWidget {
 }
 
 class _BodyState extends State<_Body> {
+  late ChatBloc _chatBloc;
+
   @override
   void initState() {
-    context.read<ChatBloc>().add(
+    _chatBloc = context.read<ChatBloc>()..add(
       ChatEventLoad(chatId: widget._chat.id, otherUserId: widget._chat.otherUser.id),
     );
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _chatBloc.add(const ChatEventClear());
+    super.dispose();
   }
 
   @override
@@ -79,7 +150,6 @@ class _BodyState extends State<_Body> {
                             ...data.messages.reversed.map(
                               (message) => _MessageWidget(
                                 message: message,
-                                key: Key('message_${message.id}'),
                                 user: widget._chat.otherUser,
                               ),
                             ),
@@ -199,6 +269,24 @@ class _MessageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (message.id == -2) {
+      return Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        width: double.infinity,
+        height: 20,
+        color: Colors.grey.shade100,
+        child: Center(
+          child: Text(
+            'Unread Messages',
+            style: context.textTheme.bodyMedium?.copyWith(
+              color: KlmColors.primaryColor,
+              fontWeight: FontWeight.w500
+            ),
+          ),
+        ),
+      );
+    }
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Row(

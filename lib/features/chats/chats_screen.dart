@@ -3,15 +3,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
+import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
+import 'package:kepleomax/core/presentation/klm_button.dart';
 import 'package:kepleomax/core/presentation/parse_time.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
 import 'package:kepleomax/features/chats/bloc/chats_bloc.dart';
 import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class ChatsScreen extends StatelessWidget {
   const ChatsScreen({super.key});
@@ -44,12 +47,61 @@ class _Body extends StatelessWidget {
         if (state is! ChatsStateBase) return SizedBox();
 
         final data = state.data;
-        return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Column(
-            children: data.chats
-                .map((chat) => _ChatWidget(key: Key('chat-${chat.id}'), chat: chat))
-                .toList(),
+
+        if (data.isLoading) {
+          return Skeletonizer(
+            child: Column(
+              children: [
+                _ChatWidget(chat: Chat.loading(), isLoading: true),
+                _ChatWidget(chat: Chat.loading(), isLoading: true),
+                _ChatWidget(chat: Chat.loading(), isLoading: true),
+              ],
+            ),
+          );
+        }
+
+        if (data.chats.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "You have no chats now",
+                  style: context.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 18,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                KlmButton(
+                  onPressed: () {
+                    AppNavigator.of(context)!.push(const PeoplePage());
+                  },
+                  width: 200,
+                  text: 'Find people',
+                ),
+              ],
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            context.read<ChatsBloc>().add(const ChatsEventLoad());
+          },
+          child: SizedBox(
+            height: context.screenSize.height,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Column(
+                children: data.chats
+                    .map(
+                      (chat) => _ChatWidget(key: Key('chat-${chat.id}'), chat: chat),
+                    )
+                    .toList(),
+              ),
+            ),
           ),
         );
       },
@@ -58,9 +110,10 @@ class _Body extends StatelessWidget {
 }
 
 class _ChatWidget extends StatelessWidget {
-  const _ChatWidget({required this.chat, super.key});
+  const _ChatWidget({required this.chat, this.isLoading = false, super.key});
 
   final Chat chat;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -68,12 +121,14 @@ class _ChatWidget extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       height: 70,
       child: InkWell(
-        onTap: () {
-          AppNavigator.withKeyOf(
-            context,
-            mainNavigatorKey,
-          )!.push(ChatPage(chat: chat));
-        },
+        onTap: isLoading
+            ? null
+            : () {
+                AppNavigator.withKeyOf(
+                  context,
+                  mainNavigatorKey,
+                )!.push(ChatPage(chat: chat));
+              },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
@@ -137,9 +192,9 @@ class _ChatWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              if (chat.lastMessage?.user.isCurrent ?? false || true)
-                Icon(chat.lastMessage!.isRead ? Icons.check_box : Icons.check),
-              if (chat.lastMessage != null || true)
+              if (chat.lastMessage?.user.isCurrent ?? false)
+                Icon(chat.lastMessage!.isRead ? Icons.check_box : Icons.check)
+              else if (chat.lastMessage != null && chat.unreadCount > 0)
                 Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,

@@ -9,14 +9,17 @@ import 'package:socket_io_client/socket_io_client.dart';
 class MessagesRepository {
   final MessagesApi _messagesApi;
   late Socket _socket;
-  final _messageStreamController = StreamController<Message>.broadcast();
-  final _readMessagesStreamController =
-      StreamController<ReadMessagesUpdate>.broadcast();
+  late final StreamController<Message> _messageController;
+  late final StreamController<ReadMessagesUpdate> _readMessagesController;
+  late final StreamController<bool> _connectedController;
 
   MessagesRepository({required MessagesApi messagesApi})
     : _messagesApi = messagesApi;
 
   void initSocket({required int userId}) {
+    _messageController = StreamController<Message>.broadcast();
+    _readMessagesController = StreamController<ReadMessagesUpdate>.broadcast();
+    _connectedController = StreamController<bool>.broadcast();
     _socket = io(
       flavor.baseUrl,
       OptionBuilder().setTransports(['websocket']).enableAutoConnect().setQuery({
@@ -25,18 +28,20 @@ class MessagesRepository {
     );
     _socket.on('connect', (_) {
       print('MyLog Connected');
+      _connectedController.add(true);
     });
     _socket.on('disconnect', (_) {
       print('MyLog Disconnected');
+      _connectedController.add(false);
     });
     _socket.on('new_message', (data) {
       print('MyLog new_message: $data');
       final messageDto = MessageDto.fromJson(data);
-      _messageStreamController.add(Message.fromDto(messageDto));
+      _messageController.add(Message.fromDto(messageDto));
     });
     _socket.on('read_messages', (data) {
       print('MyLog read_messages: $data');
-      _readMessagesStreamController.add(ReadMessagesUpdate.fromJson(data));
+      _readMessagesController.add(ReadMessagesUpdate.fromJson(data));
     });
     // _socket.on('new_chat', (data) {
     //   print('new_chat: $data');
@@ -44,10 +49,12 @@ class MessagesRepository {
     // });
   }
 
-  Stream<Message> get messagesStream => _messageStreamController.stream;
+  Stream<Message> get messagesStream => _messageController.stream;
 
   Stream<ReadMessagesUpdate> get readMessagesStream =>
-      _readMessagesStreamController.stream;
+      _readMessagesController.stream;
+
+  Stream<bool> get connectionStateStream => _connectedController.stream;
 
   Future<List<Message>> getMessages({
     required int chatId,
@@ -68,8 +75,12 @@ class MessagesRepository {
     _socket.emit('message', {'recipient_id': recipientId, 'message': message});
   }
 
+  void readAllMessages({required int chatId}) {
+    _socket.emit('read_all', {'chat_id': chatId});
+  }
+
   void dispose() {
-    _messageStreamController.close();
+    _messageController.close();
   }
 }
 

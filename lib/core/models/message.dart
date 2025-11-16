@@ -31,4 +31,15 @@ abstract class Message with _$Message {
     createdAt: int.parse(dto.createdAt),
     editedAt: dto.editedAt == null ? null : int.parse(dto.editedAt!),
   );
+
+  factory Message.unreadMessages() => Message(
+    id: -2,
+    user: User.loading(),
+    message: '',
+    chatId: -1,
+    // should be true so counter of unread messages works properly
+    isRead: true,
+    createdAt: 0,
+    editedAt: null,
+  );
 }

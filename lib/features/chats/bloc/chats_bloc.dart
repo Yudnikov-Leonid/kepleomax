@@ -13,6 +13,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
   late ChatsData _data = ChatsData.initial();
   late StreamSubscription _subMessages;
   late StreamSubscription _subReadMessages;
+  late StreamSubscription _subConnectionState;
   final int _userId;
 
   ChatsBloc({
@@ -33,6 +34,13 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     _subReadMessages = _messagesRepository.readMessagesStream.listen((data) {
       add(ChatsEventReadMessages(updates: data));
     });
+    _subConnectionState = _messagesRepository.connectionStateStream.listen((
+        isConnected,
+        ) {
+      if (isConnected) {
+        add(const ChatsEventLoad());
+      }
+    });
   }
 
   void _onReadMessages(
@@ -42,19 +50,32 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     final chatIndex = _data.chats.indexWhere(
       (chat) => chat.id == event.updates.chatId,
     );
+    final newChats = _data.chats.toList();
+
+    if (event.updates.senderId == _userId) {
+      if (event.updates.messagesIds.contains(
+        _data.chats[chatIndex].lastMessage!.id,
+      )) {
+        newChats[chatIndex] = newChats[chatIndex].copyWith(
+          lastMessage: newChats[chatIndex].lastMessage!.copyWith(isRead: true),
+        );
+        _data = _data.copyWith(chats: newChats);
+        emit(ChatsStateBase(data: _data));
+      }
+      return;
+    }
+
     if (chatIndex == -1 ||
         event.updates.senderId == _userId ||
         event.updates.messagesIds.isEmpty) {
       return;
     }
-    final newChats = _data.chats.toList();
-    newChats[chatIndex] = newChats[chatIndex].copyWith(
-      unreadCount:
-          (newChats[chatIndex].unreadCount - event.updates.messagesIds.length).clamp(
-            0,
-            999,
-          ),
-    );
+    final newUnreadCount =
+        (newChats[chatIndex].unreadCount - event.updates.messagesIds.length).clamp(
+          0,
+          999,
+        );
+    newChats[chatIndex] = newChats[chatIndex].copyWith(unreadCount: newUnreadCount);
     _data = _data.copyWith(chats: newChats);
     emit(ChatsStateBase(data: _data));
   }
@@ -88,6 +109,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     emit(ChatsStateBase(data: _data));
 
     try {
+      await Future.delayed(const Duration(milliseconds: 500));
       final chats = await _chatsRepository.getChats();
 
       _data = _data.copyWith(chats: chats, isLoading: false);
@@ -102,6 +124,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
   Future<void> close() {
     _subMessages.cancel();
     _subReadMessages.cancel();
+    _subConnectionState.cancel();
     return super.close();
   }
 }

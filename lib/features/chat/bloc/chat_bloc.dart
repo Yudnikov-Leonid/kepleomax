@@ -15,6 +15,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   late ChatData _data = ChatData.initial();
   late StreamSubscription _subMessages;
   late StreamSubscription _subReadMessages;
+  late StreamSubscription _subConnectionState;
 
   ChatBloc({
     required int userId,
@@ -29,16 +30,41 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       add(ChatEventNewMessage(newMessage: message));
     });
     _subReadMessages = _messagesRepository.readMessagesStream.listen((data) {
-      add(ChatEventReadMessages(updates: data));
+      add(ChatEventReadMessagesUpdate(updates: data));
+    });
+    _subConnectionState = _messagesRepository.connectionStateStream.listen((
+      isConnected,
+    ) {
+      if (isConnected && _data.chatId != -1 && _data.otherUserId != -1) {
+        add(ChatEventLoad(chatId: _data.chatId, otherUserId: _data.otherUserId));
+      }
     });
 
     on<ChatEventLoad>(_onLoad);
     on<ChatEventNewMessage>(_onNewMessage);
     on<ChatEventSendMessage>(_onSendMessage);
-    on<ChatEventReadMessages>(_onReadMessages);
+    on<ChatEventReadMessagesUpdate>(_onReadMessagesUpdate);
+    on<ChatEventReadAllMessages>(_onReadAllMessages);
+    on<ChatEventClear>(_onClear);
   }
 
-  void _onReadMessages(ChatEventReadMessages event, Emitter<ChatState> emit) {
+  void _onClear(ChatEventClear event, Emitter<ChatState> emit) {
+    _data = _data.copyWith(chatId: -1, otherUserId: -1, messages: []);
+    emit(ChatStateBase(data: _data));
+  }
+
+  void _onReadAllMessages(ChatEventReadAllMessages event, Emitter<ChatState> emit) {
+    _messagesRepository.readAllMessages(chatId: _data.chatId);
+    _data = _data.copyWith(
+      messages: _data.messages.map((e) => e.copyWith(isRead: true)).toList(),
+    );
+    emit(ChatStateBase(data: _data));
+  }
+
+  void _onReadMessagesUpdate(
+    ChatEventReadMessagesUpdate event,
+    Emitter<ChatState> emit,
+  ) {
     if (_data.chatId != event.updates.chatId) return;
 
     final updates = event.updates.messagesIds;
@@ -68,13 +94,17 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onLoad(ChatEventLoad event, Emitter<ChatState> emit) async {
-    _data = _data.copyWith(chatId: event.chatId, isLoading: true);
+    _data = _data.copyWith(
+      chatId: event.chatId,
+      otherUserId: event.otherUserId,
+      isLoading: true,
+    );
     emit(ChatStateBase(data: _data));
 
     int chatId = event.chatId;
     try {
       if (event.chatId == -1) {
-        final chat = await _chatsRepository.getChatWithUser(event.otherUserId!);
+        final chat = await _chatsRepository.getChatWithUser(event.otherUserId);
         if (chat == null) {
           _data = _data.copyWith(chatId: -1, isLoading: false, messages: []);
           emit(ChatStateBase(data: _data));
@@ -89,7 +119,22 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         userId: _userId,
       );
 
-      _data = _data.copyWith(messages: messages, isLoading: false);
+      var newList = List<Message>.of(messages);
+      if (messages.firstOrNull?.user.id != _userId) {
+        newList = [];
+        for (int i = messages.length - 2; i >= 0; i--) {
+          if (!messages[i].isRead) {
+            newList.add(Message.unreadMessages());
+            newList.addAll(messages.sublist(0, i + 1).reversed);
+            break;
+          } else {
+            newList.add(messages[i]);
+          }
+        }
+        newList = newList.reversed.toList();
+      }
+
+      _data = _data.copyWith(messages: newList, isLoading: false);
       emit(ChatStateBase(data: _data));
     } catch (e, st) {
       logger.e(e, stackTrace: st);
@@ -101,6 +146,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   Future<void> close() {
     _subMessages.cancel();
     _subReadMessages.cancel();
+    _subConnectionState.cancel();
     _messagesRepository.dispose();
     return super.close();
   }
@@ -112,10 +158,14 @@ abstract class ChatEvent {}
 class ChatEventLoad implements ChatEvent {
   final int chatId;
 
-  /// send if chatId is -1
-  final int? otherUserId;
+  /// needs if chatId is -1
+  final int otherUserId;
 
   const ChatEventLoad({required this.chatId, required this.otherUserId});
+}
+
+class ChatEventClear implements ChatEvent {
+  const ChatEventClear();
 }
 
 class ChatEventNewMessage implements ChatEvent {
@@ -131,8 +181,12 @@ class ChatEventSendMessage implements ChatEvent {
   const ChatEventSendMessage({required this.message, required this.otherUserId});
 }
 
-class ChatEventReadMessages implements ChatEvent {
+class ChatEventReadMessagesUpdate implements ChatEvent {
   final ReadMessagesUpdate updates;
 
-  const ChatEventReadMessages({required this.updates});
+  const ChatEventReadMessagesUpdate({required this.updates});
+}
+
+class ChatEventReadAllMessages implements ChatEvent {
+  const ChatEventReadAllMessages();
 }
