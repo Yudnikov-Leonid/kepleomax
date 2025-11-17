@@ -87,12 +87,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     ChatEventReadMessagesUpdate event,
     Emitter<ChatState> emit,
   ) {
+    print('chatId: ${_data.chatId}');
     if (_data.chatId != event.updates.chatId) return;
 
     final updates = event.updates.messagesIds;
     final newMessages = <Message>[];
     for (final message in _data.messages) {
-      /// TODO bigO
+      /// TODO optimize
       if (updates.contains(message.id)) {
         newMessages.add(message.copyWith(isRead: true));
       } else {
@@ -111,7 +112,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onNewMessage(ChatEventNewMessage event, Emitter<ChatState> emit) {
-    _data = _data.copyWith(messages: [event.newMessage, ..._data.messages]);
+    if (event.newMessage.chatId != _data.chatId && _data.chatId != 1) return;
+    _data = _data.copyWith(
+      chatId: event.newMessage.chatId,
+      messages: [event.newMessage, ..._data.messages],
+    );
     emit(ChatStateBase(data: _data));
   }
 
@@ -142,6 +147,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           return;
         } else {
           chatId = chat.id;
+          _data = _data.copyWith(chatId: chat.id);
         }
       }
 
@@ -175,6 +181,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           isStopMessageFound = true;
           break;
         }
+
         /// message of not current user that unread, go to the next one
         newList.add(messages[i]);
       }
