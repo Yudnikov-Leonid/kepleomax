@@ -59,8 +59,14 @@ class MessagesRepository {
   Future<List<Message>> getMessages({
     required int chatId,
     required int userId,
+    required int limit,
+    required int offset,
   }) async {
-    final res = await _messagesApi.getMessages(chatId: chatId);
+    final res = await _messagesApi.getMessages(
+      chatId: chatId,
+      limit: limit,
+      offset: offset,
+    );
 
     if (res.response.statusCode != 200) {
       throw Exception(

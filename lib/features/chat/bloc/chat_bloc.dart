@@ -8,6 +8,8 @@ import 'package:kepleomax/main.dart';
 
 import 'chat_state.dart';
 
+const _pagingCount = 25;
+
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final MessagesRepository _messagesRepository;
   final ChatsRepository _chatsRepository;
@@ -51,6 +53,34 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatEventReadAllMessages>(_onReadAllMessages);
     on<ChatEventClear>(_onClear);
     on<ChatEventLoading>(_onLoading);
+    on<ChatEventLoadMore>(_onLoadMore);
+  }
+
+  bool _isLoadingMore = false;
+  void _onLoadMore(ChatEventLoadMore event, Emitter<ChatState> emit) async {
+    if (_data.isAllMessagesLoaded || _data.isLoading || _isLoadingMore) return;
+    _isLoadingMore = true;
+
+    try {
+      final newMessages = await _messagesRepository.getMessages(
+        chatId: _data.chatId,
+        userId: _userId,
+        limit: _pagingCount,
+        offset: _data.messages.where((e) => e.id >= 0).length,
+      );
+
+      _data = _data.copyWith(
+        messages: [..._data.messages, ...newMessages],
+        isAllMessagesLoaded: newMessages.length < _pagingCount,
+      );
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
+      emit(ChatStateMessage(message: 'Failed to load more messages', isError: true));
+      _data = _data.copyWith(isAllMessagesLoaded: true);
+    } finally {
+      _isLoadingMore = false;
+      emit(ChatStateBase(data: _data));
+    }
   }
 
   void _onLoading(ChatEventLoading event, Emitter<ChatState> emit) {
@@ -116,6 +146,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       chatId: event.chatId,
       otherUserId: event.otherUserId,
       isLoading: true,
+      isAllMessagesLoaded: false,
     );
     emit(ChatStateBase(data: _data));
 
@@ -135,7 +166,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       final messages = await _messagesRepository.getMessages(
         chatId: chatId,
         userId: _userId,
+        limit: _pagingCount,
+        offset: 0,
       );
+      if (messages.length < _pagingCount) {
+        _data = _data.copyWith(isAllMessagesLoaded: true);
+      }
 
       var newList = List<Message>.of(messages);
       if (messages.firstOrNull?.user.id != _userId) {
@@ -181,6 +217,10 @@ class ChatEventLoad implements ChatEvent {
   final int otherUserId;
 
   const ChatEventLoad({required this.chatId, required this.otherUserId});
+}
+
+class ChatEventLoadMore implements ChatEvent {
+  const ChatEventLoadMore();
 }
 
 class ChatEventClear implements ChatEvent {

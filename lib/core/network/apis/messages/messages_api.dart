@@ -12,5 +12,7 @@ abstract class MessagesApi {
   @GET('/')
   Future<HttpResponse<MessagesResponse>> getMessages({
     @Query('chatId') required int chatId,
+    @Query('limit') required int limit,
+    @Query('offset') required int offset,
   });
 }

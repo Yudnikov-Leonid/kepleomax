@@ -16,24 +16,97 @@ import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/features/chat/bloc/chat_bloc.dart';
 import 'package:kepleomax/features/chat/bloc/chat_state.dart';
 
-class ChatScreen extends StatelessWidget {
+class ChatScreen extends StatefulWidget {
   const ChatScreen({required this.chat, super.key});
 
   final Chat chat;
 
   @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  final _scrollController = ScrollController();
+  late ChatBloc _chatBloc;
+
+  @override
+  void initState() {
+    _chatBloc = context.read<ChatBloc>()
+      ..add(
+        ChatEventLoad(chatId: widget.chat.id, otherUserId: widget.chat.otherUser.id),
+      );
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _chatBloc.add(const ChatEventClear());
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      floatingActionButton: _ReadButton(),
-      appBar: _AppBar(user: chat.otherUser, key: Key('chat_appbar')),
-      body: _Body(chat: chat, key: Key('chat_body')),
+    return BlocListener<ChatBloc, ChatState>(
+      listener: (context, state) {
+        if (state is ChatStateMessage) {
+          context.showSnackBar(
+            text: state.message,
+            color: state.isError ? KlmColors.errorRed : Colors.green,
+          );
+        }
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        floatingActionButton: _ReadButton(scrollController: _scrollController),
+        appBar: _AppBar(user: widget.chat.otherUser, key: Key('chat_appbar')),
+        body: _Body(
+          bloc: _chatBloc,
+          chat: widget.chat,
+          scrollController: _scrollController,
+          key: Key('chat_body'),
+        ),
+      ),
     );
   }
 }
 
-class _ReadButton extends StatelessWidget {
-  const _ReadButton({super.key});
+class _ReadButton extends StatefulWidget {
+  const _ReadButton({required ScrollController scrollController, super.key})
+    : _scrollController = scrollController;
+
+  final ScrollController _scrollController;
+
+  @override
+  State<_ReadButton> createState() => _ReadButtonState();
+}
+
+class _ReadButtonState extends State<_ReadButton> {
+  static const _offsetToShow = 100;
+  double _lastPosition = 0;
+
+  void _onScrollListener() {
+    if (_lastPosition < _offsetToShow &&
+        widget._scrollController.offset > _offsetToShow) {
+      setState(() {});
+    } else if (_lastPosition > _offsetToShow &&
+        widget._scrollController.offset < _offsetToShow) {
+      setState(() {});
+    }
+    _lastPosition = widget._scrollController.offset;
+  }
+
+  @override
+  void initState() {
+    widget._scrollController.addListener(_onScrollListener);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget._scrollController.removeListener(_onScrollListener);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +118,8 @@ class _ReadButton extends StatelessWidget {
         if (state.data.messages.isEmpty) return SizedBox();
         final allMessagesIsRead =
             data.messages.first.user.isCurrent || data.messages.first.isRead;
-        if (allMessagesIsRead) return SizedBox();
+        final isScrolledUp = widget._scrollController.offset > _offsetToShow;
+        if (allMessagesIsRead && !isScrolledUp) return SizedBox();
         return Padding(
           padding: const EdgeInsets.only(bottom: 75),
           child: Stack(
@@ -62,30 +136,38 @@ class _ReadButton extends StatelessWidget {
                   child: Icon(Icons.arrow_back_ios_new, color: Colors.black),
                 ),
                 onPressed: () {
-                  context.read<ChatBloc>().add(const ChatEventReadAllMessages());
+                  widget._scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                  );
+                  if (!allMessagesIsRead) {
+                    context.read<ChatBloc>().add(const ChatEventReadAllMessages());
+                  }
                 },
               ),
-              Positioned(
-                top: -14,
-                child: Container(
-                  width: 35,
-                  decoration: BoxDecoration(
-                    color: KlmColors.primaryColor,
-                    shape: BoxShape.circle,
-                  ),
-                  padding: const EdgeInsets.all(3),
-                  child: Center(
-                    child: Text(
-                      data.messages.where((e) => !e.isRead).length.toString(),
-                      style: context.textTheme.bodyLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 15,
+              if (!allMessagesIsRead)
+                Positioned(
+                  top: -14,
+                  child: Container(
+                    width: 35,
+                    decoration: BoxDecoration(
+                      color: KlmColors.primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                    padding: const EdgeInsets.all(3),
+                    child: Center(
+                      child: Text(
+                        data.messages.where((e) => !e.isRead).length.toString(),
+                        style: context.textTheme.bodyLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         );
@@ -95,28 +177,40 @@ class _ReadButton extends StatelessWidget {
 }
 
 class _Body extends StatefulWidget {
-  const _Body({required Chat chat, super.key}) : _chat = chat;
+  const _Body({
+    required Chat chat,
+    required ScrollController scrollController,
+    required ChatBloc bloc,
+    super.key,
+  }) : _chatBloc = bloc,
+       _scrollController = scrollController,
+       _chat = chat;
 
   final Chat _chat;
+  final ScrollController _scrollController;
+  final ChatBloc _chatBloc;
 
   @override
   State<_Body> createState() => _BodyState();
 }
 
 class _BodyState extends State<_Body> {
-  late ChatBloc _chatBloc;
+  void _onScrollListener() {
+    if (widget._scrollController.offset >
+        widget._scrollController.position.maxScrollExtent - 30) {
+      widget._chatBloc.add(const ChatEventLoadMore());
+    }
+  }
 
   @override
   void initState() {
-    _chatBloc = context.read<ChatBloc>()..add(
-      ChatEventLoad(chatId: widget._chat.id, otherUserId: widget._chat.otherUser.id),
-    );
+    widget._scrollController.addListener(_onScrollListener);
     super.initState();
   }
 
   @override
   void dispose() {
-    _chatBloc.add(const ChatEventClear());
+    widget._scrollController.removeListener(_onScrollListener);
     super.dispose();
   }
 
@@ -139,12 +233,13 @@ class _BodyState extends State<_Body> {
                 child: data.isLoading
                     ? Center(child: CircularProgressIndicator())
                     : SingleChildScrollView(
+                        controller: widget._scrollController,
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         reverse: true,
                         child: Column(
                           children: [
                             const SizedBox(width: double.infinity),
-                            _DateWidget(),
+                            //_DateWidget(),
 
                             /// TODO is it good to call reverse here?
                             ...data.messages.reversed.map(
@@ -160,6 +255,11 @@ class _BodyState extends State<_Body> {
             ),
             _Bottom(
               onSend: (message) {
+                widget._scrollController.animateTo(
+                  0,
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                );
                 context.read<ChatBloc>().add(
                   ChatEventSendMessage(
                     message: message,
@@ -281,7 +381,7 @@ class _MessageWidget extends StatelessWidget {
             'Unread Messages',
             style: context.textTheme.bodyMedium?.copyWith(
               color: KlmColors.primaryColor,
-              fontWeight: FontWeight.w500
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),

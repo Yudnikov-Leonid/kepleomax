@@ -18,13 +18,25 @@ abstract class ChatStateError with _$ChatStateError implements ChatState {
 }
 
 @freezed
+abstract class ChatStateMessage with _$ChatStateMessage implements ChatState {
+  const factory ChatStateMessage({required String message, required bool isError}) =
+      _ChatStateMessage;
+}
+
+@freezed
 abstract class ChatData with _$ChatData implements ChatState {
   const factory ChatData({
     required int chatId,
     required int otherUserId,
     required List<Message> messages,
+    required bool isAllMessagesLoaded,
     @Default(false) bool isLoading,
   }) = _ChatData;
 
-  factory ChatData.initial() => ChatData(chatId: -1, otherUserId: -1, messages: []);
+  factory ChatData.initial() => ChatData(
+    chatId: -1,
+    otherUserId: -1,
+    messages: [],
+    isAllMessagesLoaded: false,
+  );
 }

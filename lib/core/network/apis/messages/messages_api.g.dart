@@ -22,9 +22,15 @@ class _MessagesApi implements MessagesApi {
   @override
   Future<HttpResponse<MessagesResponse>> getMessages({
     required int chatId,
+    required int limit,
+    required int offset,
   }) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'chatId': chatId};
+    final queryParameters = <String, dynamic>{
+      r'chatId': chatId,
+      r'limit': limit,
+      r'offset': offset,
+    };
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<HttpResponse<MessagesResponse>>(
