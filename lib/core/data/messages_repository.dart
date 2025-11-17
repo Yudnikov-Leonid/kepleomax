@@ -85,6 +85,10 @@ class MessagesRepository {
     _socket.emit('read_all', {'chat_id': chatId});
   }
 
+  void readMessageBeforeTime({required int chatId, required int time}) {
+    _socket.emit('read_before_time', {'chat_id': chatId, 'time': time});
+  }
+
   void close() {
     _socket.disconnect();
     _messageController.close();

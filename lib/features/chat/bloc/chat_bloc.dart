@@ -54,42 +54,24 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatEventClear>(_onClear);
     on<ChatEventLoading>(_onLoading);
     on<ChatEventLoadMore>(_onLoadMore);
+    on<ChatEventReadMessagesBeforeTime>(_onReadMessagesBeforeTime);
   }
 
-  bool _isLoadingMore = false;
-  void _onLoadMore(ChatEventLoadMore event, Emitter<ChatState> emit) async {
-    if (_data.isAllMessagesLoaded || _data.isLoading || _isLoadingMore) return;
-    _isLoadingMore = true;
-
-    try {
-      final newMessages = await _messagesRepository.getMessages(
-        chatId: _data.chatId,
-        userId: _userId,
-        limit: _pagingCount,
-        offset: _data.messages.where((e) => e.id >= 0).length,
-      );
-
-      _data = _data.copyWith(
-        messages: [..._data.messages, ...newMessages],
-        isAllMessagesLoaded: newMessages.length < _pagingCount,
-      );
-    } catch (e, st) {
-      logger.e(e, stackTrace: st);
-      emit(ChatStateMessage(message: 'Failed to load more messages', isError: true));
-      _data = _data.copyWith(isAllMessagesLoaded: true);
-    } finally {
-      _isLoadingMore = false;
-      emit(ChatStateBase(data: _data));
-    }
-  }
-
-  void _onLoading(ChatEventLoading event, Emitter<ChatState> emit) {
-    _data = _data.copyWith(isLoading: true);
-    emit(ChatStateBase(data: _data));
-  }
-
-  void _onClear(ChatEventClear event, Emitter<ChatState> emit) {
-    _data = _data.copyWith(chatId: -1, otherUserId: -1, messages: []);
+  void _onReadMessagesBeforeTime(
+    ChatEventReadMessagesBeforeTime event,
+    Emitter<ChatState> emit,
+  ) {
+    _messagesRepository.readMessageBeforeTime(
+      chatId: _data.chatId,
+      time: event.time,
+    );
+    _data = _data.copyWith(
+      messages: _data.messages
+          .map(
+            (msg) => msg.createdAt <= event.time ? msg.copyWith(isRead: true) : msg,
+          )
+          .toList(),
+    );
     emit(ChatStateBase(data: _data));
   }
 
@@ -173,19 +155,32 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         _data = _data.copyWith(isAllMessagesLoaded: true);
       }
 
-      var newList = List<Message>.of(messages);
-      if (messages.firstOrNull?.user.id != _userId) {
-        newList = [];
-        for (int i = messages.length - 2; i >= 0; i--) {
-          if (!messages[i].isRead) {
-            newList.add(Message.unreadMessages());
-            newList.addAll(messages.sublist(0, i + 1).reversed);
-            break;
-          } else {
-            newList.add(messages[i]);
-          }
+      /// add unread messages line
+      var newList = <Message>[];
+      bool isStopMessageFound = false;
+      for (int i = 0; i < messages.length; i++) {
+        if (messages[i].user.id == _userId) {
+          /// message of current user, unreadMessagesLine can't be above, so end the loop
+          newList.addAll(messages.sublist(i));
+          isStopMessageFound = true;
+          break;
         }
-        newList = newList.reversed.toList();
+        if (messages[i].isRead) {
+          /// message of not current user is read. If it's first message, then
+          /// don't need the line. If it's not the first one, then add the line
+          if (i != 0) {
+            newList.add(Message.unreadMessages());
+          }
+          newList.addAll(messages.sublist(i));
+          isStopMessageFound = true;
+          break;
+        }
+        /// message of not current user that unread, go to the next one
+        newList.add(messages[i]);
+      }
+      if (!isStopMessageFound) {
+        /// means this is new chat with unread messages from other user
+        newList.add(Message.unreadMessages());
       }
 
       _data = _data.copyWith(messages: newList, isLoading: false);
@@ -196,9 +191,46 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     }
   }
 
+  bool _isLoadingMore = false;
+
+  void _onLoadMore(ChatEventLoadMore event, Emitter<ChatState> emit) async {
+    if (_data.isAllMessagesLoaded || _data.isLoading || _isLoadingMore) return;
+    _isLoadingMore = true;
+
+    try {
+      final newMessages = await _messagesRepository.getMessages(
+        chatId: _data.chatId,
+        userId: _userId,
+        limit: _pagingCount,
+        offset: _data.messages.where((e) => e.id >= 0).length,
+      );
+
+      _data = _data.copyWith(
+        messages: [..._data.messages, ...newMessages],
+        isAllMessagesLoaded: newMessages.length < _pagingCount,
+      );
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
+      emit(ChatStateMessage(message: 'Failed to load more messages', isError: true));
+      _data = _data.copyWith(isAllMessagesLoaded: true);
+    } finally {
+      _isLoadingMore = false;
+      emit(ChatStateBase(data: _data));
+    }
+  }
+
+  void _onLoading(ChatEventLoading event, Emitter<ChatState> emit) {
+    _data = _data.copyWith(isLoading: true);
+    emit(ChatStateBase(data: _data));
+  }
+
+  void _onClear(ChatEventClear event, Emitter<ChatState> emit) {
+    _data = _data.copyWith(chatId: -1, otherUserId: -1, messages: []);
+    emit(ChatStateBase(data: _data));
+  }
+
   @override
   Future<void> close() {
-    print('MyLog bloc close');
     _subMessages.cancel();
     _subReadMessages.cancel();
     _subConnectionState.cancel();
@@ -253,4 +285,10 @@ class ChatEventReadMessagesUpdate implements ChatEvent {
 
 class ChatEventReadAllMessages implements ChatEvent {
   const ChatEventReadAllMessages();
+}
+
+class ChatEventReadMessagesBeforeTime implements ChatEvent {
+  final int time;
+
+  ChatEventReadMessagesBeforeTime({required this.time});
 }

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/models/chat.dart';
@@ -195,10 +196,51 @@ class _Body extends StatefulWidget {
 }
 
 class _BodyState extends State<_Body> {
+  final List<(GlobalKey, Message)> _keys = [];
+  final Set<Message> _visibleMessages = {};
+
   void _onScrollListener() {
+    if (!widget._scrollController.hasClients) return;
+
     if (widget._scrollController.offset >
         widget._scrollController.position.maxScrollExtent - 30) {
       widget._chatBloc.add(const ChatEventLoadMore());
+    }
+
+    if (_keys.isEmpty) return;
+
+    List<Message> newVisibleMessages = [];
+    double heightOffset = 0;
+    for (int i = 0; i < _keys.length; i++) {
+      if (_keys[i].$2.user.isCurrent || _keys[i].$2.isRead) break;
+
+      final renderBox = _keys[i].$1.currentContext!.findRenderObject() as RenderBox;
+      double widgetTop = renderBox.size.height;
+
+      double viewportTop = widget._scrollController.position.pixels;
+
+      widgetTop += heightOffset;
+      heightOffset += renderBox.size.height;
+
+      if (widgetTop >= viewportTop + 20) {
+        final isAdded = _visibleMessages.add(_keys[i].$2);
+        if (isAdded) {
+          newVisibleMessages.add(_keys[i].$2);
+          //print('newVisibleMessage: ${_keys[i].$2.message}');
+        }
+      } else {
+        final isRemoved = _visibleMessages.remove(_keys[i].$2);
+        if (isRemoved) {
+          // print('deletedVisibleMessage: ${_keys[i].$2}');
+        }
+      }
+    }
+    if (newVisibleMessages.isNotEmpty) {
+      print('read message: ${newVisibleMessages[0].message}');
+
+      context.read<ChatBloc>().add(
+        ChatEventReadMessagesBeforeTime(time: newVisibleMessages[0].createdAt),
+      );
     }
   }
 
@@ -214,6 +256,24 @@ class _BodyState extends State<_Body> {
     super.dispose();
   }
 
+  void _maintainScroll() {
+    if (widget._scrollController.offset == 0 || _keys.isEmpty) return;
+    double currentOffset = widget._scrollController.offset;
+    widget._scrollController.jumpTo(currentOffset + 45);
+    WidgetsBinding.instance.addPostFrameCallback((context) {
+      /// here new keys is already added
+      if (_keys.isEmpty) return;
+      final newMessageHeight =
+          (_keys.first.$1.currentContext!.findRenderObject() as RenderBox)
+              .size
+              .height;
+      print('newMessageHeight: $newMessageHeight, message: ${_keys[0].$2}');
+      if (newMessageHeight != 45) {
+        widget._scrollController.jumpTo(currentOffset + newMessageHeight);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChatBloc, ChatState>(
@@ -225,6 +285,19 @@ class _BodyState extends State<_Body> {
         if (state is! ChatStateBase) return SizedBox();
 
         final data = state.data;
+        if (_keys.isNotEmpty && _keys.length != data.messages.length) {
+          /// if length of messages changes, need to maintain scroll
+          _maintainScroll();
+        }
+        _keys.clear();
+        _keys.addAll(data.messages.map((e) => (GlobalKey(), e)));
+        if (data.messages.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((context) {
+            /// to read all new messages
+            _onScrollListener();
+          });
+        }
+        final keysReversed = _keys.reversed.toList();
         return Column(
           children: [
             Expanded(
@@ -242,8 +315,9 @@ class _BodyState extends State<_Body> {
                             //_DateWidget(),
 
                             /// TODO is it good to call reverse here?
-                            ...data.messages.reversed.map(
-                              (message) => _MessageWidget(
+                            ...data.messages.reversed.mapIndexed(
+                              (i, message) => _MessageWidget(
+                                key: keysReversed[i].$1,
                                 message: message,
                                 user: widget._chat.otherUser,
                               ),
@@ -420,7 +494,7 @@ class _MessageWidget extends StatelessWidget {
                   style: context.textTheme.bodyMedium?.copyWith(fontSize: 15),
                 ),
                 Text(
-                  '${message.message}${_isCurrent ? '    ' : '   '}${ParseTime.unixTimeToTime(message.createdAt)}',
+                  '${message.message}${_isCurrent ? '    ' : '  '}${ParseTime.unixTimeToTime(message.createdAt)}',
                   style: context.textTheme.bodyMedium?.copyWith(
                     fontSize: 15,
                     color: Colors.transparent,
