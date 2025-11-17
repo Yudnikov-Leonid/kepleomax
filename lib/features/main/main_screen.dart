@@ -17,9 +17,9 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 1;
 
   final _pages = [
-    const FeedNavigator(),
-    const ChatsNavigator(),
-    const MenuNavigator(),
+    FeedNavigator(key: UniqueKey()),
+    ChatsNavigator(key: UniqueKey()),
+    MenuNavigator(key: UniqueKey()),
   ];
 
   @override
@@ -42,6 +42,15 @@ class _MainScreenState extends State<MainScreen> {
             showSelectedLabels: false,
             showUnselectedLabels: false,
             onTap: (index) {
+              if (_currentIndex == index) {
+                _pages
+                  ..clear()
+                  ..addAll([
+                    FeedNavigator(key: UniqueKey()),
+                    ChatsNavigator(key: UniqueKey()),
+                    MenuNavigator(key: UniqueKey()),
+                  ]);
+              }
               setState(() {
                 _currentIndex = index;
               });

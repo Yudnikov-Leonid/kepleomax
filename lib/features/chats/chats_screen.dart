@@ -145,11 +145,14 @@ class _ChatWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      chat.otherUser.username,
-                      style: context.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 20,
+                    Expanded(
+                      child: Text(
+                        chat.otherUser.username,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 20,
+                        ),
                       ),
                     ),
 
@@ -166,7 +169,7 @@ class _ChatWidget extends StatelessWidget {
                             ),
                           ConstrainedBox(
                             constraints: BoxConstraints(
-                              maxWidth: context.screenSize.width * 0.42,
+                              maxWidth: context.screenSize.width * 0.3,
                             ),
                             child: Text(
                               chat.lastMessage!.message,

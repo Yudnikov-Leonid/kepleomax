@@ -3,6 +3,10 @@ import 'package:intl/intl.dart';
 class ParseTime {
   ParseTime._();
 
+  static bool _isSingular(int count) {
+    return count % 10 == 1 && count != 11;
+  }
+
   static String unixTimeToPassTime(int unixTime) {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     unixTime = unixTime ~/ 1000;
@@ -12,9 +16,11 @@ class ParseTime {
     } else if (now - unixTime < 3600) {
       return '${(now - unixTime) ~/ 60} min ago';
     } else if (now - unixTime < 86400) {
-      return '${(now - unixTime) ~/ 3600} hours ago';
+      final count = (now - unixTime) ~/ 3600;
+      return '$count ${_isSingular(count) ? 'hour' : 'hours'} ago';
     } else if (now - unixTime < 86400 * 7) {
-      return '${(now - unixTime) ~/ 86400} days ago';
+      final count = (now - unixTime) ~/ 86400;
+      return '$count ${_isSingular(count) ? 'day' : 'days'} ago';
     } else {
       return DateFormat(
         'MMM dd, y',

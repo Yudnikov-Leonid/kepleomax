@@ -64,7 +64,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
 
       _data = _data.copyWith(
         isAllPostsLoaded: newPosts.length < _pagingLimit,
-        posts: [...oldPosts, ...newPosts],
+        posts: <Post>{...oldPosts, ...newPosts}.toList(), /// TODO
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);

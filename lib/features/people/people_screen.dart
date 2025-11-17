@@ -163,10 +163,14 @@ class _UserCard extends StatelessWidget {
                       child: UserImage(url: user.profileImage),
                     ),
                     const SizedBox(width: 10),
-                    Text(
-                      user.username,
-                      style: context.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
+                    Expanded(
+                      child: Text(
+                        user.username,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],

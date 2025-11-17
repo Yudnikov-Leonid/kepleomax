@@ -285,8 +285,9 @@ class _BodyState extends State<_Body> {
         if (state is! ChatStateBase) return SizedBox();
 
         final data = state.data;
+
         /// not != but +1 cause it prevents scrolling on paging
-        if (_keys.isNotEmpty && _keys.length +1 == data.messages.length) {
+        if (_keys.isNotEmpty && _keys.length + 1 == data.messages.length) {
           /// if length of messages changes, need to maintain scroll
           _maintainScroll();
         }
@@ -555,26 +556,36 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
           children: [
             UserImage(size: 40, url: user.profileImage),
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  user.username,
-                  style: context.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 20,
-                  ),
+            Expanded(
+              child: Text(
+                user.username,
+                style: context.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 20,
                 ),
-                Text(
-                  'Last seen today at 10:40 AM',
-                  style: context.textTheme.bodyLarge?.copyWith(
-                    color: Colors.grey,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
+            // Column(
+            //   crossAxisAlignment: CrossAxisAlignment.start,
+            //   mainAxisAlignment: MainAxisAlignment.center,
+            //   children: [
+            //     Text(
+            //       user.username,
+            //       style: context.textTheme.bodyLarge?.copyWith(
+            //         fontWeight: FontWeight.w700,
+            //         fontSize: 20,
+            //       ),
+            //     ),
+            //     Text(
+            //       'Last seen today at 10:40 AM',
+            //       style: context.textTheme.bodyLarge?.copyWith(
+            //         color: Colors.grey,
+            //         fontSize: 14,
+            //       ),
+            //     ),
+            //   ],
+            // ),
           ],
         ),
       ),

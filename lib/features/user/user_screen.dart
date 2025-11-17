@@ -199,14 +199,18 @@ class _Body extends StatelessWidget {
                           highlightColor: Colors.red,
                           child: const SizedBox(height: 16),
                         ),
-                        Text(
-                          data.isLoading
-                              ? '--------------'
-                              : data.profile?.user.username ??
-                                    'Failed to load username',
-                          style: context.textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 26,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            data.isLoading
+                                ? '--------------'
+                                : data.profile?.user.username ??
+                                      'Failed to load username',
+                            textAlign: TextAlign.center,
+                            style: context.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 26,
+                            ),
                           ),
                         ),
                         if (data.isLoading ||

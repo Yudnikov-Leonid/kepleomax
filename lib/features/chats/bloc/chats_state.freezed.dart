@@ -739,7 +739,7 @@ return $default(_that.chats,_that.isLoading);case _:
 
 
 class _ChatsData implements ChatsData {
-  const _ChatsData({required final  List<Chat> chats, this.isLoading = false}): _chats = chats;
+  const _ChatsData({required final  List<Chat> chats, this.isLoading = true}): _chats = chats;
   
 
  final  List<Chat> _chats;

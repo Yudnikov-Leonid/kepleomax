@@ -37,29 +37,33 @@ class PostWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                InkWell(
-                  splashColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  onTap: onUserTap,
-                  child: Row(
-                    children: [
-                      UserImage(
-                        url: post.user.profileImage,
-                        size: 34,
-                        isLoading: post.isMockLoadingPost,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        post.user.username,
-                        style: context.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 19,
+                Expanded(
+                  child: InkWell(
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    onTap: onUserTap,
+                    child: Row(
+                      children: [
+                        UserImage(
+                          url: post.user.profileImage,
+                          size: 34,
+                          isLoading: post.isMockLoadingPost,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            post.user.username,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 19,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                const Expanded(child: SizedBox()),
                 if (post.user.isCurrent && (onEdit != null || onDelete != null))
                   PopupMenuButton<String>(
                     onSelected: (value) {

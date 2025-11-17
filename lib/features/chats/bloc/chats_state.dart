@@ -21,7 +21,7 @@ abstract class ChatsStateError with _$ChatsStateError implements ChatsState {
 abstract class ChatsData with _$ChatsData implements ChatsState {
   const factory ChatsData({
     required List<Chat> chats,
-    @Default(false) bool isLoading,
+    @Default(true) bool isLoading,
   }) = _ChatsData;
 
   factory ChatsData.initial() => ChatsData(chats: []);

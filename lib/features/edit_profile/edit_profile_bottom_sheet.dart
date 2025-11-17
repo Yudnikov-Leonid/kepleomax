@@ -141,9 +141,9 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
                           });
                           final oldProfile = widget.profile;
                           final newProfile = oldProfile.copyWith(
-                            description: _descriptionController.text,
+                            description: _descriptionController.text.trim(),
                             user: oldProfile.user.copyWith(
-                              username: _nameController.text,
+                              username: _nameController.text.trim(),
                               profileImage: _isImageEdited
                                   ? _imageUrl ?? ''
                                   : oldProfile.user.profileImage,
@@ -161,6 +161,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
               label: 'Username',
               onChanged: (newName) {},
               readOnly: _isClosing,
+              maxLength: 20,
               showErrors: _isButtonPressed,
               validators: [UiValidator.emptyValidator],
             ),

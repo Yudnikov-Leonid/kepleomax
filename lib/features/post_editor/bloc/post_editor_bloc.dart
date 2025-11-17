@@ -59,7 +59,7 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
 
       bool refreshPostsList = true;
       if (_data.originalPost == null) {
-        await _repository.createNewPost(content: _data.text, images: imagesList);
+        await _repository.createNewPost(content: _data.text.trim(), images: imagesList);
       } else {
         final isSomethingChanged = _data.text != _data.originalPost!.content ||
             !ListEquality().equals(_data.images, _data.originalPost!.images);
