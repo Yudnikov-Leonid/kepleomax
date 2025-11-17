@@ -50,7 +50,10 @@ class _MainScreenState extends State<MainScreen> {
             unselectedItemColor: KlmColors.inactiveColor,
             items: [
               BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Feed'),
-              BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Chats'),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.chat_bubble_outline),
+                label: 'Chats',
+              ),
               BottomNavigationBarItem(
                 icon: SvgPicture.asset(
                   ImagesKeys.hub_icon_svg,

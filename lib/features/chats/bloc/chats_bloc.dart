@@ -97,6 +97,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
         final newChat = await _chatsRepository.getChatWithId(event.message.chatId);
         _data = _data.copyWith(chats: [newChat!, ..._data.chats]);
       } catch (e, st) {
+        emit(ChatsStateError(message: e.toString()));
         logger.e(e, stackTrace: st);
       }
     } else {

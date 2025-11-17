@@ -260,7 +260,7 @@ class _BodyState extends State<_Body> {
     if (widget._scrollController.offset == 0 || _keys.isEmpty) return;
     double currentOffset = widget._scrollController.offset;
     widget._scrollController.jumpTo(currentOffset + 45);
-    WidgetsBinding.instance.addPostFrameCallback((context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       /// here new keys is already added
       if (_keys.isEmpty) return;
       final newMessageHeight =
@@ -285,14 +285,15 @@ class _BodyState extends State<_Body> {
         if (state is! ChatStateBase) return SizedBox();
 
         final data = state.data;
-        if (_keys.isNotEmpty && _keys.length != data.messages.length) {
+        /// not != but +1 cause it prevents scrolling on paging
+        if (_keys.isNotEmpty && _keys.length +1 == data.messages.length) {
           /// if length of messages changes, need to maintain scroll
           _maintainScroll();
         }
         _keys.clear();
         _keys.addAll(data.messages.map((e) => (GlobalKey(), e)));
         if (data.messages.isNotEmpty) {
-          WidgetsBinding.instance.addPostFrameCallback((context) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
             /// to read all new messages
             _onScrollListener();
           });

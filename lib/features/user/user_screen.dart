@@ -11,7 +11,7 @@ import 'package:kepleomax/core/presentation/klm_button.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
 import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
-import 'package:kepleomax/features/editProfile/edit_profile_bottom_sheet.dart';
+import 'package:kepleomax/features/edit_profile/edit_profile_bottom_sheet.dart';
 import 'package:kepleomax/features/post/bloc/post_list_bloc.dart';
 import 'package:kepleomax/features/post/post_list_widget.dart';
 import 'package:kepleomax/features/user/bloc/user_bloc.dart';
