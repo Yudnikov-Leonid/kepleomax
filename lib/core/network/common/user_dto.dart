@@ -11,6 +11,8 @@ class UserDto {
   final String profileImage;
   @JsonKey(name: 'is_current')
   final bool isCurrent;
+  @JsonKey(name: 'fcm_tokens')
+  final List<String>? fcmTokens;
 
   UserDto({
     required this.id,
@@ -18,6 +20,7 @@ class UserDto {
     required this.username,
     required this.profileImage,
     required this.isCurrent,
+    required this.fcmTokens,
   });
 
   factory UserDto.fromJson(Map<String, dynamic> json) => _$UserDtoFromJson(json);

@@ -18,4 +18,14 @@ abstract class UserApi {
     @Query('limit') required int limit,
     @Query('offset') required int offset,
   });
+
+  @POST('/fcmToken')
+  Future<HttpResponse<GetUserDto>> addFCMToken({
+    @Body() required FCMTokenRequestDto body,
+  });
+
+  @DELETE('/fcmToken')
+  Future<HttpResponse<GetUserDto>> deleteFCMToken({
+    @Body() required FCMTokenRequestDto body,
+  });
 }

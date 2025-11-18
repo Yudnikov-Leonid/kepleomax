@@ -28,3 +28,15 @@ class GetUsersDto {
 
   Map<String, dynamic> toJson() => _$GetUsersDtoToJson(this);
 }
+
+@JsonSerializable()
+class FCMTokenRequestDto {
+  final String token;
+
+  FCMTokenRequestDto({required this.token});
+
+  factory FCMTokenRequestDto.fromJson(Map<String, dynamic> json) =>
+      _$FCMTokenRequestDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FCMTokenRequestDtoToJson(this);
+}

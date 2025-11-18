@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
@@ -18,11 +20,15 @@ import 'package:kepleomax/core/network/apis/profile/profile_api.dart';
 import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/middlewares/auth_interceptor.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
+import 'package:kepleomax/core/notifications/notifications_service.dart';
+import 'package:kepleomax/firebase_options.dart';
 import 'package:kepleomax/main.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<Dependencies> initializeDependencies() async {
+
+
   final dp = Dependencies();
 
   for (final step in _steps) {
@@ -114,6 +120,17 @@ List<_InitializationStep> _steps = [
       );
     },
   ),
+
+  _InitializationStep(name: ('firebase'), call: (dependencies) async {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+    print('fcmToken: $fcmToken');
+
+    NotificationService.instance.init();
+  })
 ];
 
 class _InitializationStep {

@@ -17,13 +17,16 @@ abstract class Message with _$Message {
   }) = _Message;
 
   factory Message.fromDto(MessageDto dto) => Message(
-    user: User(
-      id: dto.senderId,
-      email: '',
-      username: '',
-      profileImage: '',
-      isCurrent: dto.isCurrentUser,
-    ),
+    user: dto.user != null
+        ? User.fromDto(dto.user!)
+        : User(
+            id: -1,
+            email: '',
+            username: '',
+            profileImage: '',
+            isCurrent: dto.isCurrentUser!, /// need only this field
+            fcmTokens: [],
+          ),
     id: dto.id,
     message: dto.message,
     chatId: dto.chatId,
@@ -32,6 +35,7 @@ abstract class Message with _$Message {
     editedAt: dto.editedAt == null ? null : int.parse(dto.editedAt!),
   );
 
+  /// ui line
   factory Message.unreadMessages() => Message(
     id: -2,
     user: User.loading(),

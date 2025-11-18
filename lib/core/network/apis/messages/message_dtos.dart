@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kepleomax/core/network/common/user_dto.dart';
 
 part 'message_dtos.g.dart';
 
@@ -23,7 +24,8 @@ class MessageDto {
   @JsonKey(name: 'sender_id')
   final int senderId;
   @JsonKey(name: 'is_current_user')
-  final bool isCurrentUser;
+  final bool? isCurrentUser;
+  final UserDto? user;
   final String message;
   @JsonKey(name: 'is_read')
   final bool isRead;
@@ -37,6 +39,7 @@ class MessageDto {
     required this.chatId,
     required this.senderId,
     required this.isCurrentUser,
+    required this.user,
     required this.message,
     required this.isRead,
     required this.createdAt,

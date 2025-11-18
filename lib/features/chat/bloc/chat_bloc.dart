@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/messages_repository.dart';
 import 'package:kepleomax/core/models/message.dart';
+import 'package:kepleomax/core/notifications/notifications_service.dart';
 import 'package:kepleomax/main.dart';
 
 import 'chat_state.dart';
@@ -87,7 +88,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     ChatEventReadMessagesUpdate event,
     Emitter<ChatState> emit,
   ) {
-    print('chatId: ${_data.chatId}');
     if (_data.chatId != event.updates.chatId) return;
 
     final updates = event.updates.messagesIds;
@@ -96,6 +96,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       /// TODO optimize
       if (updates.contains(message.id)) {
         newMessages.add(message.copyWith(isRead: true));
+        NotificationService.instance.closeNotification(message.id);
       } else {
         newMessages.add(message);
       }

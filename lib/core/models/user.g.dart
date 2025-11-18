@@ -12,6 +12,9 @@ _User _$UserFromJson(Map<String, dynamic> json) => _User(
   username: json['username'] as String,
   profileImage: json['profileImage'] as String,
   isCurrent: json['isCurrent'] as bool,
+  fcmTokens: (json['fcmTokens'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
 );
 
 Map<String, dynamic> _$UserToJson(_User instance) => <String, dynamic>{
@@ -20,4 +23,5 @@ Map<String, dynamic> _$UserToJson(_User instance) => <String, dynamic>{
   'username': instance.username,
   'profileImage': instance.profileImage,
   'isCurrent': instance.isCurrent,
+  'fcmTokens': instance.fcmTokens,
 };

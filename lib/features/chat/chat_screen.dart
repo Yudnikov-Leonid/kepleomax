@@ -3,11 +3,13 @@ import 'dart:math' as math;
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:focus_detector/focus_detector.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
+import 'package:kepleomax/core/notifications/notifications_service.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
@@ -55,6 +57,11 @@ class _ChatScreenState extends State<ChatScreen> {
             text: state.message,
             color: state.isError ? KlmColors.errorRed : Colors.green,
           );
+        }
+
+        /// todo maybe move this into _Body?
+        if (state is ChatStateBase && state.data.chatId != widget.chat.id) {
+          NotificationService.instance.blockNotificationsFromChat(widget.chat.id);
         }
       },
       child: Scaffold(
@@ -198,9 +205,10 @@ class _Body extends StatefulWidget {
 class _BodyState extends State<_Body> {
   final List<(GlobalKey, Message)> _keys = [];
   final Set<Message> _visibleMessages = {};
+  bool _isScreenActive = true;
 
   void _onScrollListener() {
-    if (!widget._scrollController.hasClients) return;
+    if (!widget._scrollController.hasClients || !_isScreenActive) return;
 
     if (widget._scrollController.offset >
         widget._scrollController.position.maxScrollExtent - 30) {
@@ -244,6 +252,19 @@ class _BodyState extends State<_Body> {
     }
   }
 
+  void _onResume() {
+    print('MyLog2 onResume');
+    _isScreenActive = true;
+    NotificationService.instance.blockNotificationsFromChat(widget._chat.id);
+    _onScrollListener();
+  }
+
+  void _onPause() {
+    print('MyLog2 onPause');
+    _isScreenActive = false;
+    NotificationService.instance.enableAllNotifications();
+  }
+
   @override
   void initState() {
     widget._scrollController.addListener(_onScrollListener);
@@ -276,78 +297,84 @@ class _BodyState extends State<_Body> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ChatBloc, ChatState>(
-      builder: (context, state) {
-        if (state is ChatStateError) {
-          return Center(child: Text('error: ${state.message}'));
-        }
+    return FocusDetector(
+      onForegroundGained: _onResume,
+      onForegroundLost: _onPause,
+      onVisibilityGained: _onResume,
+      onVisibilityLost: _onPause,
+      child: BlocBuilder<ChatBloc, ChatState>(
+        builder: (context, state) {
+          if (state is ChatStateError) {
+            return Center(child: Text('error: ${state.message}'));
+          }
 
-        if (state is! ChatStateBase) return SizedBox();
+          if (state is! ChatStateBase) return SizedBox();
 
-        final data = state.data;
+          final data = state.data;
 
-        /// not != but +1 cause it prevents scrolling on paging
-        if (_keys.isNotEmpty && _keys.length + 1 == data.messages.length) {
-          /// if length of messages changes, need to maintain scroll
-          _maintainScroll();
-        }
-        _keys.clear();
-        _keys.addAll(data.messages.map((e) => (GlobalKey(), e)));
-        if (data.messages.isNotEmpty) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            /// to read all new messages
-            _onScrollListener();
-          });
-        }
-        final keysReversed = _keys.reversed.toList();
-        return Column(
-          children: [
-            Expanded(
-              child: Container(
-                color: Colors.blue.shade100,
-                child: data.isLoading
-                    ? Center(child: CircularProgressIndicator())
-                    : SingleChildScrollView(
-                        controller: widget._scrollController,
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        reverse: true,
-                        child: Column(
-                          children: [
-                            const SizedBox(width: double.infinity),
-                            //_DateWidget(),
+          /// not != but +1 cause it prevents scrolling on paging
+          if (_keys.isNotEmpty && _keys.length + 1 == data.messages.length) {
+            /// if length of messages changes, need to maintain scroll
+            _maintainScroll();
+          }
+          _keys.clear();
+          _keys.addAll(data.messages.map((e) => (GlobalKey(), e)));
+          if (data.messages.isNotEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              /// to read all new messages
+              _onScrollListener();
+            });
+          }
+          final keysReversed = _keys.reversed.toList();
+          return Column(
+            children: [
+              Expanded(
+                child: Container(
+                  color: Colors.blue.shade100,
+                  child: data.isLoading
+                      ? Center(child: CircularProgressIndicator())
+                      : SingleChildScrollView(
+                          controller: widget._scrollController,
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          reverse: true,
+                          child: Column(
+                            children: [
+                              const SizedBox(width: double.infinity),
+                              //_DateWidget(),
 
-                            /// TODO is it good to call reverse here?
-                            ...data.messages.reversed.mapIndexed(
-                              (i, message) => _MessageWidget(
-                                key: keysReversed[i].$1,
-                                message: message,
-                                user: widget._chat.otherUser,
+                              /// TODO is it good to call reverse here?
+                              ...data.messages.reversed.mapIndexed(
+                                (i, message) => _MessageWidget(
+                                  key: keysReversed[i].$1,
+                                  message: message,
+                                  user: widget._chat.otherUser,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
+                ),
               ),
-            ),
-            _Bottom(
-              onSend: (message) {
-                widget._scrollController.animateTo(
-                  0,
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeOut,
-                );
-                context.read<ChatBloc>().add(
-                  ChatEventSendMessage(
-                    message: message,
-                    otherUserId: widget._chat.otherUser.id,
-                  ),
-                );
-              },
-              key: Key('chat_bottom'),
-            ),
-          ],
-        );
-      },
+              _Bottom(
+                onSend: (message) {
+                  widget._scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                  );
+                  context.read<ChatBloc>().add(
+                    ChatEventSendMessage(
+                      message: message,
+                      otherUserId: widget._chat.otherUser.id,
+                    ),
+                  );
+                },
+                key: Key('chat_bottom'),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

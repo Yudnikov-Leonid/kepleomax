@@ -13,23 +13,26 @@ abstract class User with _$User {
     required String username,
     required String profileImage,
     required bool isCurrent,
+    required List<String>? fcmTokens,
   }) = _User;
 
-  factory User.fromDto(UserDto dto) =>
-      User(
-          id: dto.id,
-          email: dto.email,
-          username: dto.username,
-          profileImage: dto.profileImage,
-          isCurrent: dto.isCurrent
-      );
+  factory User.fromDto(UserDto dto) => User(
+    id: dto.id,
+    email: dto.email,
+    username: dto.username,
+    profileImage: dto.profileImage,
+    isCurrent: dto.isCurrent,
+    fcmTokens: dto.fcmTokens,
+  );
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
-  factory User.loading() =>
-      User(id: -1,
-          email: '',
-          username: '-------------',
-          profileImage: '',
-          isCurrent: false);
+  factory User.loading() => User(
+    id: -1,
+    email: '',
+    username: '-------------',
+    profileImage: '',
+    isCurrent: false,
+    fcmTokens: []
+  );
 }

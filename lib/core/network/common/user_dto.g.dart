@@ -12,6 +12,9 @@ UserDto _$UserDtoFromJson(Map<String, dynamic> json) => UserDto(
   username: json['username'] as String,
   profileImage: json['profile_image'] as String,
   isCurrent: json['is_current'] as bool,
+  fcmTokens: (json['fcm_tokens'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
 );
 
 Map<String, dynamic> _$UserDtoToJson(UserDto instance) => <String, dynamic>{
@@ -20,4 +23,5 @@ Map<String, dynamic> _$UserDtoToJson(UserDto instance) => <String, dynamic>{
   'username': instance.username,
   'profile_image': instance.profileImage,
   'is_current': instance.isCurrent,
+  'fcm_tokens': instance.fcmTokens,
 };

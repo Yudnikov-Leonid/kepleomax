@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1065901363840",
+    "project_id": "kepleomax-807ac",
+    "storage_bucket": "kepleomax-807ac.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1065901363840:android:b2da038fec7381ab5acc65",
+        "android_client_info": {
+          "package_name": "com.kepleomax.kepleomax"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYhOj6kGEbxRU7T2xCrLqWk0InlU-c0Ow"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

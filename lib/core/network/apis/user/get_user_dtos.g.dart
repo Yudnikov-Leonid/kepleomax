@@ -25,3 +25,9 @@ GetUsersDto _$GetUsersDtoFromJson(Map<String, dynamic> json) => GetUsersDto(
 
 Map<String, dynamic> _$GetUsersDtoToJson(GetUsersDto instance) =>
     <String, dynamic>{'data': instance.data, 'message': instance.message};
+
+FCMTokenRequestDto _$FCMTokenRequestDtoFromJson(Map<String, dynamic> json) =>
+    FCMTokenRequestDto(token: json['token'] as String);
+
+Map<String, dynamic> _$FCMTokenRequestDtoToJson(FCMTokenRequestDto instance) =>
+    <String, dynamic>{'token': instance.token};

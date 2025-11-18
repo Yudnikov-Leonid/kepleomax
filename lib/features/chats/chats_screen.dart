@@ -145,17 +145,20 @@ class _ChatWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        chat.otherUser.username,
-                        overflow: TextOverflow.ellipsis,
-                        style: context.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 20,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            chat.otherUser.username,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 20,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-
                     if (chat.lastMessage != null) ...[
                       const SizedBox(height: 4),
                       Row(

@@ -1,8 +1,10 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:kepleomax/core/auth/user_provider.dart';
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
 import 'package:kepleomax/core/network/apis/auth/login_dtos.dart';
 import 'package:kepleomax/core/network/apis/auth/logout_dtos.dart';
+import 'package:kepleomax/core/network/apis/user/get_user_dtos.dart';
 import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
@@ -89,7 +91,9 @@ class AuthController {
       try {
         final res = await _userApi.getUser(userId: _user!.id);
         if (res.response.statusCode != 200) {
-          throw Exception(res.data.message ?? 'Failed to get user: ${res.response.statusCode}');
+          throw Exception(
+            res.data.message ?? 'Failed to get user: ${res.response.statusCode}',
+          );
         }
         updateUser(User.fromDto(res.data.data!));
       } catch (e, st) {
@@ -104,6 +108,28 @@ class AuthController {
     for (final listener in _listeners) {
       listener();
     }
+
+    if (newUser != null) {
+      _checkToken();
+    } else {
+      _deleteToken();
+    }
+  }
+
+  Future<void> _checkToken() async {
+    final token = await FirebaseMessaging.instance.getToken();
+    if (token == null) return;
+
+    if (_user?.fcmTokens == null || !_user!.fcmTokens!.contains(token)) {
+      _userApi.addFCMToken(body: FCMTokenRequestDto(token: token));
+    }
+  }
+
+  Future<void> _deleteToken() async {
+    final token = await FirebaseMessaging.instance.getToken();
+    if (token == null) return;
+
+    _userApi.addFCMToken(body: FCMTokenRequestDto(token: token));
   }
 
   void addListener(VoidCallback listener) {
