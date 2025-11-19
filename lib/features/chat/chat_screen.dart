@@ -37,6 +37,7 @@ class _ChatScreenState extends State<ChatScreen> {
   /// callbacks
   @override
   void initState() {
+    print('chatScreen initState');
     _chatBloc = context.read<ChatBloc>()
       ..add(ChatEventLoad(chatId: widget.chatId, otherUser: widget.otherUser));
     super.initState();
@@ -44,8 +45,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    print('chatScreen dispose');
     _scrollController.dispose();
-    _chatBloc.add(const ChatEventClear());
+    //_chatBloc.add(const ChatEventClear());
     super.dispose();
   }
 
@@ -93,7 +95,7 @@ class _Body extends StatefulWidget {
 class _BodyState extends State<_Body> {
   final List<(GlobalKey, Message)> _keys = [];
   final Set<Message> _visibleMessages = {};
-  bool _isScreenActive = true;
+  bool _isScreenActive = false;
 
   void _onScrollListener() {
     if (!widget._scrollController.hasClients || !_isScreenActive) return;

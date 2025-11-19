@@ -109,9 +109,15 @@ class AppNavigatorState extends State<AppNavigator> with WidgetsBindingObserver 
   }
 
   void push(AppPage page) {
-    if (_state.contains(page)) {
-      final index = _state.indexOf(page);
-      change((state) => _state.sublist(0, index + 1));
+    if (_state.map((pg) => pg.name).contains(page.name)) {
+      /// this page already exists, but if with other key, then need to replace
+      final index = _state.indexWhere((pg) => pg.name == page.name);
+      if (_state[index].key == page.key) {
+        /// not recreating page
+        change((state) => _state.sublist(0, index + 1));
+      } else {
+        change((state) => [..._state.sublist(0, index), page]);
+      }
     } else {
       change((state) => [...state, page]);
     }

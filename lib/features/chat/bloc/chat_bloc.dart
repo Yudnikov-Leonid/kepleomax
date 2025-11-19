@@ -177,11 +177,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       /// add unread messages line
       var newList = <Message>[];
       bool isStopMessageFound = false;
+      print('handleMessages: ${messages}');
       for (int i = 0; i < messages.length; i++) {
-        if (messages[i].user.id == _userId) {
+        if (messages[i].user.isCurrent) {
           /// message of current user, unreadMessagesLine can't be above, so end the loop
           newList.addAll(messages.sublist(i));
           isStopMessageFound = true;
+          print('user.isCurrent: ${messages[i]}');
           break;
         }
         if (messages[i].isRead) {

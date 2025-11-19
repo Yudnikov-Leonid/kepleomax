@@ -20,7 +20,7 @@ abstract class Message with _$Message {
     user: dto.user != null
         ? User.fromDto(dto.user!)
         : User(
-            id: dto.otherUserId ?? -1,
+            id: dto.senderId,
             email: '',
             username: '',
             profileImage: '',

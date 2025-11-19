@@ -50,7 +50,6 @@ class NotificationService {
 
     final notificationAppLaunchDetails = await _localNotifications
         .getNotificationAppLaunchDetails();
-    print('MyLog notificationAppLaunchDetails: $notificationAppLaunchDetails');
     if (notificationAppLaunchDetails?.didNotificationLaunchApp ?? false) {
       if (notificationAppLaunchDetails!.notificationResponse != null) {
         _handleAppOpened(notificationAppLaunchDetails.notificationResponse!);
@@ -59,7 +58,7 @@ class NotificationService {
   }
 
   void _handleAppOpened(NotificationResponse response) {
-    print('MyLog OPEN APP: ${response.payload}');
+    print('NotificationService OPEN APP with: ${response.payload}');
     if (response.payload == null) return;
     final chatId = int.parse(response.payload!);
 
