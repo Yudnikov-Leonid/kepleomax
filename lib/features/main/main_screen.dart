@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
 import 'package:kepleomax/features/feed/feed_navigator.dart';
@@ -15,6 +16,12 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 1;
+
+  final _globalKeys = [
+    feedNavigatorGlobalKey,
+    chatsNavigatorGlobalKey,
+    menuNavigatorGlobalKey,
+  ];
 
   final _pages = [
     FeedNavigator(key: UniqueKey()),
@@ -43,13 +50,8 @@ class _MainScreenState extends State<MainScreen> {
             showUnselectedLabels: false,
             onTap: (index) {
               if (_currentIndex == index) {
-                _pages
-                  ..clear()
-                  ..addAll([
-                    FeedNavigator(key: UniqueKey()),
-                    ChatsNavigator(key: UniqueKey()),
-                    MenuNavigator(key: UniqueKey()),
-                  ]);
+                (_globalKeys[_currentIndex].currentState as AppNavigatorState)
+                    .popAll();
               }
               setState(() {
                 _currentIndex = index;

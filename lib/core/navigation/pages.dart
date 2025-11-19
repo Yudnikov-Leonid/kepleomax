@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/features/login/login_screen.dart';
-import 'package:kepleomax/features/music/music_screen.dart';
 import 'package:kepleomax/features/people/people_screen.dart';
 import 'package:kepleomax/features/post_editor/post_editor_screen.dart';
 import 'package:kepleomax/features/user/user_screen.dart';
@@ -43,11 +42,6 @@ final class UserPage extends AppPage {
 final class MainPage extends AppPage {
   const MainPage()
     : super(name: "main", child: const MainScreen(), key: const ValueKey("main"));
-}
-
-final class MusicPage extends AppPage {
-  const MusicPage()
-    : super(name: "music", child: const MusicScreen(), key: const ValueKey("music"));
 }
 
 final class PostEditorPage extends AppPage {

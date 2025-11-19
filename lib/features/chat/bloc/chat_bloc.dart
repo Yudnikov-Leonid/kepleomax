@@ -28,7 +28,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
        _chatsRepository = chatsRepository,
        _userId = userId,
        super(ChatStateBase.initial()) {
-    print('MyLog chatBloc init');
     _messagesRepository.initSocket(userId: userId);
     _subMessages = _messagesRepository.messagesStream.listen((message) {
       add(ChatEventNewMessage(newMessage: message));

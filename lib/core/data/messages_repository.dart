@@ -27,20 +27,20 @@ class MessagesRepository {
       }).build(),
     );
     _socket.on('connect', (_) {
-      print('MyLog Connected');
+      print('WebSocketLog Connected');
       _connectionController.add(true);
     });
     _socket.on('disconnect', (_) {
-      print('MyLog Disconnected');
+      print('WebSocketLog Disconnected');
       _connectionController.add(false);
     });
     _socket.on('new_message', (data) {
-      print('MyLog new_message: $data');
+      print('WebSocketLog new_message: $data');
       final messageDto = MessageDto.fromJson(data);
       _messageController.add(Message.fromDto(messageDto));
     });
     _socket.on('read_messages', (data) {
-      print('MyLog read_messages: $data');
+      print('WebSocketLog read_messages: $data');
       _readMessagesController.add(ReadMessagesUpdate.fromJson(data));
     });
     // _socket.on('new_chat', (data) {

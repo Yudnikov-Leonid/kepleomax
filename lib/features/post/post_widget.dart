@@ -304,6 +304,7 @@ class _PostImagesWidget extends StatelessWidget {
   }
 }
 
+/// not in use now
 class _PhotosRow extends StatefulWidget {
   const _PhotosRow({required this.images, required this.maxHeight});
 

@@ -3,6 +3,11 @@ import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:kepleomax/core/app.dart';
+import 'package:kepleomax/core/models/chat.dart';
+import 'package:kepleomax/core/models/user.dart';
+import 'package:kepleomax/core/navigation/app_navigator.dart';
+import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
 
 class NotificationService {
   NotificationService._privateConstructor();
@@ -28,12 +33,20 @@ class NotificationService {
       '@mipmap/ic_launcher',
     );
 
-    final settings = InitializationSettings(android: initializationSettingsAndroid);
-
     await _localNotifications.initialize(
-      settings,
+      InitializationSettings(android: initializationSettingsAndroid),
       onDidReceiveNotificationResponse: (response) {
-        print('response: $response');
+        print('MyLog OPEN APP: $response');
+        (mainNavigatorGlobalKey.currentState!.widget as AppNavigatorState).push(
+          ChatPage(
+            chat: Chat(
+              id: 1,
+              otherUser: User.loading(),
+              lastMessage: null,
+              unreadCount: 0,
+            ),
+          ),
+        );
       },
     );
   }
@@ -43,13 +56,28 @@ class NotificationService {
 
     FirebaseMessaging.onMessage.listen(showNotification);
 
-    FirebaseMessaging.onBackgroundMessage(_onBackgroundMessage);
+    FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
 
     /// opened app
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
-      print('OPEN APP: $initialMessage');
+      _handleAppOpened(initialMessage);
     }
+  }
+
+  void _handleAppOpened(RemoteMessage message) {
+    print('MyLog OPEN APP: $message');
+
+    (mainNavigatorGlobalKey.currentState!.widget as AppNavigatorState).push(
+      ChatPage(
+        chat: Chat(
+          id: 1,
+          otherUser: User.loading(),
+          lastMessage: null,
+          unreadCount: 0,
+        ),
+      ),
+    );
   }
 
   int _openedChatId = -1;
@@ -85,7 +113,7 @@ class NotificationService {
       await _localNotifications.show(
         messageIds[0],
         message.data['title'],
-        message.data['body'], //notification.body,
+        message.data['body'],
         NotificationDetails(
           android: AndroidNotificationDetails(
             'high_importance_channel',
@@ -95,7 +123,7 @@ class NotificationService {
             icon: '@mipmap/ic_launcher',
           ),
         ),
-        payload: message.data.toString(),
+        payload: 'chatId: 54545',
       );
     } else if (type == 'cancel') {
       messageIds.forEach((id) {
@@ -106,7 +134,7 @@ class NotificationService {
 }
 
 @pragma('vm:entry-point')
-Future<void> _onBackgroundMessage(RemoteMessage message) async {
+Future<void> onBackgroundMessage(RemoteMessage message) async {
   print('FCM message: ${message.data}');
   await Firebase.initializeApp();
   await NotificationService.instance.setupFlutterNotifications();

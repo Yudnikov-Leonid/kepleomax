@@ -16,6 +16,7 @@ import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
+/// screen
 class ChatsScreen extends StatelessWidget {
   const ChatsScreen({super.key});
 
@@ -28,13 +29,14 @@ class ChatsScreen extends StatelessWidget {
         messagesRepository: Dependencies.of(context).messagesRepository,
       )..add(const ChatsEventLoad()),
       child: Scaffold(
-        appBar: KlmAppBar(context, 'Chats'),
+        appBar: KlmAppBar(context, 'Chats', key: Key('chats_app_bar'),),
         body: _Body(key: Key('chats_body')),
       ),
     );
   }
 }
 
+/// body
 class _Body extends StatelessWidget {
   const _Body({super.key});
 
@@ -109,6 +111,7 @@ class _Body extends StatelessWidget {
   }
 }
 
+/// widgets
 class _ChatWidget extends StatelessWidget {
   const _ChatWidget({required this.chat, this.isLoading = false, super.key});
 

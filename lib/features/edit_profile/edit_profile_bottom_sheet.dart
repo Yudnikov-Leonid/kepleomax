@@ -36,6 +36,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
   bool _isImageEdited = false;
   String? _imageUrl;
 
+  /// callbacks
   @override
   void initState() {
     final user = widget.profile.user;
@@ -45,6 +46,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
     super.initState();
   }
 
+  /// build
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -182,6 +184,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
     );
   }
 
+  /// actions
   Future<void> _removeImage() async {
     setState(() {
       _imageUrl = null;
@@ -205,6 +208,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
   }
 }
 
+/// widgets
 class _Button extends StatelessWidget {
   const _Button({
     required this.text,

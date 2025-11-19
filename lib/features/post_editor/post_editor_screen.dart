@@ -14,6 +14,7 @@ import '../../core/presentation/caching_image.dart';
 import 'bloc/post_editor_bloc.dart';
 import 'bloc/post_editor_state.dart';
 
+/// screen
 class PostEditorScreen extends StatelessWidget {
   const PostEditorScreen({
     required Post? post,
@@ -48,16 +49,17 @@ class PostEditorScreen extends StatelessWidget {
         },
         child: Scaffold(
           resizeToAvoidBottomInset: true,
-          appBar: _AppBar(isEditing: _post != null),
-          body: _Body(),
+          appBar: _AppBar(isEditing: _post != null, key: Key('post_editor_app_bar')),
+          body: _Body(key: Key('post_editor_body')),
         ),
       ),
     );
   }
 }
 
+/// body
 class _Body extends StatefulWidget {
-  const _Body();
+  const _Body({super.key});
 
   @override
   State<_Body> createState() => _BodyState();
@@ -66,17 +68,20 @@ class _Body extends StatefulWidget {
 class _BodyState extends State<_Body> {
   final _controller = TextEditingController();
 
+  /// callbacks
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
 
+  /// listeners
   void _updateControllers(PostEditorData data) {
     _controller.text = data.text;
     setState(() {});
   }
 
+  /// build
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<PostEditorBloc, PostEditorState>(
@@ -154,6 +159,7 @@ class _BodyState extends State<_Body> {
   }
 }
 
+/// widgets
 class _Images extends StatelessWidget {
   const _Images({required List<ImageUrlOrFile> images, required bool isLoading})
     : _images = images,
@@ -240,8 +246,9 @@ class _Images extends StatelessWidget {
 }
 
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _AppBar({required this.isEditing});
+  const _AppBar({required this.isEditing, super.key});
 
+  /// isEditing - or creating a new one
   final bool isEditing;
 
   @override

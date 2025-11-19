@@ -5,13 +5,18 @@ import 'package:kepleomax/features/menu/menu_screen.dart';
 import 'package:kepleomax/features/settings/settings_screen.dart';
 
 const menuNavigatorKey = 'MenuNavigator';
+final menuNavigatorGlobalKey = GlobalKey();
 
 class MenuNavigator extends StatelessWidget {
   const MenuNavigator({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return AppNavigator(initialState: [MenuPage()], navigatorKey: menuNavigatorKey);
+    return AppNavigator(
+      initialState: [MenuPage()],
+      navigatorKey: menuNavigatorKey,
+      key: menuNavigatorGlobalKey,
+    );
   }
 }
 

@@ -38,6 +38,8 @@ class AppNavigator extends StatefulWidget {
 
   static void pop(BuildContext context) => of(context)?.pop();
 
+  static void popAll(BuildContext context) => of(context)?.popAll();
+
   static Future<void>? showGeneralDialog(BuildContext context, Widget dialog) =>
       of(context)?.showGeneralDialog(context, dialog);
 
@@ -118,6 +120,10 @@ class AppNavigatorState extends State<AppNavigator> with WidgetsBindingObserver 
   void pop() => change((state) {
     if (state.length > 1) state.removeLast();
     return state;
+  });
+
+  void popAll() => change((state) {
+    return [state[0]];
   });
 
   String get navigatorKey => widget.navigatorKey;

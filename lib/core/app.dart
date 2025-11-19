@@ -5,6 +5,8 @@ import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
 import 'package:kepleomax/core/scopes/chat_scope.dart';
 
+final mainNavigatorGlobalKey = GlobalKey();
+
 class App extends StatefulWidget {
   const App({super.key});
 
@@ -41,6 +43,7 @@ class _AppState extends State<App> {
               child: AppNavigator(
                 initialState: [MainPage()],
                 navigatorKey: mainNavigatorKey,
+                key: mainNavigatorGlobalKey,
               ),
             ),
           );

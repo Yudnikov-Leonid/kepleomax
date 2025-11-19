@@ -6,6 +6,7 @@ import 'package:kepleomax/features/chat/chat_screen.dart';
 import 'package:kepleomax/features/chats/chats_screen.dart';
 
 const chatsNavigatorKey = 'ChatsNavigator';
+final chatsNavigatorGlobalKey = GlobalKey();
 
 class ChatsNavigator extends StatelessWidget {
   const ChatsNavigator({super.key});
@@ -15,6 +16,7 @@ class ChatsNavigator extends StatelessWidget {
     return AppNavigator(
       initialState: [const ChatsPage()],
       navigatorKey: chatsNavigatorKey,
+      key: chatsNavigatorGlobalKey,
     );
   }
 }

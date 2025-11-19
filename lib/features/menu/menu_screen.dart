@@ -21,9 +21,6 @@ class MenuScreen extends StatelessWidget {
           _MenuItem(title: 'People', onTap: () {
             AppNavigator.push(context, PeoplePage());
           }),
-          _MenuItem(title: 'Music', onTap: () {
-            AppNavigator.withKeyOf(context, mainNavigatorKey)?.push(MusicPage());
-          }),
           _MenuItem(
             title: 'Settings',
             onTap: () {

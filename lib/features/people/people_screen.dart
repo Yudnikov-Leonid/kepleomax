@@ -16,27 +16,16 @@ import 'package:skeletonizer/skeletonizer.dart';
 
 import 'bloc/people_bloc.dart';
 
-class PeopleScreen extends StatefulWidget {
+/// screen
+class PeopleScreen extends StatelessWidget {
   const PeopleScreen({super.key});
-
-  @override
-  State<PeopleScreen> createState() => _PeopleScreenState();
-}
-
-class _PeopleScreenState extends State<PeopleScreen> {
-  late final PeopleBloc _bloc;
-
-  @override
-  void initState() {
-    _bloc = PeopleBloc(userRepository: Dependencies.of(context).userRepository)
-      ..add(const PeopleEventLoad());
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<PeopleBloc>(
-      create: (context) => _bloc,
+      create: (context) =>
+          PeopleBloc(userRepository: Dependencies.of(context).userRepository)
+            ..add(const PeopleEventLoad()),
       child: BlocListener<PeopleBloc, PeopleState>(
         listener: (context, state) {
           if (state is PeopleStateError) {
@@ -44,18 +33,17 @@ class _PeopleScreenState extends State<PeopleScreen> {
           }
         },
         child: Scaffold(
-          appBar: _AppBar(),
-          body: _Body(bloc: _bloc),
+          appBar: _AppBar(key: Key('people_app_bar')),
+          body: _Body(key: Key('people_body')),
         ),
       ),
     );
   }
 }
 
+/// body
 class _Body extends StatefulWidget {
-  const _Body({required this.bloc});
-
-  final PeopleBloc bloc;
+  const _Body({super.key});
 
   @override
   State<_Body> createState() => _BodyState();
@@ -65,73 +53,71 @@ class _BodyState extends State<_Body> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
 
-  void _onScrollListener() {
-    if (_scrollController.offset > _scrollController.position.maxScrollExtent - 30) {
-      widget.bloc.add(const PeopleEventLoadMore());
-    }
-  }
-
-  @override
-  void initState() {
-    _scrollController.addListener(_onScrollListener);
-    super.initState();
-  }
-
+  /// callbacks
   @override
   void dispose() {
-    _scrollController.removeListener(_onScrollListener);
     _scrollController.dispose();
     _controller.dispose();
     super.dispose();
   }
 
+  /// build
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PeopleBloc, PeopleState>(
-      builder: (context, state) {
-        if (state is! PeopleStateBase) return SizedBox();
+    return _PagingListener(
+      key: Key('people_paging_listener'),
+      scrollController: _scrollController,
+      child: BlocBuilder<PeopleBloc, PeopleState>(
+        builder: (context, state) {
+          if (state is! PeopleStateBase) return SizedBox();
 
-        final data = state.data;
-        return SingleChildScrollView(
-          key: Key('users_scroll_view'),
-          controller: _scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Column(
-            key: Key('users_column'),
-            children: [
-              KlmTextField(
-                controller: _controller,
-                onChanged: (search) {
-                  context.read<PeopleBloc>().add(
-                    PeopleEventEditSearch(text: search),
-                  );
-                },
-                hint: 'Search',
-              ),
-              const SizedBox(height: 20),
-              if (data.isLoading)
-                SizedBox(height: 40, width: 40, child: CircularProgressIndicator()),
-              ...data.users.map(
-                (user) => _UserCard(key: Key('user_card_${user.id}'), user: user),
-              ),
-              if (!data.isAllUsersLoaded && !data.isLoading)
-                _UserCard(user: User.loading(), isLoading: true),
-              if (!data.isLoading && data.users.isEmpty)
-                Text(
-                  'No one found',
-                  style: context.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+          final data = state.data;
+          return SingleChildScrollView(
+            key: Key('users_scroll_view'),
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Column(
+              key: Key('users_column'),
+              children: [
+                KlmTextField(
+                  controller: _controller,
+                  onChanged: (search) {
+                    context.read<PeopleBloc>().add(
+                      PeopleEventEditSearch(text: search),
+                    );
+                  },
+                  hint: 'Search',
                 ),
-            ],
-          ),
-        );
-      },
+                const SizedBox(height: 20),
+                if (data.isLoading)
+                  SizedBox(
+                    height: 40,
+                    width: 40,
+                    child: CircularProgressIndicator(),
+                  ),
+                ...data.users.map(
+                  (user) => _UserCard(key: Key('user_card_${user.id}'), user: user),
+                ),
+                if (!data.isAllUsersLoaded && !data.isLoading)
+                  _UserCard(user: User.loading(), isLoading: true),
+                if (!data.isLoading && data.users.isEmpty)
+                  Text(
+                    'No one found',
+                    style: context.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
 
+/// widgets
 class _UserCard extends StatelessWidget {
   const _UserCard({required this.user, this.isLoading = false, super.key});
 
@@ -177,12 +163,15 @@ class _UserCard extends StatelessWidget {
                 ),
               ),
             ),
-            IconButton(onPressed: () {
-              AppNavigator.withKeyOf(
-                context,
-                mainNavigatorKey,
-              )!.push(ChatPage(chat: Chat.newWithUser(user)));
-            }, icon: Icon(Icons.chat_outlined)),
+            IconButton(
+              onPressed: () {
+                AppNavigator.withKeyOf(
+                  context,
+                  mainNavigatorKey,
+                )!.push(ChatPage(chat: Chat.newWithUser(user)));
+              },
+              icon: Icon(Icons.chat_outlined),
+            ),
           ],
         ),
       ),
@@ -190,8 +179,51 @@ class _UserCard extends StatelessWidget {
   }
 }
 
+class _PagingListener extends StatefulWidget {
+  const _PagingListener({
+    required this.scrollController,
+    required this.child,
+    super.key,
+  });
+
+  final Widget child;
+  final ScrollController scrollController;
+
+  @override
+  State<_PagingListener> createState() => _PagingListenerState();
+}
+
+class _PagingListenerState extends State<_PagingListener> {
+  /// callbacks
+  @override
+  void initState() {
+    widget.scrollController.addListener(_onScrollListener);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.scrollController.removeListener(_onScrollListener);
+    super.dispose();
+  }
+
+  /// listeners
+  void _onScrollListener() {
+    if (widget.scrollController.offset >
+        widget.scrollController.position.maxScrollExtent - 30) {
+      context.read<PeopleBloc>().add(const PeopleEventLoadMore());
+    }
+  }
+
+  /// build
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
+  }
+}
+
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _AppBar();
+  const _AppBar({super.key});
 
   @override
   Widget build(BuildContext context) {

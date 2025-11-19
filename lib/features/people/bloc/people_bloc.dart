@@ -24,7 +24,6 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
   void _onLoadMore(PeopleEventLoadMore event, Emitter<PeopleState> emit) async {
     if (_data.isLoading || _data.isAllUsersLoaded || _isLoadingMore) return;
     _isLoadingMore = true;
-    print('MyLog loadMore');
 
     final now = DateTime.now().millisecondsSinceEpoch;
     _requestLastTimeCalled = now;

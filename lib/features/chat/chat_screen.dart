@@ -19,6 +19,7 @@ import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/features/chat/bloc/chat_bloc.dart';
 import 'package:kepleomax/features/chat/bloc/chat_state.dart';
 
+/// screen
 class ChatScreen extends StatefulWidget {
   const ChatScreen({required this.chat, super.key});
 
@@ -32,6 +33,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final _scrollController = ScrollController();
   late ChatBloc _chatBloc;
 
+  /// callbacks
   @override
   void initState() {
     _chatBloc = context.read<ChatBloc>()
@@ -48,6 +50,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
+  /// build
   @override
   Widget build(BuildContext context) {
     return BlocListener<ChatBloc, ChatState>(
@@ -253,14 +256,12 @@ class _BodyState extends State<_Body> {
   }
 
   void _onResume() {
-    print('MyLog2 onResume');
     _isScreenActive = true;
     NotificationService.instance.blockNotificationsFromChat(widget._chat.id);
     _onScrollListener();
   }
 
   void _onPause() {
-    print('MyLog2 onPause');
     _isScreenActive = false;
     NotificationService.instance.enableAllNotifications();
   }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/models/chat.dart';
-import 'package:kepleomax/core/models/user_profile.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
@@ -25,6 +24,7 @@ import '../../core/presentation/photos_preview/photos_preview_screen.dart';
 
 const int _appBarUsernameFullShownOffset = 130;
 
+/// screen
 class UserScreen extends StatefulWidget {
   const UserScreen({required this.userId, super.key});
 
@@ -39,44 +39,22 @@ class _UserScreenState extends State<UserScreen> {
     viewportBoundaryGetter: () =>
         Rect.fromLTRB(0, MediaQuery.of(context).viewPadding.top, 0, 0),
   );
-  late PostListBloc _postBloc;
 
-  void _onScrollListener() {
-    if (_scrollController.offset >
-        _scrollController.position.maxScrollExtent - 180) {
-      _postBloc.add(const PostListEventLoadMore());
-    }
-  }
-
-  @override
-  void initState() {
-    _postBloc = PostListBloc(
-      postRepository: Dependencies.of(context).postRepository,
-      userId: widget.userId,
-    )..add(const PostListEventLoad());
-    _scrollController.addListener(_onScrollListener);
-    super.initState();
-  }
-
+  /// callbacks
   @override
   void dispose() {
-    _scrollController.removeListener(_onScrollListener);
     _scrollController.dispose();
     super.dispose();
   }
 
+  /// build
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => UserBloc(
-            userRepository: Dependencies.of(context).userRepository,
-            userId: widget.userId,
-          )..add(const UserEventLoad()),
-        ),
-        BlocProvider(create: (context) => _postBloc),
-      ],
+    return BlocProvider<UserBloc>(
+      create: (context) => UserBloc(
+        userRepository: Dependencies.of(context).userRepository,
+        userId: widget.userId,
+      )..add(const UserEventLoad()),
       child: BlocConsumer<UserBloc, UserState>(
         listener: (context, state) {
           if (state is UserStateError) {
@@ -103,10 +81,18 @@ class _UserScreenState extends State<UserScreen> {
 
           return Scaffold(
             extendBodyBehindAppBar: true,
-            appBar: _AppBar(scrollController: _scrollController),
-            body: _Body(
+            appBar: _AppBar(
               scrollController: _scrollController,
-              scrollPadding: MediaQuery.of(context).viewPadding.top,
+              key: Key('user_app_bar'),
+            ),
+            body: _ScrollControllerListeners(
+              controller: _scrollController,
+              userId: widget.userId,
+              child: _Body(
+                scrollController: _scrollController,
+                scrollPadding: MediaQuery.of(context).viewPadding.top,
+                key: Key('user_screen_body'),
+              ),
             ),
           );
         },
@@ -115,17 +101,18 @@ class _UserScreenState extends State<UserScreen> {
   }
 }
 
+/// body
 class _Body extends StatelessWidget {
   const _Body({
     required AutoScrollController scrollController,
     required double scrollPadding,
+    super.key,
   }) : _scrollController = scrollController,
        _scrollPadding = scrollPadding;
 
-  final AutoScrollController _scrollController;
-
   /// inside this widget MediaQuery.of(context).viewPadding.top will be 0
   final double _scrollPadding;
+  final AutoScrollController _scrollController;
 
   @override
   Widget build(BuildContext context) {
@@ -141,151 +128,125 @@ class _Body extends StatelessWidget {
         if (state is! UserStateBase) return SizedBox();
 
         final data = state.userData;
-        return NotificationListener<ScrollNotification>(
-          onNotification: _onScrollNotification,
-          child: RefreshIndicator(
-            onRefresh: () async {
-              context.read<UserBloc>().add(const UserEventLoad());
-              context.read<PostListBloc>().add(const PostListEventLoad());
-            },
-            child: SingleChildScrollView(
-              key: Key('scroll_profile'),
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.only(top: _scrollPadding),
-              controller: _scrollController,
+        return RefreshIndicator(
+          onRefresh: () async {
+            context.read<UserBloc>().add(const UserEventLoad());
+            context.read<PostListBloc>().add(const PostListEventLoad());
+          },
+          child: SingleChildScrollView(
+            key: Key('scroll_profile'),
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.only(top: _scrollPadding),
+            controller: _scrollController,
+            child: Skeletonizer(
+              key: Key('screen_top_skeletonizer'),
+              enabled: data.isLoading,
               child: Column(
                 children: [
-                  Skeletonizer(
-                    key: Key('screen_top_skeletonizer'),
-                    enabled: data.isLoading,
-                    child: Column(
-                      children: [
-                        AutoScrollTag(
-                          key: Key('top_scroll_tag'),
-                          controller: _scrollController,
-                          index: 0,
-                          highlightColor: Colors.red,
-                          child: Center(
-                            child: InkWell(
-                              splashColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
-                              onTap:
-                                  data.profile == null ||
-                                      (data.profile?.user.profileImage.isEmpty ??
-                                          true)
-                                  ? null
-                                  : () {
-                                      AppNavigator.showGeneralDialog(
-                                        context,
-                                        PhotosPreviewScreen(
-                                          urls: [data.profile!.user.profileImage],
-                                          initialIndex: 0,
-                                          isOnePictureMode: true,
-                                        ),
-                                      );
-                                    },
-                              child: UserImage(
-                                url: data.profile?.user.profileImage,
-                                size: 130,
-                                isLoading: data.isLoading,
-                              ),
-                            ),
-                          ),
-                        ),
-                        AutoScrollTag(
-                          key: Key('bottom_of_username_scroll_tag'),
-                          controller: _scrollController,
-                          index: 1,
-                          highlightColor: Colors.red,
-                          child: const SizedBox(height: 16),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Text(
-                            data.isLoading
-                                ? '--------------'
-                                : data.profile?.user.username ??
-                                      'Failed to load username',
-                            textAlign: TextAlign.center,
-                            style: context.textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 26,
-                            ),
-                          ),
-                        ),
-                        if (data.isLoading ||
-                            (data.profile?.description.isNotEmpty ?? false)) ...[
-                          const SizedBox(height: 8),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Text(
-                              data.isLoading
-                                  ? '-------------'
-                                  : data.profile?.description ??
-                                        'Failed to load description',
-                              textAlign: TextAlign.center,
-                              style: context.textTheme.bodyLarge?.copyWith(),
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 16),
-                        if (!data.isLoading && data.profile == null) ...[
-                          KlmButton(
-                            onPressed: () {
-                              context.read<UserBloc>().add(UserEventLoad());
-                            },
-                            text: 'Retry',
-                            width: 120,
-                          ),
-                          const SizedBox(height: 10),
-                        ],
-                        if (!data.isLoading && data.profile != null) ...[
-                          if (data.profile?.user.isCurrent ?? false)
-                            _actionButton(
-                              context,
-                              text: 'Post',
-                              icon: Icons.add,
-                              action: () {
-                                AppNavigator.withKeyOf(
+                  /// user image
+                  AutoScrollTag(
+                    key: Key('top_scroll_tag'),
+                    controller: _scrollController,
+                    index: 0,
+                    highlightColor: Colors.red,
+                    child: Center(
+                      child: InkWell(
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        onTap:
+                            data.profile == null ||
+                                (data.profile?.user.profileImage.isEmpty ?? true)
+                            ? null
+                            : () {
+                                AppNavigator.showGeneralDialog(
                                   context,
-                                  mainNavigatorKey,
-                                )!.push(
-                                  PostEditorPage(
-                                    post: null,
-                                    onPostSaved: () {
-                                      context.read<PostListBloc>().add(
-                                        const PostListEventLoad(),
-                                      );
-                                    },
+                                  PhotosPreviewScreen(
+                                    urls: [data.profile!.user.profileImage],
+                                    initialIndex: 0,
+                                    isOnePictureMode: true,
                                   ),
+                                );
+                              },
+                        child: UserImage(
+                          url: data.profile?.user.profileImage,
+                          size: 130,
+                          isLoading: data.isLoading,
+                        ),
+                      ),
+                    ),
+                  ),
+                  AutoScrollTag(
+                    key: Key('bottom_of_username_scroll_tag'),
+                    controller: _scrollController,
+                    index: 1,
+                    highlightColor: Colors.red,
+                    child: const SizedBox(height: 16),
+                  ),
+
+                  /// username
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(
+                      data.isLoading
+                          ? '--------------'
+                          : data.profile?.user.username ?? 'Failed to load username',
+                      textAlign: TextAlign.center,
+                      style: context.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 26,
+                      ),
+                    ),
+                  ),
+
+                  /// description
+                  if (data.isLoading ||
+                      (data.profile?.description.isNotEmpty ?? false)) ...[
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        data.isLoading
+                            ? '-------------'
+                            : data.profile?.description ??
+                                  'Failed to load description',
+                        textAlign: TextAlign.center,
+                        style: context.textTheme.bodyLarge?.copyWith(),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  if (!data.isLoading && data.profile == null) ...[
+                    KlmButton(
+                      onPressed: () {
+                        context.read<UserBloc>().add(UserEventLoad());
+                      },
+                      text: 'Retry',
+                      width: 120,
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+
+                  /// action button
+                  if (!data.isLoading && data.profile != null) ...[
+                    _ActionButton(
+                      isCurrentUser: data.profile!.user.isCurrent,
+                      navigateToPage: data.profile!.user.isCurrent
+                          ? PostEditorPage(
+                              post: null,
+                              onPostSaved: () {
+                                context.read<PostListBloc>().add(
+                                  const PostListEventLoad(),
                                 );
                               },
                             )
-                          else
-                            _actionButton(
-                              context,
-                              text: 'Message',
-                              icon: Icons.message_sharp,
-                              action: () {
-                                AppNavigator.withKeyOf(
-                                  context,
-                                  mainNavigatorKey,
-                                )!.push(
-                                  ChatPage(
-                                    chat: Chat.newWithUser(data.profile!.user),
-                                  ),
-                                );
-                              },
-                            ),
-                          const SizedBox(height: 10),
-                        ],
-                        Divider(thickness: 5, color: Colors.grey.shade300),
-                        const SizedBox(height: 10),
-
-                        //PostListWidget(key: Key('post_of_user_$_userId'), userId: _userId),
-                      ],
+                          : ChatPage(chat: Chat.newWithUser(data.profile!.user)),
                     ),
-                  ),
+                    const SizedBox(height: 10),
+                  ],
+
+                  /// posts
+                  Divider(thickness: 5, color: Colors.grey.shade300),
+                  const SizedBox(height: 10),
                   PostListWidget(key: Key('users_posts'), isUserPage: true),
                 ],
               ),
@@ -295,59 +256,80 @@ class _Body extends StatelessWidget {
       },
     );
   }
+}
+
+/// widgets
+class _ScrollControllerListeners extends StatefulWidget {
+  const _ScrollControllerListeners({
+    required this.controller,
+    required this.userId,
+    required this.child,
+  });
+
+  final AutoScrollController controller;
+  final int userId;
+  final Widget child;
+
+  @override
+  State<_ScrollControllerListeners> createState() =>
+      _ScrollControllerListenersState();
+}
+
+class _ScrollControllerListenersState extends State<_ScrollControllerListeners> {
+  late PostListBloc _postBloc;
+
+  /// callbacks
+  @override
+  void initState() {
+    _postBloc = PostListBloc(
+      postRepository: Dependencies.of(context).postRepository,
+      userId: widget.userId,
+    )..add(const PostListEventLoad());
+    widget.controller.addListener(_onScrollListener);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onScrollListener);
+    super.dispose();
+  }
+
+  /// listeners
+  void _onScrollListener() {
+    if (widget.controller.offset >
+        widget.controller.position.maxScrollExtent - 180) {
+      _postBloc.add(const PostListEventLoadMore());
+    }
+  }
 
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification is ScrollEndNotification) {
-      final offset = _scrollController.offset;
+      final offset = widget.controller.offset;
       if (offset > 0 && offset <= 75) {
-        _scrollController.scrollToIndex(0, preferPosition: AutoScrollPosition.end);
+        widget.controller.scrollToIndex(0, preferPosition: AutoScrollPosition.end);
       } else if (offset > 75 && offset < 125) {
-        _scrollController.scrollToIndex(1, preferPosition: AutoScrollPosition.begin);
+        widget.controller.scrollToIndex(1, preferPosition: AutoScrollPosition.begin);
       }
     }
     return false;
   }
 
-  Widget _actionButton(
-    BuildContext context, {
-    required String text,
-    required IconData icon,
-    required VoidCallback action,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        height: 50,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: KlmColors.primaryColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: TextButton(
-          onPressed: action,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, weight: 4, color: Colors.white, size: 24),
-              const SizedBox(width: 4),
-              Text(
-                text,
-                style: context.textTheme.bodyLarge?.copyWith(
-                  fontSize: 20,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
+  /// build
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<PostListBloc>(
+      create: (context) => _postBloc,
+      child: NotificationListener<ScrollNotification>(
+        onNotification: _onScrollNotification,
+        child: widget.child,
       ),
     );
   }
 }
 
 class _AppBar extends StatefulWidget implements PreferredSizeWidget {
-  const _AppBar({required AutoScrollController scrollController})
+  const _AppBar({required AutoScrollController scrollController, super.key})
     : _scrollController = scrollController;
 
   final AutoScrollController _scrollController;
@@ -360,6 +342,7 @@ class _AppBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _AppBarState extends State<_AppBar> {
+  /// callbacks
   @override
   void initState() {
     widget._scrollController.addListener(_onScrolledListener);
@@ -372,6 +355,9 @@ class _AppBarState extends State<_AppBar> {
     super.dispose();
   }
 
+  /// should be here, not in _ScrollControllerListeners cause setState
+  /// must rebuild only this widget, not body
+  /// listeners
   double _lastScrollPosition = 0;
 
   void _onScrolledListener() {
@@ -387,6 +373,7 @@ class _AppBarState extends State<_AppBar> {
     setState(() {});
   }
 
+  /// build
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<UserBloc, UserState>(
@@ -405,6 +392,7 @@ class _AppBarState extends State<_AppBar> {
       builder: (context, state) {
         if (state is! UserStateBase) return SizedBox();
 
+        /// main content
         final data = state.userData;
         return AppBar(
           backgroundColor: Colors.white.withAlpha(
@@ -423,11 +411,17 @@ class _AppBarState extends State<_AppBar> {
                 onSelected: (value) async {
                   if (value == 'edit') {
                     if (data.profile == null || data.isLoading) return;
-                    await _editProfile(context, data.profile!, (newProfile) {
-                      context.read<UserBloc>().add(
-                        UserEventUpdateProfile(newProfile: newProfile),
-                      );
-                    });
+                    AppNavigator.of(context)!.showModalBottomSheet(
+                      context,
+                      EditProfileBottomSheet(
+                        profile: data.profile!,
+                        onSave: (newProfile) {
+                          context.read<UserBloc>().add(
+                            UserEventUpdateProfile(newProfile: newProfile),
+                          );
+                        },
+                      ),
+                    );
                   } else if (value == 'logout') {
                     AuthScope.logout(context);
                   }
@@ -477,15 +471,51 @@ class _AppBarState extends State<_AppBar> {
       },
     );
   }
+}
 
-  Future<void> _editProfile(
-    BuildContext context,
-    UserProfile profile,
-    ValueChanged<UserProfile> onSave,
-  ) async {
-    AppNavigator.of(context)!.showModalBottomSheet(
-      context,
-      EditProfileBottomSheet(profile: profile, onSave: onSave),
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({required this.isCurrentUser, required this.navigateToPage});
+
+  final bool isCurrentUser;
+  final AppPage navigateToPage;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        height: 50,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: KlmColors.primaryColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: TextButton(
+          onPressed: () {
+            AppNavigator.withKeyOf(context, mainNavigatorKey)!.push(navigateToPage);
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isCurrentUser ? Icons.add : Icons.message_sharp,
+                weight: 4,
+                color: Colors.white,
+                size: 24,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                isCurrentUser ? 'Post' : 'Message',
+                style: context.textTheme.bodyLarge?.copyWith(
+                  fontSize: 20,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
