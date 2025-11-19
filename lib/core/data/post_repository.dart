@@ -13,7 +13,9 @@ class PostRepository {
     required List<String> images,
   }) async {
     final res = await _postApi.updatePost(
-        postId: postId, data: CreatePostRequestDto(content: content, images: images));
+      postId: postId,
+      data: CreatePostRequestDto(content: content, images: images),
+    );
 
     if (res.response.statusCode != 200) {
       throw Exception(
@@ -57,11 +59,13 @@ class PostRepository {
     required int userId,
     required int limit,
     required int offset,
+    required int beforeTime,
   }) async {
     final res = await _postApi.getPostsByUserId(
       userId: userId,
       limit: limit,
       offset: offset,
+      beforeTime: beforeTime,
     );
 
     if (res.response.statusCode != 200) {
@@ -76,10 +80,12 @@ class PostRepository {
   Future<List<Post>> getPosts({
     required int limit,
     required int offset,
+    required int beforeTime,
   }) async {
     final res = await _postApi.getPosts(
       limit: limit,
       offset: offset,
+      beforeTime: beforeTime,
     );
 
     if (res.response.statusCode != 200) {

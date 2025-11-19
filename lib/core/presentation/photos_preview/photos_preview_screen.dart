@@ -17,6 +17,8 @@ part 'swipe_view.dart';
 
 part 'photo.dart';
 
+typedef _GetAlpha = int Function({int minAlpha, int maxAlpha});
+
 /// constants
 const int _minAlpha = 150;
 const int _distanceToReachMinAlpha = 100;
@@ -24,11 +26,15 @@ const int _distanceToClose = 150;
 const double _maxScaleFactor = 4;
 const double _swipeViewHeight = 2600;
 
+/// must be < 0.5
+const double _spaceBetweenPhotosRatio = 0.1;
+
 const double _scaleFactorOnDoubleTapWhenOnlyYAxes = 1.5;
 
-/// change carefully
+/// change carefully (cause * 1.668)
 const double _scaleFactorOnDoubleTap = 2.5;
 
+/// body
 class PhotosPreviewScreen extends StatefulWidget {
   const PhotosPreviewScreen({
     required this.urls,
@@ -49,7 +55,7 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
   late int _index;
   bool _showAppBar = true;
 
-  double get _defaultOffset => (_swipeViewHeight - context.screenSize.height) / 2;
+  double? _defaultOffset;
 
   /// swipe up/down controller
   final ScrollController _scrollController = ScrollController();
@@ -62,11 +68,10 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
     initialPage: _index,
   );
 
+  /// callbacks
   @override
   void initState() {
     _index = widget.initialIndex;
-    _scrollController.addListener(_setState);
-    _pageController.addListener(_setState);
     for (int i = 0; i < widget.urls.length; i++) {
       final controller = TransformationController();
       controller.addListener(_setState);
@@ -74,18 +79,20 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
     }
 
     Future.delayed(Duration.zero, () {
-      /// need setState to apply scrollOffset on start
+      if (!mounted) return;
+      _defaultOffset = (_swipeViewHeight - context.screenSize.height) / 2;
+
+      /// need setState to apply _defaultOffset to widgets (send them, that it's
+      /// not null now)
       setState(() {});
-      _scrollController.jumpTo(_defaultOffset);
+      _scrollController.jumpTo(_defaultOffset!);
     });
     super.initState();
   }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_setState);
     _scrollController.dispose();
-    _pageController.removeListener(_setState);
     _pageController.dispose();
     for (final controller in _transformControllers) {
       controller.removeListener(_setState);
@@ -97,17 +104,27 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
     super.dispose();
   }
 
+  /// listeners/getters
+  void _setState() => setState(() {});
+
+  bool get _isInZoom => _transformControllers
+      .where((controller) => controller.value.getMaxScaleOnAxis() >= 1.05)
+      .isNotEmpty;
+
+  /// build
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: Colors.black.withAlpha(_getAlpha()),
+      backgroundColor: Colors.transparent,
       appBar: _showAppBar
           ? _AppBar(
               title: widget.isOnePictureMode
                   ? ''
                   : '${_index + 1}/${widget.urls.length}',
               getAlpha: _getAlpha,
+              defaultOffset: _defaultOffset,
+              scrollController: _scrollController,
               onSave: _saveToGallery,
             )
           : null,
@@ -140,9 +157,6 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
               controller: _pageController,
               onPageChanged: (newIndex) {
                 setState(() {
-                  // for (final controller in _transformControllers) {
-                  //   controller.value = Matrix4.identity();
-                  // }
                   _index = newIndex;
                 });
               },
@@ -150,6 +164,12 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
                   .mapIndexed(
                     (i, url) => Stack(
                       children: [
+                        _Background(
+                          key: Key('photos_background'),
+                          scrollController: _scrollController,
+                          getAlpha: _getAlpha,
+                          defaultOffset: _defaultOffset,
+                        ),
                         Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -165,18 +185,11 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
                             ),
                           ],
                         ),
-                        Container(
-                          height: double.infinity,
-                          width: _getLeftLineWidth(),
-                          color: Colors.black,
-                        ),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Container(
-                            height: context.screenSize.height,
-                            width: _getRightLineWidth(),
-                            color: Colors.black,
-                          ),
+                        _SpaceIllusion(
+                          key: Key('photos_space_illusion'),
+                          pageController: _pageController,
+                          maxLinesWidth:
+                              context.screenSize.width * _spaceBetweenPhotosRatio,
                         ),
                       ],
                     ),
@@ -189,6 +202,7 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
     );
   }
 
+  /// other methods
   Future<void> _saveToGallery() async {
     try {
       String savedTo = 'gallery';
@@ -221,56 +235,19 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
     }
   }
 
-  double get _maxLinesWidth => context.screenSize.width * 0.1;
-
-  double _getRightLineWidth() {
-    final pos = _viewPagePos;
-    if (pos < 0.1) {
-      return 0;
-    } else if (pos < 0.7) {
-      return pos.remap(0.1, 0.7, 0, _maxLinesWidth);
-    } else if (pos < 0.9) {
-      return _maxLinesWidth;
-    }
-
-    return pos.remap(0.9, 1, _maxLinesWidth, 0);
-  }
-
-  double _getLeftLineWidth() {
-    final pos = _viewPagePos;
-    if (pos < 0.1) {
-      return pos.remap(0, 0.1, 0, _maxLinesWidth);
-    } else if (pos < 0.7) {
-      return pos.remap(0.1, 0.7, _maxLinesWidth, 0);
-    }
-
-    return 0;
-  }
-
-  double get _viewPagePos =>
-      _pageController.hasClients ? (_pageController.page ?? 0) % 1 : 0;
-
-  void _setState() {
-    setState(() {});
-  }
-
-  bool get _isInZoom => _transformControllers
-      .where((controller) => controller.value.getMaxScaleOnAxis() >= 1.05)
-      .isNotEmpty;
-
   int _getAlpha({int minAlpha = _minAlpha, int maxAlpha = 255}) {
-    if (!_scrollController.hasClients) return 0;
+    if (!_scrollController.hasClients || _defaultOffset == null) return 0;
     final offset = _scrollController.offset;
 
-    if (offset > _defaultOffset + _distanceToReachMinAlpha ||
-        offset < _defaultOffset - _distanceToReachMinAlpha) {
+    if (offset > _defaultOffset! + _distanceToReachMinAlpha ||
+        offset < _defaultOffset! - _distanceToReachMinAlpha) {
       return minAlpha;
     }
     return _scrollController.offset
         .remap(
-          _defaultOffset,
-          _defaultOffset +
-              (_distanceToReachMinAlpha * (offset > _defaultOffset ? 1 : -1)),
+          _defaultOffset!,
+          _defaultOffset! +
+              (_distanceToReachMinAlpha * (offset > _defaultOffset! ? 1 : -1)),
           maxAlpha,
           minAlpha,
         )
@@ -278,26 +255,227 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
   }
 }
 
-class _AppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _AppBar({
-    required String title,
-    required int Function({int minAlpha, int maxAlpha}) getAlpha,
-    required VoidCallback onSave,
-  }) : _title = title,
-       _getAlpha = getAlpha,
-       _onSave = onSave;
+/// widgets
+class _Background extends StatefulWidget {
+  const _Background({
+    required this.scrollController,
+    required this.getAlpha,
+    required this.defaultOffset,
+    super.key,
+  });
 
-  final String _title;
-  final int Function({int minAlpha, int maxAlpha}) _getAlpha;
-  final VoidCallback _onSave;
+  final ScrollController scrollController;
+  final _GetAlpha getAlpha;
+  final double? defaultOffset;
+
+  @override
+  State<_Background> createState() => _BackgroundState();
+}
+
+class _BackgroundState extends State<_Background> {
+  double? _lastOffset;
+
+  /// callbacks
+  @override
+  void initState() {
+    widget.scrollController.addListener(_listener);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.scrollController.removeListener(_listener);
+    super.dispose();
+  }
+
+  /// listeners
+  void _listener() {
+    if (!widget.scrollController.hasClients) return;
+    final offset = widget.scrollController.offset;
+
+    if (widget.defaultOffset == null) return;
+    _lastOffset ??= widget.defaultOffset;
+
+    if (!(_lastOffset! > widget.defaultOffset! + _distanceToReachMinAlpha ||
+        _lastOffset! < widget.defaultOffset! - _distanceToReachMinAlpha)) {
+      setState(() {});
+    }
+    _lastOffset = offset;
+  }
 
   @override
   Widget build(BuildContext context) {
+    return Container(color: Colors.black.withAlpha(widget.getAlpha()));
+  }
+}
+
+class _SpaceIllusion extends StatefulWidget {
+  const _SpaceIllusion({
+    required this.pageController,
+    required this.maxLinesWidth,
+    super.key,
+  });
+
+  final PageController pageController;
+  final double maxLinesWidth;
+
+  @override
+  State<_SpaceIllusion> createState() => _SpaceIllusionState();
+}
+
+class _SpaceIllusionState extends State<_SpaceIllusion> {
+  /// callbacks
+  @override
+  void initState() {
+    widget.pageController.addListener(_setState);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.pageController.removeListener(_setState);
+    super.dispose();
+  }
+
+  /// listeners
+  void _setState() => setState(() {});
+
+  /// build
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          height: double.infinity,
+          width: _getLeftLineWidth(),
+          color: Colors.black,
+        ),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Container(
+            height: context.screenSize.height,
+            width: _getRightLineWidth(),
+            color: Colors.black,
+          ),
+        ),
+      ],
+    );
+  }
+
+  //double get _maxLinesWidth => context.screenSize.width * 0.1;
+
+  double get _viewPagePos =>
+      widget.pageController.hasClients ? (widget.pageController.page ?? 0) % 1 : 0;
+
+  /// move -> there
+  /// 0 | _ratio | _ratio - 1 | 1
+  /// right: fullyHidden | growing | decreases | fullyHidden
+  /// left: growing | decreases | fullyHidden | fullyHidden
+
+  double _getRightLineWidth() {
+    final pos = _viewPagePos;
+    final maxWidthOn = 1 - _spaceBetweenPhotosRatio;
+    if (pos < _spaceBetweenPhotosRatio) {
+      /// fullyHidden
+      return 0;
+    } else if (pos < maxWidthOn) {
+      /// growing
+      return pos.remap(
+        _spaceBetweenPhotosRatio,
+        maxWidthOn,
+        0,
+        widget.maxLinesWidth,
+      );
+    } else {
+      /// decreasing
+      return pos.remap(maxWidthOn, 1, widget.maxLinesWidth, 0);
+    }
+  }
+
+  double _getLeftLineWidth() {
+    final pos = _viewPagePos;
+    final fullyHidden = 1 - _spaceBetweenPhotosRatio;
+    if (pos < _spaceBetweenPhotosRatio) {
+      /// growing
+      return pos.remap(0, _spaceBetweenPhotosRatio, 0, widget.maxLinesWidth);
+    } else if (pos < fullyHidden) {
+      /// decreases
+      return pos.remap(
+        _spaceBetweenPhotosRatio,
+        fullyHidden,
+        widget.maxLinesWidth,
+        0,
+      );
+    } else {
+      /// fullyHidden
+      return 0;
+    }
+  }
+}
+
+class _AppBar extends StatefulWidget implements PreferredSizeWidget {
+  const _AppBar({
+    required this.title,
+    required this.getAlpha,
+    required this.onSave,
+    required this.defaultOffset,
+    required this.scrollController,
+  });
+
+  final String title;
+  final _GetAlpha getAlpha;
+  final VoidCallback onSave;
+  final double? defaultOffset;
+  final ScrollController scrollController;
+
+  @override
+  State<_AppBar> createState() => _AppBarState();
+
+  @override
+  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+}
+
+class _AppBarState extends State<_AppBar> {
+  double? _lastOffset;
+
+  /// callbacks
+  @override
+  void initState() {
+    widget.scrollController.addListener(_listener);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.scrollController.removeListener(_listener);
+    super.dispose();
+  }
+
+  /// listeners
+  void _listener() {
+    if (!widget.scrollController.hasClients) return;
+    final offset = widget.scrollController.offset;
+
+    if (widget.defaultOffset == null) return;
+    _lastOffset ??= widget.defaultOffset;
+
+    if (!(_lastOffset! > widget.defaultOffset! + _distanceToReachMinAlpha ||
+        _lastOffset! < widget.defaultOffset! - _distanceToReachMinAlpha)) {
+      setState(() {});
+    }
+    _lastOffset = offset;
+  }
+
+  /// build
+  @override
+  Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.black.withAlpha(_getAlpha(minAlpha: 0, maxAlpha: 130)),
-      foregroundColor: Colors.white.withAlpha(_getAlpha(minAlpha: 0)),
+      backgroundColor: Colors.black.withAlpha(
+        widget.getAlpha(minAlpha: 0, maxAlpha: 130),
+      ),
+      foregroundColor: Colors.white.withAlpha(widget.getAlpha(minAlpha: 0)),
       surfaceTintColor: Colors.transparent,
-      title: Text(_title),
+      title: Text(widget.title),
       automaticallyImplyLeading: false,
       leading: KlmBackButton(
         onPressed: () {
@@ -308,7 +486,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
         PopupMenuButton<String>(
           onSelected: (value) async {
             if (value == 'save') {
-              _onSave();
+              widget.onSave();
             }
           },
           itemBuilder: (context) => [
@@ -318,7 +496,4 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
       ],
     );
   }
-
-  @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
 }

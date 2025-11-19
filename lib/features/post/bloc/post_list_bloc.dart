@@ -3,6 +3,7 @@ import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/features/post/bloc/post_list_state.dart';
 import 'package:kepleomax/main.dart';
+import 'package:ntp/ntp.dart';
 
 const int _pagingLimit = 5;
 
@@ -11,6 +12,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
 
   late PostListData _data = PostListData.initial();
   final int? _userId;
+  int _loadTime = 0;
 
   PostListBloc({required PostRepository postRepository, required int? userId})
     : _postRepository = postRepository,
@@ -58,13 +60,15 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
 
     final oldPosts = _data.posts;
     try {
-      final newPosts = await _getPosts(offset: oldPosts.length);
+      final newPosts = await _getPosts(offset: oldPosts.length, beforeTime: _loadTime);
 
       await Future.delayed(const Duration(seconds: 1));
 
       _data = _data.copyWith(
         isAllPostsLoaded: newPosts.length < _pagingLimit,
-        posts: <Post>{...oldPosts, ...newPosts}.toList(), /// TODO
+        posts: <Post>{...oldPosts, ...newPosts}.toList(),
+
+        /// TODO
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);
@@ -80,7 +84,8 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     emit(const PostListStateLoading());
 
     try {
-      final posts = await _getPosts(offset: 0);
+      _loadTime = (await NTP.now()).millisecondsSinceEpoch;
+      final posts = await _getPosts(offset: 0, beforeTime: _loadTime);
 
       _data = _data.copyWith(
         posts: posts,
@@ -94,14 +99,22 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     }
   }
 
-  Future<List<Post>> _getPosts({required int offset}) async {
+  Future<List<Post>> _getPosts({
+    required int offset,
+    required int beforeTime,
+  }) async {
     if (_userId == null) {
-      return await _postRepository.getPosts(limit: _pagingLimit, offset: offset);
+      return await _postRepository.getPosts(
+        limit: _pagingLimit,
+        offset: offset,
+        beforeTime: beforeTime,
+      );
     } else {
       return await _postRepository.getPostsByUserId(
         userId: _userId,
         limit: _pagingLimit,
         offset: offset,
+        beforeTime: beforeTime
       );
     }
   }

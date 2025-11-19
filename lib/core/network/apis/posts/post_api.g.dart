@@ -55,12 +55,14 @@ class _PostApi implements PostApi {
     required int userId,
     required int limit,
     required int offset,
+    required int beforeTime,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'userId': userId,
       r'limit': limit,
       r'offset': offset,
+      r'before_time': beforeTime,
     };
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
@@ -90,11 +92,13 @@ class _PostApi implements PostApi {
   Future<HttpResponse<PostsResponseDto>> getPosts({
     required int limit,
     required int offset,
+    required int beforeTime,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'limit': limit,
       r'offset': offset,
+      r'before_time': beforeTime,
     };
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;

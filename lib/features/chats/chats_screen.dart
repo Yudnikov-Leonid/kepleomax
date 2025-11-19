@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
@@ -10,7 +9,6 @@ import 'package:kepleomax/core/presentation/klm_app_bar.dart';
 import 'package:kepleomax/core/presentation/klm_button.dart';
 import 'package:kepleomax/core/presentation/parse_time.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
-import 'package:kepleomax/core/scopes/auth_scope.dart';
 import 'package:kepleomax/features/chats/bloc/chats_bloc.dart';
 import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
@@ -22,16 +20,9 @@ class ChatsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<ChatsBloc>(
-      create: (context) => ChatsBloc(
-        userId: AuthScope.userOf(context).id,
-        chatsRepository: Dependencies.of(context).chatsRepository,
-        messagesRepository: Dependencies.of(context).messagesRepository,
-      )..add(const ChatsEventLoad()),
-      child: Scaffold(
-        appBar: KlmAppBar(context, 'Chats', key: Key('chats_app_bar')),
-        body: _Body(key: Key('chats_body')),
-      ),
+    return Scaffold(
+      appBar: KlmAppBar(context, 'Chats', key: Key('chats_app_bar')),
+      body: _Body(key: Key('chats_body')),
     );
   }
 }

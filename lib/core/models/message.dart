@@ -16,34 +16,47 @@ abstract class Message with _$Message {
     required int? editedAt,
   }) = _Message;
 
-  factory Message.fromDto(MessageDto dto) => Message(
-    user: dto.user != null
-        ? User.fromDto(dto.user!)
-        : User(
-            id: dto.senderId,
-            email: '',
-            username: '',
-            profileImage: '',
-            isCurrent: dto.isCurrentUser!, /// need only this field
-            fcmTokens: [],
-          ),
-    id: dto.id,
-    message: dto.message,
-    chatId: dto.chatId,
-    isRead: dto.isRead,
-    createdAt: int.parse(dto.createdAt),
-    editedAt: dto.editedAt == null ? null : int.parse(dto.editedAt!),
-  );
+  factory Message.loading() =>
+      Message(id: -3,
+          user: User.loading(),
+          message: '---------------------------',
+          chatId: -1,
+          isRead: true,
+          createdAt: 0,
+          editedAt: 0);
+
+  factory Message.fromDto(MessageDto dto) =>
+      Message(
+        user: dto.user != null
+            ? User.fromDto(dto.user!)
+            : User(
+          id: dto.senderId,
+          email: '',
+          username: '',
+          profileImage: '',
+          isCurrent: dto.isCurrentUser!,
+
+          /// need only this field
+          fcmTokens: [],
+        ),
+        id: dto.id,
+        message: dto.message,
+        chatId: dto.chatId,
+        isRead: dto.isRead,
+        createdAt: int.parse(dto.createdAt),
+        editedAt: dto.editedAt == null ? null : int.parse(dto.editedAt!),
+      );
 
   /// ui line
-  factory Message.unreadMessages() => Message(
-    id: -2,
-    user: User.loading(),
-    message: '',
-    chatId: -1,
-    // should be true so counter of unread messages works properly
-    isRead: true,
-    createdAt: 0,
-    editedAt: null,
-  );
+  factory Message.unreadMessages() =>
+      Message(
+        id: -2,
+        user: User.loading(),
+        message: '',
+        chatId: -1,
+        // should be true so counter of unread messages works properly
+        isRead: true,
+        createdAt: 0,
+        editedAt: null,
+      );
 }

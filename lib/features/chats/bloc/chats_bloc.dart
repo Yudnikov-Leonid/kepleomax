@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/messages_repository.dart';
+import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:kepleomax/main.dart';
@@ -36,8 +37,8 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
       add(ChatsEventReadMessages(updates: data));
     });
     _subConnectionState = _messagesRepository.connectionStateStream.listen((
-        isConnected,
-        ) {
+      isConnected,
+    ) {
       if (isConnected) {
         add(const ChatsEventLoad());
       } else {
@@ -67,7 +68,10 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
         newChats[chatIndex] = newChats[chatIndex].copyWith(
           lastMessage: newChats[chatIndex].lastMessage!.copyWith(isRead: true),
         );
-        _data = _data.copyWith(chats: newChats);
+        _data = _data.copyWith(
+          chats: newChats,
+          totalUnreadCount: newChats.fold(0, (a, b) => a + b.unreadCount),
+        );
         emit(ChatsStateBase(data: _data));
       }
       return;
@@ -84,7 +88,10 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
           999,
         );
     newChats[chatIndex] = newChats[chatIndex].copyWith(unreadCount: newUnreadCount);
-    _data = _data.copyWith(chats: newChats);
+    _data = _data.copyWith(
+      chats: newChats,
+      totalUnreadCount: newChats.fold(0, (a, b) => a + b.unreadCount),
+    );
     emit(ChatsStateBase(data: _data));
   }
 
@@ -95,25 +102,31 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
       /// get new chat
       try {
         final newChat = await _chatsRepository.getChatWithId(event.message.chatId);
-        _data = _data.copyWith(chats: [newChat!, ..._data.chats]);
+        _data = _data.copyWith(
+          chats: [newChat!, ..._data.chats],
+          totalUnreadCount: _data.totalUnreadCount + 1,
+        );
       } catch (e, st) {
         emit(ChatsStateError(message: e.toString()));
         logger.e(e, stackTrace: st);
       }
     } else {
       final newList = _data.chats.toList();
-      newList[chatIndex] = newList[chatIndex].copyWith(
+      Chat chat = newList.removeAt(chatIndex);
+      chat = chat.copyWith(
         lastMessage: event.message,
-        unreadCount: event.message.user.isCurrent
-            ? 0
-            : _data.chats[chatIndex].unreadCount + 1,
+        unreadCount: event.message.user.isCurrent ? 0 : chat.unreadCount + 1,
       );
-      _data = _data.copyWith(chats: newList);
+      _data = _data.copyWith(
+        chats: [chat, ...newList],
+        totalUnreadCount: _data.totalUnreadCount + 1,
+      );
     }
     emit(ChatsStateBase(data: _data));
   }
 
   int _lastTimeLoadWasCalled = 0;
+
   void _onLoad(ChatsEventLoad event, Emitter<ChatsState> emit) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     if (now - 300 < _lastTimeLoadWasCalled) {
@@ -128,7 +141,11 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
       await Future.delayed(const Duration(milliseconds: 500));
       final chats = await _chatsRepository.getChats();
 
-      _data = _data.copyWith(chats: chats, isLoading: false);
+      _data = _data.copyWith(
+        chats: chats,
+        totalUnreadCount: chats.fold(0, (a, b) => a + b.unreadCount),
+        isLoading: false,
+      );
       emit(ChatsStateBase(data: _data));
     } catch (e, st) {
       logger.e(e, stackTrace: st);

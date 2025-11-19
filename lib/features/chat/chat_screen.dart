@@ -101,7 +101,7 @@ class _BodyState extends State<_Body> {
     if (!widget._scrollController.hasClients || !_isScreenActive) return;
 
     if (widget._scrollController.offset >
-        widget._scrollController.position.maxScrollExtent - 30) {
+        widget._scrollController.position.maxScrollExtent - 100) {
       widget._chatBloc.add(const ChatEventLoadMore());
     }
 
@@ -233,6 +233,8 @@ class _BodyState extends State<_Body> {
                           reverse: true,
                           child: Column(
                             children: [
+                              if (!data.isAllMessagesLoaded)
+                                SizedBox(height: 20),
                               const SizedBox(width: double.infinity),
                               //_DateWidget(),
 
@@ -241,6 +243,7 @@ class _BodyState extends State<_Body> {
                                 (i, message) => _MessageWidget(
                                   key: keysReversed[i].$1,
                                   message: message,
+                                  /// todo why user from data but not from message?
                                   user: data.otherUser!,
                                 ),
                               ),

@@ -16,13 +16,7 @@ class _FeedScreenState extends State<FeedScreen> {
   final _scrollController = ScrollController();
   late final PostListBloc _postBloc;
 
-  void _onScrollListener() {
-    if (_scrollController.offset >
-        _scrollController.position.maxScrollExtent - 180) {
-      _postBloc.add(const PostListEventLoadMore());
-    }
-  }
-
+  /// callbacks
   @override
   void initState() {
     _postBloc = PostListBloc(
@@ -40,6 +34,15 @@ class _FeedScreenState extends State<FeedScreen> {
     super.dispose();
   }
 
+  /// listeners
+  void _onScrollListener() {
+    if (_scrollController.offset >
+        _scrollController.position.maxScrollExtent - 180) {
+      _postBloc.add(const PostListEventLoadMore());
+    }
+  }
+
+  /// build
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,7 +51,7 @@ class _FeedScreenState extends State<FeedScreen> {
         child: SafeArea(
           child: RefreshIndicator(
             onRefresh: () async {
-              _postBloc.add(PostListEventLoad());
+              _postBloc.add(const PostListEventLoad());
             },
             child: SingleChildScrollView(
               controller: _scrollController,

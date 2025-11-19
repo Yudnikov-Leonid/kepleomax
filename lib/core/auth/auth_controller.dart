@@ -128,6 +128,7 @@ class AuthController {
   Future<void> _deleteToken() async {
     final token = await FirebaseMessaging.instance.getToken();
     if (token == null) return;
+    FirebaseMessaging.instance.deleteToken();
 
     _userApi.addFCMToken(body: FCMTokenRequestDto(token: token));
   }

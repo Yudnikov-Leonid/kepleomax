@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
+import 'package:kepleomax/core/presentation/context_wrapper.dart';
+import 'package:kepleomax/features/chats/bloc/chats_bloc.dart';
+import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
 import 'package:kepleomax/features/feed/feed_navigator.dart';
 import 'package:kepleomax/features/menu/menu_navigator.dart';
@@ -43,40 +47,86 @@ class _MainScreenState extends State<MainScreen> {
             splashFactory:
                 NoSplash.splashFactory, // Recommended for complete removal
           ),
-          child: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            key: Key('main_bottom_navigation_bar'),
-            showSelectedLabels: false,
-            showUnselectedLabels: false,
-            onTap: (index) {
-              if (_currentIndex == index) {
-                (_globalKeys[_currentIndex].currentState as AppNavigatorState)
-                    .popAll();
-              }
-              setState(() {
-                _currentIndex = index;
-              });
+          child: BlocBuilder<ChatsBloc, ChatsState>(
+            buildWhen: (oldState, newState) {
+              if (newState is! ChatsStateBase) return false;
+
+              if (oldState is! ChatsStateBase) return true;
+
+              return oldState.data.totalUnreadCount !=
+                  newState.data.totalUnreadCount;
             },
-            selectedItemColor: KlmColors.primaryColor,
-            unselectedItemColor: KlmColors.inactiveColor,
-            items: [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Feed'),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.chat_bubble_outline),
-                label: 'Chats',
-              ),
-              BottomNavigationBarItem(
-                icon: SvgPicture.asset(
-                  ImagesKeys.hub_icon_svg,
-                  height: 25,
-                  width: 25,
-                  color: _currentIndex == 2
-                      ? KlmColors.primaryColor
-                      : KlmColors.inactiveColor,
-                ),
-                label: 'Hub',
-              ),
-            ],
+            builder: (context, state) {
+              int? unreadCount = state is ChatsStateBase
+                  ? state.data.totalUnreadCount
+                  : null;
+
+              return BottomNavigationBar(
+                currentIndex: _currentIndex,
+                key: Key('main_bottom_navigation_bar'),
+                showSelectedLabels: false,
+                showUnselectedLabels: false,
+                selectedFontSize: 0,
+                onTap: (index) {
+                  if (_currentIndex == index) {
+                    (_globalKeys[_currentIndex].currentState as AppNavigatorState)
+                        .popAll();
+                  }
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                },
+                selectedItemColor: KlmColors.primaryColor,
+                unselectedItemColor: KlmColors.inactiveColor,
+                items: [
+                  BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Feed'),
+                  BottomNavigationBarItem(
+                    key: Key('messages_navigation_item_$unreadCount'),
+                    icon: SizedBox(
+                      height: 50,
+                      width: 50,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Icon(Icons.chat_bubble_outline),
+                          if (unreadCount != null && unreadCount > 0)
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                padding: const EdgeInsets.all(4),
+                                child: Text(
+                                  unreadCount.toString(),
+                                  style: context.textTheme.bodyLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    label: 'Chats',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: SvgPicture.asset(
+                      ImagesKeys.hub_icon_svg,
+                      height: 25,
+                      width: 25,
+                      color: _currentIndex == 2
+                          ? KlmColors.primaryColor
+                          : KlmColors.inactiveColor,
+                    ),
+                    label: 'Hub',
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
