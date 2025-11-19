@@ -1,6 +1,11 @@
+import 'package:dio/dio.dart';
 import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/network/apis/posts/post_api.dart';
 import 'package:kepleomax/core/network/apis/posts/post_dtos.dart';
+import 'package:kepleomax/core/network/common/api_constants.dart';
+import 'package:kepleomax/core/presentation/map_exceptions.dart';
+
+import '../../main.dart';
 
 class PostRepository {
   final PostApi _postApi;
@@ -12,47 +17,65 @@ class PostRepository {
     required String content,
     required List<String> images,
   }) async {
-    final res = await _postApi.updatePost(
-      postId: postId,
-      data: CreatePostRequestDto(content: content, images: images),
-    );
+    try {
+      final res = await _postApi.updatePost(
+        postId: postId,
+        data: CreatePostRequestDto(content: content, images: images),
+      ).timeout(ApiConstants.timeout);
 
-    if (res.response.statusCode != 200) {
-      throw Exception(
-        res.data.message ?? "Failed to update the post: ${res.response.statusCode}",
-      );
+      if (res.response.statusCode != 200) {
+        throw Exception(
+          res.data.message ??
+              "Failed to update the post: ${res.response.statusCode}",
+        );
+      }
+
+      return Post.fromDto(res.data.data!);
+    } on DioException catch (e, st) {
+      logger.e(e, stackTrace: st);
+      throw Exception(MapExceptions.dioExceptionToString(e));
     }
-
-    return Post.fromDto(res.data.data!);
   }
 
   Future<Post> deletePost({required int postId}) async {
-    final res = await _postApi.deletePost(postId: postId);
+    try {
+      final res = await _postApi.deletePost(postId: postId).timeout(ApiConstants.timeout);
 
-    if (res.response.statusCode != 200) {
-      throw Exception(
-        res.data.message ?? "Failed to delete the post: ${res.response.statusCode}",
-      );
+      if (res.response.statusCode != 200) {
+        throw Exception(
+          res.data.message ??
+              "Failed to delete the post: ${res.response.statusCode}",
+        );
+      }
+
+      return Post.fromDto(res.data.data!);
+    } on DioException catch (e, st) {
+      logger.e(e, stackTrace: st);
+      throw Exception(MapExceptions.dioExceptionToString(e));
     }
-
-    return Post.fromDto(res.data.data!);
   }
 
   Future<Post> createNewPost({
     required String content,
     required List<String> images,
   }) async {
-    final res = await _postApi.createNewPost(
-      data: CreatePostRequestDto(content: content, images: images),
-    );
+    try {
+      final res = await _postApi.createNewPost(
+        data: CreatePostRequestDto(content: content, images: images),
+      ).timeout(ApiConstants.timeout);
 
-    if (res.response.statusCode != 201) {
-      throw Exception(
-        res.data.message ?? "Failed to create new post: ${res.response.statusCode}",
-      );
+      if (res.response.statusCode != 201) {
+        throw Exception(
+          res.data.message ??
+              "Failed to create new post: ${res.response.statusCode}",
+        );
+      }
+
+      return Post.fromDto(res.data.data!);
+    } on DioException catch (e, st) {
+      logger.e(e, stackTrace: st);
+      throw Exception(MapExceptions.dioExceptionToString(e));
     }
-
-    return Post.fromDto(res.data.data!);
   }
 
   Future<List<Post>> getPostsByUserId({
@@ -61,20 +84,25 @@ class PostRepository {
     required int offset,
     required int beforeTime,
   }) async {
-    final res = await _postApi.getPostsByUserId(
-      userId: userId,
-      limit: limit,
-      offset: offset,
-      beforeTime: beforeTime,
-    );
+    try {
+      final res = await _postApi.getPostsByUserId(
+        userId: userId,
+        limit: limit,
+        offset: offset,
+        beforeTime: beforeTime,
+      ).timeout(ApiConstants.timeout);
 
-    if (res.response.statusCode != 200) {
-      throw Exception(
-        res.data.message ?? "Failed to get posts: ${res.response.statusCode}",
-      );
+      if (res.response.statusCode != 200) {
+        throw Exception(
+          res.data.message ?? "Failed to get posts: ${res.response.statusCode}",
+        );
+      }
+
+      return res.data.data!.map(Post.fromDto).toList();
+    } on DioException catch (e, st) {
+      logger.e(e, stackTrace: st);
+      throw Exception(MapExceptions.dioExceptionToString(e));
     }
-
-    return res.data.data!.map(Post.fromDto).toList();
   }
 
   Future<List<Post>> getPosts({
@@ -82,18 +110,23 @@ class PostRepository {
     required int offset,
     required int beforeTime,
   }) async {
-    final res = await _postApi.getPosts(
-      limit: limit,
-      offset: offset,
-      beforeTime: beforeTime,
-    );
+    try {
+      final res = await _postApi.getPosts(
+        limit: limit,
+        offset: offset,
+        beforeTime: beforeTime,
+      ).timeout(ApiConstants.timeout);
 
-    if (res.response.statusCode != 200) {
-      throw Exception(
-        res.data.message ?? "Failed to get posts: ${res.response.statusCode}",
-      );
+      if (res.response.statusCode != 200) {
+        throw Exception(
+          res.data.message ?? "Failed to get posts: ${res.response.statusCode}",
+        );
+      }
+
+      return res.data.data!.map(Post.fromDto).toList();
+    } on DioException catch (e, st) {
+      logger.e(e, stackTrace: st);
+      throw Exception(MapExceptions.dioExceptionToString(e));
     }
-
-    return res.data.data!.map(Post.fromDto).toList();
   }
 }

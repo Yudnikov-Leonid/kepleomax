@@ -80,7 +80,7 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     } catch (e, st) {
       logger.e(e, stackTrace: st);
       emit(PeopleStateError(message: e.toString()));
-      _data = _data.copyWith(isLoading: false);
+      _data = _data.copyWith(isLoading: false, isAllUsersLoaded: true);
     } finally {
       emit(PeopleStateBase(data: _data));
     }
@@ -122,7 +122,7 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     } catch (e, st) {
       logger.e(e, stackTrace: st);
       emit(PeopleStateError(message: e.toString()));
-      _data = _data.copyWith(isLoading: false);
+      _data = _data.copyWith(isLoading: false, isAllUsersLoaded: true);
     } finally {
       emit(PeopleStateBase(data: _data));
     }

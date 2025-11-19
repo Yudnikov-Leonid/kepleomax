@@ -82,6 +82,7 @@ class _UserScreenState extends State<UserScreen> {
             extendBodyBehindAppBar: true,
             appBar: _AppBar(
               scrollController: _scrollController,
+              userId: widget.userId,
               key: Key('user_app_bar'),
             ),
             body: _ScrollControllerListeners(
@@ -218,6 +219,7 @@ class _Body extends StatelessWidget {
                     KlmButton(
                       onPressed: () {
                         context.read<UserBloc>().add(UserEventLoad());
+                        context.read<PostListBloc>().add(PostListEventLoad());
                       },
                       text: 'Retry',
                       width: 120,
@@ -328,10 +330,10 @@ class _ScrollControllerListenersState extends State<_ScrollControllerListeners> 
 }
 
 class _AppBar extends StatefulWidget implements PreferredSizeWidget {
-  const _AppBar({required AutoScrollController scrollController, super.key})
-    : _scrollController = scrollController;
+  const _AppBar({required this.scrollController, required this.userId, super.key});
 
-  final AutoScrollController _scrollController;
+  final AutoScrollController scrollController;
+  final int userId;
 
   @override
   State<_AppBar> createState() => _AppBarState();
@@ -344,13 +346,13 @@ class _AppBarState extends State<_AppBar> {
   /// callbacks
   @override
   void initState() {
-    widget._scrollController.addListener(_onScrolledListener);
+    widget.scrollController.addListener(_onScrolledListener);
     super.initState();
   }
 
   @override
   void dispose() {
-    widget._scrollController.removeListener(_onScrolledListener);
+    widget.scrollController.removeListener(_onScrolledListener);
     super.dispose();
   }
 
@@ -360,7 +362,7 @@ class _AppBarState extends State<_AppBar> {
   double _lastScrollPosition = 0;
 
   void _onScrolledListener() {
-    final currentOffset = widget._scrollController.offset;
+    final currentOffset = widget.scrollController.offset;
 
     /// cause you can scroll really fast and skip _appBarUsernameFullShownOffset offset
     if (currentOffset > _appBarUsernameFullShownOffset &&
@@ -395,9 +397,9 @@ class _AppBarState extends State<_AppBar> {
         final data = state.userData;
         return AppBar(
           backgroundColor: Colors.white.withAlpha(
-            !widget._scrollController.hasClients
+            !widget.scrollController.hasClients
                 ? 0
-                : widget._scrollController.offset
+                : widget.scrollController.offset
                       .remap(0, 90, 0, 255)
                       .clamp(0, 255)
                       .toInt(),
@@ -447,13 +449,30 @@ class _AppBarState extends State<_AppBar> {
                     ),
                   ),
                 ],
+              )
+            else if (!data.isLoading && widget.userId == AuthScope.userOf(context).id)
+              TextButton(
+                onPressed: () {
+                  AuthScope.logout(context);
+                },
+                style: TextButton.styleFrom(
+                  surfaceTintColor: Colors.transparent,
+                  overlayColor: KlmColors.errorRed
+                ),
+                child: Text(
+                  'Logout',
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: KlmColors.errorRed,
+                    fontWeight: FontWeight.w500
+                  ),
+                ),
               ),
           ],
           centerTitle: true,
           title: Opacity(
-            opacity: !widget._scrollController.hasClients
+            opacity: !widget.scrollController.hasClients
                 ? 0
-                : widget._scrollController.offset
+                : widget.scrollController.offset
                       .remap(110, _appBarUsernameFullShownOffset, 0, 1)
                       .clamp(0, 1),
             child: Text(

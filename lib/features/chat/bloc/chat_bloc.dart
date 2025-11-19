@@ -5,6 +5,7 @@ import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/messages_repository.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
+import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/core/notifications/notifications_service.dart';
 import 'package:kepleomax/main.dart';
 
@@ -177,13 +178,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       /// add unread messages line
       var newList = <Message>[];
       bool isStopMessageFound = false;
-      print('handleMessages: ${messages}');
       for (int i = 0; i < messages.length; i++) {
         if (messages[i].user.isCurrent) {
           /// message of current user, unreadMessagesLine can't be above, so end the loop
           newList.addAll(messages.sublist(i));
           isStopMessageFound = true;
-          print('user.isCurrent: ${messages[i]}');
           break;
         }
         if (messages[i].isRead) {
@@ -256,7 +255,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _subMessages.cancel();
     _subReadMessages.cancel();
     _subConnectionState.cancel();
-    _messagesRepository.close();
+    _messagesRepository.dispose();
     return super.close();
   }
 }

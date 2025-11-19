@@ -3,6 +3,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
+import 'package:ntp/ntp.dart';
 
 class AuthInterceptor extends QueuedInterceptorsWrapper {
   final TokenProvider _tokenProvider;
@@ -36,8 +37,9 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
       );
     }
 
-    final accessTokenHasExpired = JwtDecoder.isExpired(accessToken!);
-    final refreshTokenHasExpired = JwtDecoder.isExpired(refreshToken!);
+    final now = await NTP.now();
+    final accessTokenHasExpired = now.isAfter(JwtDecoder.getExpirationDate(accessToken!));
+    final refreshTokenHasExpired = now.isAfter(JwtDecoder.getExpirationDate(refreshToken!));
 
     if (refreshTokenHasExpired) {
       logger.i('refresh token has expired');
@@ -53,7 +55,10 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
       final newAccessToken = await _refreshToken(refreshToken);
       if (newAccessToken == null) {
         logger.i('access token has expired, failed to refresh');
-        _logout();
+        /// don't need to logout, cause this error can be if the server is unavailable
+        /// or there's no internet connection. We should logout only if request
+        /// if success and the status code == 401/403, this logic is made in
+        /// _refreshToken() method
         return handler.reject(
           DioException(
             requestOptions: options,
@@ -86,12 +91,20 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
 
   Future<String?> _refreshToken(String refreshToken) async {
     try {
-      final dio = Dio(); // because current dio is locked
+      final dio = Dio(
+        BaseOptions(validateStatus: (_) => true),
+      ); // because current dio is locked
 
       final response = await dio.post(
         '${flavor.baseUrl}/api/auth/refresh',
         data: {'refreshToken': refreshToken},
       );
+
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        logger.e('Forbidden to refresh token: ${response.statusCode}');
+        _logout();
+        return null;
+      }
 
       if (response.statusCode == 200) {
         return response.data['accessToken'];

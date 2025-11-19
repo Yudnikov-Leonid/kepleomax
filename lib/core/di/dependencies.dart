@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
+import 'package:kepleomax/core/data/auth_repository.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/files_repository.dart';
 import 'package:kepleomax/core/data/messages_repository.dart';
@@ -15,6 +16,7 @@ import 'package:kepleomax/core/network/apis/posts/post_api.dart';
 import 'package:kepleomax/core/network/apis/profile/profile_api.dart';
 import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
+import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Dependencies {
@@ -22,12 +24,6 @@ class Dependencies {
   late TokenProvider tokenProvider;
   late SharedPreferences sharedPreferences;
   late FlutterSecureStorage secureStorage;
-
-  late UserRepository userRepository;
-  late PostRepository postRepository;
-  late FilesRepository filesRepository;
-  late MessagesRepository messagesRepository;
-  late ChatsRepository chatsRepository;
 
   late Dio dio;
   late AuthApi authApi;
@@ -37,6 +33,14 @@ class Dependencies {
   late PostApi postApi;
   late MessagesApi messagesApi;
   late ChatsApi chatsApi;
+  late MessagesWebSocket messagesWebSocket;
+
+  late AuthRepository authRepository;
+  late UserRepository userRepository;
+  late PostRepository postRepository;
+  late FilesRepository filesRepository;
+  late MessagesRepository messagesRepository;
+  late ChatsRepository chatsRepository;
 
   Widget inject({required Widget child}) =>
       InheritedDependencies(dependencies: this, child: child);

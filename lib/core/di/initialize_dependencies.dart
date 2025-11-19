@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
 import 'package:kepleomax/core/auth/user_provider.dart';
+import 'package:kepleomax/core/data/auth_repository.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/files_repository.dart';
 import 'package:kepleomax/core/data/messages_repository.dart';
@@ -20,6 +21,7 @@ import 'package:kepleomax/core/network/apis/profile/profile_api.dart';
 import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/middlewares/auth_interceptor.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
+import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/core/notifications/notifications_service.dart';
 import 'package:kepleomax/firebase_options.dart';
 import 'package:kepleomax/main.dart';
@@ -27,8 +29,6 @@ import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<Dependencies> initializeDependencies() async {
-
-
   final dp = Dependencies();
 
   for (final step in _steps) {
@@ -61,12 +61,20 @@ List<_InitializationStep> _steps = [
     call: (dependencies) async {
       final dio = Dio(BaseOptions(validateStatus: (_) => true));
 
-      // cause need dio here
+      /// cause need dio in authController and need authController in dio
       dependencies.authApi = AuthApi(dio, flavor.baseUrl);
+      dependencies.authRepository = AuthRepository(authApi: dependencies.authApi);
       dependencies.userApi = UserApi(dio, flavor.baseUrl);
-      final authController = AuthController(
-        authApi: dependencies.authApi,
+      dependencies.profileApi = ProfileApi(dio, flavor.baseUrl);
+      dependencies.filesApi = FilesApi(dio, flavor.baseUrl);
+      dependencies.userRepository = UserRepository(
+        profileApi: dependencies.profileApi,
+        filesApi: dependencies.filesApi,
         userApi: dependencies.userApi,
+      );
+      final authController = AuthController(
+        authRepository: dependencies.authRepository,
+        userRepository: dependencies.userRepository,
         tokenProvider: dependencies.tokenProvider,
         userProvider: UserProvider(prefs: dependencies.sharedPreferences),
       );
@@ -97,23 +105,18 @@ List<_InitializationStep> _steps = [
   _InitializationStep(
     name: 'apis, repositories',
     call: (dependencies) {
-      dependencies.profileApi = ProfileApi(dependencies.dio, flavor.baseUrl);
-      dependencies.filesApi = FilesApi(dependencies.dio, flavor.baseUrl);
       dependencies.postApi = PostApi(dependencies.dio, flavor.baseUrl);
       dependencies.messagesApi = MessagesApi(dependencies.dio, flavor.baseUrl);
       dependencies.chatsApi = ChatsApi(dependencies.dio, flavor.baseUrl);
+      dependencies.messagesWebSocket = MessagesWebSocket(baseUrl: flavor.baseUrl);
 
-      dependencies.userRepository = UserRepository(
-        profileApi: dependencies.profileApi,
-        filesApi: dependencies.filesApi,
-        userApi: dependencies.userApi,
-      );
       dependencies.filesRepository = FilesRepository(
         filesApi: dependencies.filesApi,
       );
       dependencies.postRepository = PostRepository(postApi: dependencies.postApi);
       dependencies.messagesRepository = MessagesRepository(
         messagesApi: dependencies.messagesApi,
+        messagesWebSocket: dependencies.messagesWebSocket
       );
       dependencies.chatsRepository = ChatsRepository(
         chatsApi: dependencies.chatsApi,
@@ -121,16 +124,17 @@ List<_InitializationStep> _steps = [
     },
   ),
 
-  _InitializationStep(name: ('firebase'), call: (dependencies) async {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+  _InitializationStep(
+    name: ('firebase'),
+    call: (dependencies) async {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-    final fcmToken = await FirebaseMessaging.instance.getToken();
-    print('fcmToken: $fcmToken');
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+      print('fcmToken: $fcmToken');
 
-    NotificationService.instance.init();
-  })
+      NotificationService.instance.init();
+    },
+  ),
 ];
 
 class _InitializationStep {

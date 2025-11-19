@@ -5,6 +5,7 @@ import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/messages_repository.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/models/message.dart';
+import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:kepleomax/main.dart';
 
@@ -62,6 +63,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     final newChats = _data.chats.toList();
 
     if (event.updates.senderId == _userId) {
+      /// my message have was read
       if (event.updates.messagesIds.contains(
         _data.chats[chatIndex].lastMessage!.id,
       )) {
@@ -70,7 +72,6 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
         );
         _data = _data.copyWith(
           chats: newChats,
-          totalUnreadCount: newChats.fold(0, (a, b) => a + b.unreadCount),
         );
         emit(ChatsStateBase(data: _data));
       }
@@ -104,7 +105,8 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
         final newChat = await _chatsRepository.getChatWithId(event.message.chatId);
         _data = _data.copyWith(
           chats: [newChat!, ..._data.chats],
-          totalUnreadCount: _data.totalUnreadCount + 1,
+          totalUnreadCount: _data.totalUnreadCount +
+              (event.message.user.isCurrent ? 0 : 1),
         );
       } catch (e, st) {
         emit(ChatsStateError(message: e.toString()));
@@ -119,7 +121,9 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
       );
       _data = _data.copyWith(
         chats: [chat, ...newList],
-        totalUnreadCount: _data.totalUnreadCount + 1,
+        totalUnreadCount:
+            _data.totalUnreadCount +
+            (event.message.user.isCurrent ? 0 : 1),
       );
     }
     emit(ChatsStateBase(data: _data));

@@ -92,14 +92,12 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
 
   @override
   void dispose() {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _scrollController.dispose();
     _pageController.dispose();
     for (final controller in _transformControllers) {
       controller.removeListener(_setState);
       controller.dispose();
-    }
-    if (!_showAppBar) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     }
     super.dispose();
   }

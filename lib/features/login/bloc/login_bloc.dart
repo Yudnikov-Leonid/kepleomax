@@ -45,7 +45,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(LoginStateBase(loginData: _loginData));
 
     if (!_validateFields(needConfirm: false)) {
-      logger.e('Validation fields error, _loginData: $_loginData');
+      logger.d('Validation fields error, _loginData: $_loginData');
       return;
     }
 

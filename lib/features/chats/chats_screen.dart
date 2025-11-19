@@ -35,7 +35,30 @@ class _Body extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ChatsBloc, ChatsState>(
       builder: (context, state) {
-        if (state is ChatsStateError) return Center(child: Text(state.message));
+        if (state is ChatsStateError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  state.message,
+                  textAlign: TextAlign.center,
+                  style: context.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                KlmButton(
+                  onPressed: () {
+                    context.read<ChatsBloc>().add(const ChatsEventLoad());
+                  },
+                  width: 100,
+                  text: 'Retry',
+                ),
+              ],
+            ),
+          );
+        }
 
         if (state is! ChatsStateBase) return SizedBox();
 
