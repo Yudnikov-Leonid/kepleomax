@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
-import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
@@ -168,7 +167,7 @@ class _UserCard extends StatelessWidget {
                 AppNavigator.withKeyOf(
                   context,
                   mainNavigatorKey,
-                )!.push(ChatPage(chat: Chat.newWithUser(user)));
+                )!.push(ChatPage(chatId: -1, otherUser: user));
               },
               icon: Icon(Icons.chat_outlined),
             ),

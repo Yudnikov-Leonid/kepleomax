@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/messages_repository.dart';
 import 'package:kepleomax/core/models/message.dart';
+import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/notifications/notifications_service.dart';
 import 'package:kepleomax/main.dart';
 
@@ -38,9 +39,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _subConnectionState = _messagesRepository.connectionStateStream.listen((
       isConnected,
     ) {
-      if (_data.chatId == -1 || _data.otherUserId == -1) return;
+      if (_data.chatId == -1 || _data.otherUser == null) return;
       if (isConnected) {
-        add(ChatEventLoad(chatId: _data.chatId, otherUserId: _data.otherUserId));
+        add(ChatEventLoad(chatId: _data.chatId, otherUser: _data.otherUser));
       } else {
         add(const ChatEventLoading());
       }
@@ -112,11 +113,16 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onNewMessage(ChatEventNewMessage event, Emitter<ChatState> emit) {
-    if (event.newMessage.chatId != _data.chatId && _data.chatId != 1) return;
-    _data = _data.copyWith(
-      chatId: event.newMessage.chatId,
-      messages: [event.newMessage, ..._data.messages],
-    );
+    print('onNewMessage: ${event.newMessage}');
+    if (_data.chatId == -1 && event.newMessage.user.id == _data.otherUser?.id) {
+      _data = _data.copyWith(chatId: event.newMessage.chatId);
+    }
+    if (event.newMessage.chatId == _data.chatId) {
+      _data = _data.copyWith(
+        chatId: event.newMessage.chatId,
+        messages: [event.newMessage, ..._data.messages],
+      );
+    }
     emit(ChatStateBase(data: _data));
   }
 
@@ -131,7 +137,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     _data = _data.copyWith(
       chatId: event.chatId,
-      otherUserId: event.otherUserId,
+      otherUser: event.otherUser,
       isLoading: true,
       isAllMessagesLoaded: false,
     );
@@ -139,16 +145,23 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     int chatId = event.chatId;
     try {
+      /// either chatId == -1 and we have otherUser, or otherUser == null and we have chatId
       if (event.chatId == -1) {
-        final chat = await _chatsRepository.getChatWithUser(event.otherUserId);
+        final chat = await _chatsRepository.getChatWithUser(event.otherUser!.id);
         if (chat == null) {
+          /// it's new chat with new user
           _data = _data.copyWith(chatId: -1, isLoading: false, messages: []);
           emit(ChatStateBase(data: _data));
           return;
         } else {
+          /// it's existing chat with otherUser, but was opened not from chat page
           chatId = chat.id;
           _data = _data.copyWith(chatId: chat.id);
         }
+      } else if (event.otherUser == null) {
+        /// chat was opened from notification
+        final chat = await _chatsRepository.getChatWithId(event.chatId);
+        _data = _data.copyWith(otherUser: chat!.otherUser);
       }
 
       final messages = await _messagesRepository.getMessages(
@@ -232,7 +245,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onClear(ChatEventClear event, Emitter<ChatState> emit) {
-    _data = _data.copyWith(chatId: -1, otherUserId: -1, messages: []);
+    _data = _data.copyWith(chatId: -1, otherUser: null, messages: []);
     emit(ChatStateBase(data: _data));
   }
 
@@ -251,11 +264,9 @@ abstract class ChatEvent {}
 
 class ChatEventLoad implements ChatEvent {
   final int chatId;
+  final User? otherUser;
 
-  /// needs if chatId is -1
-  final int otherUserId;
-
-  const ChatEventLoad({required this.chatId, required this.otherUserId});
+  const ChatEventLoad({required this.chatId, required this.otherUser});
 }
 
 class ChatEventLoadMore implements ChatEvent {

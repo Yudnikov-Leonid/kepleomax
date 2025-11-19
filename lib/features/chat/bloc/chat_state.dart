@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kepleomax/core/models/message.dart';
+import 'package:kepleomax/core/models/user.dart';
 
 part 'chat_state.freezed.dart';
 
@@ -27,7 +28,8 @@ abstract class ChatStateMessage with _$ChatStateMessage implements ChatState {
 abstract class ChatData with _$ChatData implements ChatState {
   const factory ChatData({
     required int chatId,
-    required int otherUserId,
+    /// if user in chat was null
+    required User? otherUser,
     required List<Message> messages,
     required bool isAllMessagesLoaded,
     @Default(false) bool isLoading,
@@ -35,7 +37,7 @@ abstract class ChatData with _$ChatData implements ChatState {
 
   factory ChatData.initial() => ChatData(
     chatId: -1,
-    otherUserId: -1,
+    otherUser: null,
     messages: [],
     isAllMessagesLoaded: false,
   );

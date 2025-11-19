@@ -29,7 +29,7 @@ class ChatsScreen extends StatelessWidget {
         messagesRepository: Dependencies.of(context).messagesRepository,
       )..add(const ChatsEventLoad()),
       child: Scaffold(
-        appBar: KlmAppBar(context, 'Chats', key: Key('chats_app_bar'),),
+        appBar: KlmAppBar(context, 'Chats', key: Key('chats_app_bar')),
         body: _Body(key: Key('chats_body')),
       ),
     );
@@ -99,7 +99,9 @@ class _Body extends StatelessWidget {
               child: Column(
                 children: data.chats
                     .map(
-                      (chat) => _ChatWidget(key: Key('chat-${chat.id}'), chat: chat),
+                      (chat) => chat.otherUser == null
+                          ? SizedBox()
+                          : _ChatWidget(key: Key('chat-${chat.id}'), chat: chat),
                     )
                     .toList(),
               ),
@@ -130,7 +132,7 @@ class _ChatWidget extends StatelessWidget {
                 AppNavigator.withKeyOf(
                   context,
                   mainNavigatorKey,
-                )!.push(ChatPage(chat: chat));
+                )!.push(ChatPage(chatId: chat.id, otherUser: chat.otherUser));
               },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -140,7 +142,7 @@ class _ChatWidget extends StatelessWidget {
               SizedBox(
                 height: 60,
                 width: 60,
-                child: UserImage(url: chat.otherUser.profileImage),
+                child: UserImage(url: chat.otherUser!.profileImage),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -152,7 +154,7 @@ class _ChatWidget extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            chat.otherUser.username,
+                            chat.otherUser!.username,
                             overflow: TextOverflow.ellipsis,
                             style: context.textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.w700,

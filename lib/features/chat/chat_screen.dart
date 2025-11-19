@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:focus_detector/focus_detector.dart';
-import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
@@ -18,12 +17,14 @@ import 'package:kepleomax/core/presentation/parse_time.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/features/chat/bloc/chat_bloc.dart';
 import 'package:kepleomax/features/chat/bloc/chat_state.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 /// screen
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({required this.chat, super.key});
+  const ChatScreen({required this.chatId, required this.otherUser, super.key});
 
-  final Chat chat;
+  final int chatId;
+  final User? otherUser;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -37,9 +38,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     _chatBloc = context.read<ChatBloc>()
-      ..add(
-        ChatEventLoad(chatId: widget.chat.id, otherUserId: widget.chat.otherUser.id),
-      );
+      ..add(ChatEventLoad(chatId: widget.chatId, otherUser: widget.otherUser));
     super.initState();
   }
 
@@ -61,19 +60,13 @@ class _ChatScreenState extends State<ChatScreen> {
             color: state.isError ? KlmColors.errorRed : Colors.green,
           );
         }
-
-        /// todo maybe move this into _Body?
-        if (state is ChatStateBase && state.data.chatId != widget.chat.id) {
-          NotificationService.instance.blockNotificationsFromChat(widget.chat.id);
-        }
       },
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         floatingActionButton: _ReadButton(scrollController: _scrollController),
-        appBar: _AppBar(user: widget.chat.otherUser, key: Key('chat_appbar')),
+        appBar: _AppBar(key: Key('chat_appbar')),
         body: _Body(
           bloc: _chatBloc,
-          chat: widget.chat,
           scrollController: _scrollController,
           key: Key('chat_body'),
         ),
@@ -82,122 +75,14 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 }
 
-class _ReadButton extends StatefulWidget {
-  const _ReadButton({required ScrollController scrollController, super.key})
-    : _scrollController = scrollController;
-
-  final ScrollController _scrollController;
-
-  @override
-  State<_ReadButton> createState() => _ReadButtonState();
-}
-
-class _ReadButtonState extends State<_ReadButton> {
-  static const _offsetToShow = 100;
-  double _lastPosition = 0;
-
-  void _onScrollListener() {
-    if (_lastPosition < _offsetToShow &&
-        widget._scrollController.offset > _offsetToShow) {
-      setState(() {});
-    } else if (_lastPosition > _offsetToShow &&
-        widget._scrollController.offset < _offsetToShow) {
-      setState(() {});
-    }
-    _lastPosition = widget._scrollController.offset;
-  }
-
-  @override
-  void initState() {
-    widget._scrollController.addListener(_onScrollListener);
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    widget._scrollController.removeListener(_onScrollListener);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ChatBloc, ChatState>(
-      builder: (context, state) {
-        if (state is! ChatStateBase) return SizedBox();
-
-        final data = state.data;
-        if (state.data.messages.isEmpty) return SizedBox();
-        final allMessagesIsRead =
-            data.messages.first.user.isCurrent || data.messages.first.isRead;
-        final isScrolledUp = widget._scrollController.offset > _offsetToShow;
-        if (allMessagesIsRead && !isScrolledUp) return SizedBox();
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 75),
-          child: Stack(
-            alignment: Alignment.center,
-            clipBehavior: Clip.none,
-            children: [
-              FloatingActionButton(
-                shape: const CircleBorder(),
-                elevation: 1,
-                backgroundColor: Colors.white,
-                isExtended: true,
-                child: Transform.rotate(
-                  angle: 270 * math.pi / 180,
-                  child: Icon(Icons.arrow_back_ios_new, color: Colors.black),
-                ),
-                onPressed: () {
-                  widget._scrollController.animateTo(
-                    0,
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOut,
-                  );
-                  if (!allMessagesIsRead) {
-                    context.read<ChatBloc>().add(const ChatEventReadAllMessages());
-                  }
-                },
-              ),
-              if (!allMessagesIsRead)
-                Positioned(
-                  top: -14,
-                  child: Container(
-                    width: 35,
-                    decoration: BoxDecoration(
-                      color: KlmColors.primaryColor,
-                      shape: BoxShape.circle,
-                    ),
-                    padding: const EdgeInsets.all(3),
-                    child: Center(
-                      child: Text(
-                        data.messages.where((e) => !e.isRead).length.toString(),
-                        style: context.textTheme.bodyLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
 class _Body extends StatefulWidget {
   const _Body({
-    required Chat chat,
     required ScrollController scrollController,
     required ChatBloc bloc,
     super.key,
   }) : _chatBloc = bloc,
-       _scrollController = scrollController,
-       _chat = chat;
+       _scrollController = scrollController;
 
-  final Chat _chat;
   final ScrollController _scrollController;
   final ChatBloc _chatBloc;
 
@@ -255,9 +140,9 @@ class _BodyState extends State<_Body> {
     }
   }
 
-  void _onResume() {
+  void _onResume(int chatId) {
     _isScreenActive = true;
-    NotificationService.instance.blockNotificationsFromChat(widget._chat.id);
+    NotificationService.instance.blockNotificationsFromChat(chatId);
     _onScrollListener();
   }
 
@@ -298,36 +183,41 @@ class _BodyState extends State<_Body> {
 
   @override
   Widget build(BuildContext context) {
-    return FocusDetector(
-      onForegroundGained: _onResume,
-      onForegroundLost: _onPause,
-      onVisibilityGained: _onResume,
-      onVisibilityLost: _onPause,
-      child: BlocBuilder<ChatBloc, ChatState>(
-        builder: (context, state) {
-          if (state is ChatStateError) {
-            return Center(child: Text('error: ${state.message}'));
-          }
+    return BlocBuilder<ChatBloc, ChatState>(
+      // buildWhen: (oldState, newState) {
+      //
+      //   return oldState != newState;
+      // },
+      builder: (context, state) {
+        if (state is ChatStateError) {
+          return Center(child: Text('error: ${state.message}'));
+        }
 
-          if (state is! ChatStateBase) return SizedBox();
+        if (state is! ChatStateBase) return SizedBox();
 
-          final data = state.data;
+        final data = state.data;
 
-          /// not != but +1 cause it prevents scrolling on paging
-          if (_keys.isNotEmpty && _keys.length + 1 == data.messages.length) {
-            /// if length of messages changes, need to maintain scroll
-            _maintainScroll();
-          }
-          _keys.clear();
-          _keys.addAll(data.messages.map((e) => (GlobalKey(), e)));
-          if (data.messages.isNotEmpty) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              /// to read all new messages
-              _onScrollListener();
-            });
-          }
-          final keysReversed = _keys.reversed.toList();
-          return Column(
+        /// not != but +1 cause it prevents scrolling on paging
+        if (_keys.isNotEmpty && _keys.length + 1 == data.messages.length) {
+          /// if length of messages changes, need to maintain scroll
+          _maintainScroll();
+        }
+        _keys.clear();
+        _keys.addAll(data.messages.map((e) => (GlobalKey(), e)));
+        if (data.messages.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            /// to read all new messages
+            _onScrollListener();
+          });
+        }
+        final keysReversed = _keys.reversed.toList();
+        return FocusDetector(
+          key: Key('focus_detector_${data.chatId}'),
+          onForegroundGained: () => _onResume(data.chatId),
+          onForegroundLost: _onPause,
+          onVisibilityGained: () => _onResume(data.chatId),
+          onVisibilityLost: _onPause,
+          child: Column(
             children: [
               Expanded(
                 child: Container(
@@ -335,6 +225,7 @@ class _BodyState extends State<_Body> {
                   child: data.isLoading
                       ? Center(child: CircularProgressIndicator())
                       : SingleChildScrollView(
+                          key: Key('chat_scroll_view_${data.chatId}'),
                           controller: widget._scrollController,
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           reverse: true,
@@ -348,7 +239,7 @@ class _BodyState extends State<_Body> {
                                 (i, message) => _MessageWidget(
                                   key: keysReversed[i].$1,
                                   message: message,
-                                  user: widget._chat.otherUser,
+                                  user: data.otherUser!,
                                 ),
                               ),
                             ],
@@ -366,16 +257,16 @@ class _BodyState extends State<_Body> {
                   context.read<ChatBloc>().add(
                     ChatEventSendMessage(
                       message: message,
-                      otherUserId: widget._chat.otherUser.id,
+                      otherUserId: data.otherUser!.id,
                     ),
                   );
                 },
                 key: Key('chat_bottom'),
               ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -562,64 +453,191 @@ class _MessageWidget extends StatelessWidget {
 }
 
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _AppBar({required this.user, super.key});
-
-  final User user;
+  const _AppBar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      leading: KlmBackButton(),
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.transparent,
-      titleSpacing: 0,
-      title: InkWell(
-        onTap: () {
-          AppNavigator.withKeyOf(
-            context,
-            mainNavigatorKey,
-          )!.push(UserPage(userId: user.id));
-        },
-        child: Row(
-          children: [
-            UserImage(size: 40, url: user.profileImage),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                user.username,
-                style: context.textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 20,
-                ),
-                overflow: TextOverflow.ellipsis,
+    return BlocBuilder<ChatBloc, ChatState>(
+      buildWhen: (oldState, newState) {
+        if (newState is! ChatStateBase) return false;
+
+        if (oldState is! ChatStateBase) return true;
+
+        return oldState.data.otherUser != newState.data.otherUser ||
+            oldState.data.isLoading != newState.data.isLoading;
+      },
+      builder: (context, state) {
+        if (state is! ChatStateBase) return SizedBox();
+
+        final data = state.data;
+        final isLoading = data.isLoading || data.otherUser == null;
+
+        return AppBar(
+          leading: KlmBackButton(),
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          titleSpacing: 0,
+          title: InkWell(
+            onTap: isLoading
+                ? null
+                : () {
+                    AppNavigator.withKeyOf(
+                      context,
+                      mainNavigatorKey,
+                    )!.push(UserPage(userId: data.otherUser!.id));
+                  },
+            child: Skeletonizer(
+              enabled: isLoading,
+              child: Row(
+                children: [
+                  UserImage(size: 40, url: data.otherUser?.profileImage),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      data.otherUser?.username ?? '-------',
+                      style: context.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  // Column(
+                  //   crossAxisAlignment: CrossAxisAlignment.start,
+                  //   mainAxisAlignment: MainAxisAlignment.center,
+                  //   children: [
+                  //     Text(
+                  //       user.username,
+                  //       style: context.textTheme.bodyLarge?.copyWith(
+                  //         fontWeight: FontWeight.w700,
+                  //         fontSize: 20,
+                  //       ),
+                  //     ),
+                  //     Text(
+                  //       'Last seen today at 10:40 AM',
+                  //       style: context.textTheme.bodyLarge?.copyWith(
+                  //         color: Colors.grey,
+                  //         fontSize: 14,
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+                ],
               ),
             ),
-            // Column(
-            //   crossAxisAlignment: CrossAxisAlignment.start,
-            //   mainAxisAlignment: MainAxisAlignment.center,
-            //   children: [
-            //     Text(
-            //       user.username,
-            //       style: context.textTheme.bodyLarge?.copyWith(
-            //         fontWeight: FontWeight.w700,
-            //         fontSize: 20,
-            //       ),
-            //     ),
-            //     Text(
-            //       'Last seen today at 10:40 AM',
-            //       style: context.textTheme.bodyLarge?.copyWith(
-            //         color: Colors.grey,
-            //         fontSize: 14,
-            //       ),
-            //     ),
-            //   ],
-            // ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   @override
   Size get preferredSize => Size.fromHeight(kToolbarHeight);
+}
+
+class _ReadButton extends StatefulWidget {
+  const _ReadButton({required ScrollController scrollController, super.key})
+    : _scrollController = scrollController;
+
+  final ScrollController _scrollController;
+
+  @override
+  State<_ReadButton> createState() => _ReadButtonState();
+}
+
+class _ReadButtonState extends State<_ReadButton> {
+  static const _offsetToShow = 100;
+  double _lastPosition = 0;
+
+  void _onScrollListener() {
+    if (_lastPosition < _offsetToShow &&
+        widget._scrollController.offset > _offsetToShow) {
+      setState(() {});
+    } else if (_lastPosition > _offsetToShow &&
+        widget._scrollController.offset < _offsetToShow) {
+      setState(() {});
+    }
+    _lastPosition = widget._scrollController.offset;
+  }
+
+  @override
+  void initState() {
+    widget._scrollController.addListener(_onScrollListener);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget._scrollController.removeListener(_onScrollListener);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ChatBloc, ChatState>(
+      builder: (context, state) {
+        if (state is! ChatStateBase) return SizedBox();
+
+        final data = state.data;
+        if (state.data.messages.isEmpty) return SizedBox();
+        final allMessagesIsRead =
+            data.messages.first.user.isCurrent || data.messages.first.isRead;
+        final isScrolledUp = widget._scrollController.positions.length == 1
+            ? widget._scrollController.offset > _offsetToShow
+            : false;
+        if (allMessagesIsRead && !isScrolledUp) return SizedBox();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 75),
+          child: Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
+              FloatingActionButton(
+                shape: const CircleBorder(),
+                elevation: 1,
+                backgroundColor: Colors.white,
+                isExtended: true,
+                child: Transform.rotate(
+                  angle: 270 * math.pi / 180,
+                  child: Icon(Icons.arrow_back_ios_new, color: Colors.black),
+                ),
+                onPressed: () {
+                  widget._scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                  );
+                  if (!allMessagesIsRead) {
+                    context.read<ChatBloc>().add(const ChatEventReadAllMessages());
+                  }
+                },
+              ),
+              if (!allMessagesIsRead)
+                Positioned(
+                  top: -14,
+                  child: Container(
+                    width: 35,
+                    decoration: BoxDecoration(
+                      color: KlmColors.primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                    padding: const EdgeInsets.all(3),
+                    child: Center(
+                      child: Text(
+                        data.messages.where((e) => !e.isRead).length.toString(),
+                        style: context.textTheme.bodyLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }

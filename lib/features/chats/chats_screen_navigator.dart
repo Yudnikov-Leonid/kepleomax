@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kepleomax/core/models/chat.dart';
+import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/features/chat/chat_screen.dart';
@@ -31,11 +31,13 @@ final class ChatsPage extends AppPage {
       );
 }
 
+/// pass chatId and otherUser = null, or chatId = -1 and otherUser, or both
+/// can't pass chatId = -1 and otherUser = null
 final class ChatPage extends AppPage {
-  ChatPage({required Chat chat})
+  ChatPage({required int chatId, required User? otherUser})
     : super(
         name: "chat_screen",
-        child: ChatScreen(chat: chat),
+        child: ChatScreen(chatId: chatId, otherUser: otherUser),
         key: const ValueKey("chat_screen"),
       );
 }

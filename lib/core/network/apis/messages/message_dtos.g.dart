@@ -25,6 +25,7 @@ MessageDto _$MessageDtoFromJson(Map<String, dynamic> json) => MessageDto(
   user: json['user'] == null
       ? null
       : UserDto.fromJson(json['user'] as Map<String, dynamic>),
+  otherUserId: (json['other_user_id'] as num?)?.toInt(),
   message: json['message'] as String,
   isRead: json['is_read'] as bool,
   createdAt: json['created_at'] as String,
@@ -38,6 +39,7 @@ Map<String, dynamic> _$MessageDtoToJson(MessageDto instance) =>
       'sender_id': instance.senderId,
       'is_current_user': instance.isCurrentUser,
       'user': instance.user,
+      'other_user_id': instance.otherUserId,
       'message': instance.message,
       'is_read': instance.isRead,
       'created_at': instance.createdAt,

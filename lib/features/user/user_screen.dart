@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
-import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
@@ -239,7 +238,7 @@ class _Body extends StatelessWidget {
                                 );
                               },
                             )
-                          : ChatPage(chat: Chat.newWithUser(data.profile!.user)),
+                          : ChatPage(chatId: -1, otherUser: data.profile!.user),
                     ),
                     const SizedBox(height: 10),
                   ],

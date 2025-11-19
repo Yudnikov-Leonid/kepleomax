@@ -9,7 +9,7 @@ part 'chat.freezed.dart';
 abstract class Chat with _$Chat {
   const factory Chat({
     required int id,
-    required User otherUser,
+    required User? otherUser,
     required Message? lastMessage,
     required int unreadCount,
   }) = _Chat;
@@ -22,9 +22,6 @@ abstract class Chat with _$Chat {
             dto.lastMessage!),
         unreadCount: dto.unreadCount,
       );
-
-  factory Chat.newWithUser(User user) =>
-      Chat(id: -1, otherUser: user, lastMessage: null, unreadCount: 0);
 
   factory Chat.loading() =>
       Chat(id: -1,

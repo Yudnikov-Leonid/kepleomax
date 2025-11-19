@@ -26,6 +26,8 @@ class MessageDto {
   @JsonKey(name: 'is_current_user')
   final bool? isCurrentUser;
   final UserDto? user;
+  @JsonKey(name: 'other_user_id')
+  final int? otherUserId;
   final String message;
   @JsonKey(name: 'is_read')
   final bool isRead;
@@ -40,6 +42,7 @@ class MessageDto {
     required this.senderId,
     required this.isCurrentUser,
     required this.user,
+    required this.otherUserId,
     required this.message,
     required this.isRead,
     required this.createdAt,

@@ -4,8 +4,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:kepleomax/core/app.dart';
-import 'package:kepleomax/core/models/chat.dart';
-import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
 
@@ -36,17 +34,7 @@ class NotificationService {
     await _localNotifications.initialize(
       InitializationSettings(android: initializationSettingsAndroid),
       onDidReceiveNotificationResponse: (response) {
-        print('MyLog OPEN APP: $response');
-        (mainNavigatorGlobalKey.currentState!.widget as AppNavigatorState).push(
-          ChatPage(
-            chat: Chat(
-              id: 1,
-              otherUser: User.loading(),
-              lastMessage: null,
-              unreadCount: 0,
-            ),
-          ),
-        );
+        _handleAppOpened(response);
       },
     );
   }
@@ -54,29 +42,29 @@ class NotificationService {
   Future<void> init() async {
     await _messaging.requestPermission();
 
+    await setupFlutterNotifications();
+
     FirebaseMessaging.onMessage.listen(showNotification);
 
     FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
 
-    /// opened app
-    final initialMessage = await _messaging.getInitialMessage();
-    if (initialMessage != null) {
-      _handleAppOpened(initialMessage);
+    final notificationAppLaunchDetails = await _localNotifications
+        .getNotificationAppLaunchDetails();
+    print('MyLog notificationAppLaunchDetails: $notificationAppLaunchDetails');
+    if (notificationAppLaunchDetails?.didNotificationLaunchApp ?? false) {
+      if (notificationAppLaunchDetails!.notificationResponse != null) {
+        _handleAppOpened(notificationAppLaunchDetails.notificationResponse!);
+      }
     }
   }
 
-  void _handleAppOpened(RemoteMessage message) {
-    print('MyLog OPEN APP: $message');
+  void _handleAppOpened(NotificationResponse response) {
+    print('MyLog OPEN APP: ${response.payload}');
+    if (response.payload == null) return;
+    final chatId = int.parse(response.payload!);
 
-    (mainNavigatorGlobalKey.currentState!.widget as AppNavigatorState).push(
-      ChatPage(
-        chat: Chat(
-          id: 1,
-          otherUser: User.loading(),
-          lastMessage: null,
-          unreadCount: 0,
-        ),
-      ),
+    (mainNavigatorGlobalKey.currentState as AppNavigatorState).push(
+      ChatPage(chatId: chatId, otherUser: null),
     );
   }
 
@@ -123,7 +111,7 @@ class NotificationService {
             icon: '@mipmap/ic_launcher',
           ),
         ),
-        payload: 'chatId: 54545',
+        payload: chatId,
       );
     } else if (type == 'cancel') {
       messageIds.forEach((id) {
