@@ -30,7 +30,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
        _chatsRepository = chatsRepository,
        _userId = userId,
        super(ChatStateBase.initial()) {
-    _messagesRepository.initSocket(userId: userId);
+    print('chatBlocInit: $_userId');
+    _messagesRepository.initSocket();
     _subMessages = _messagesRepository.messagesStream.listen((message) {
       add(ChatEventNewMessage(newMessage: message));
     });
@@ -114,7 +115,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onNewMessage(ChatEventNewMessage event, Emitter<ChatState> emit) {
-    print('onNewMessage: ${event.newMessage}');
+    print(
+      'onNewMessage: ${event.newMessage}, chatId: ${_data.chatId}, otherUserId: ${_data.otherUser?.id}',
+    );
     if (_data.chatId == -1 && event.newMessage.user.id == _data.otherUser?.id) {
       _data = _data.copyWith(chatId: event.newMessage.chatId);
     }

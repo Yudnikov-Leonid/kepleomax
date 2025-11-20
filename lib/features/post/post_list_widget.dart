@@ -32,18 +32,19 @@ class PostListWidget extends StatelessWidget {
       },
       builder: (context, state) {
         if (state is PostListStateLoading) {
+          /// loading
           return Skeletonizer(
             child: Column(
               children: [
                 PostWidget(post: Post.loading()),
                 PostWidget(post: Post.loading()),
                 PostWidget(post: Post.loading()),
-                Text('-----------------------'),
                 const SizedBox(height: 16),
               ],
             ),
           );
         } else if (state is PostListStateError) {
+          /// error
           return Center(
             child: Column(
               children: [
@@ -66,6 +67,7 @@ class PostListWidget extends StatelessWidget {
             ),
           );
         } else if (state is PostListStateBase) {
+          /// base
           final data = state.data;
           return Column(
             children: [

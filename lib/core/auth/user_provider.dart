@@ -12,6 +12,7 @@ class UserProvider {
 
   Future<void> setNewUser(User? user) async {
     if (user == null) {
+      print('setNewUser: null');
       await deleteUser();
       return;
     }

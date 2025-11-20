@@ -18,7 +18,7 @@ class MessagesRepository {
   }) : _messagesApi = messagesApi,
        _webSocket = messagesWebSocket;
 
-  void initSocket({required int userId}) => _webSocket.init(userId: userId);
+  void initSocket() => _webSocket.init();
 
   void dispose() => _webSocket.dispose();
 

@@ -35,9 +35,9 @@ class AuthController {
   Future<void> login({required String email, required String password}) async {
     final res = await _authRepository.login(email: email, password: password);
 
-    _tokenProvider.saveAccessToken(res.accessToken);
-    _tokenProvider.saveRefreshToken(res.refreshToken);
-    updateUser(User.fromDto(res.user));
+    await _tokenProvider.saveAccessToken(res.accessToken);
+    await _tokenProvider.saveRefreshToken(res.refreshToken);
+    await updateUser(User.fromDto(res.user));
   }
 
   Future<void> logout() async {

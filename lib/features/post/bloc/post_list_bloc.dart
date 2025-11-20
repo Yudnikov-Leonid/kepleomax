@@ -36,7 +36,6 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     emit(PostListStateBase(data: _data));
 
     try {
-      await Future.delayed(const Duration(seconds: 2));
       await _postRepository.deletePost(postId: event.postId);
       _data = _data = _data.copyWith(posts: newPosts..removeAt(event.index));
       emit(PostListStateMessage(message: 'Post deleted'));
@@ -62,8 +61,6 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     try {
       final newPosts = await _getPosts(offset: oldPosts.length, beforeTime: _loadTime);
 
-      await Future.delayed(const Duration(seconds: 1));
-
       _data = _data.copyWith(
         isAllPostsLoaded: newPosts.length < _pagingLimit,
         posts: <Post>{...oldPosts, ...newPosts}.toList(),
@@ -81,6 +78,8 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
   }
 
   void _onLoad(PostListEventLoad event, Emitter<PostListState> emit) async {
+    /// to prevent paging
+    _data = _data.copyWith(isNewPostsLoading: true);
     emit(const PostListStateLoading());
 
     try {
@@ -95,6 +94,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
       logger.e(e, stackTrace: st);
       emit(PostListStateError(message: e.toString()));
     } finally {
+      _data = _data.copyWith(isNewPostsLoading: false);
       emit(PostListStateBase(data: _data));
     }
   }

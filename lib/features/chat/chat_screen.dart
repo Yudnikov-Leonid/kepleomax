@@ -166,6 +166,7 @@ class _BodyState extends State<_Body> {
   }
 
   void _maintainScroll() {
+    if (!widget._scrollController.hasClients) return;
     if (widget._scrollController.offset == 0 || _keys.isEmpty) return;
     double currentOffset = widget._scrollController.offset;
     widget._scrollController.jumpTo(currentOffset + 45);
@@ -186,10 +187,6 @@ class _BodyState extends State<_Body> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChatBloc, ChatState>(
-      // buildWhen: (oldState, newState) {
-      //
-      //   return oldState != newState;
-      // },
       builder: (context, state) {
         if (state is ChatStateError) {
           return Center(child: Text('error: ${state.message}'));
@@ -200,6 +197,7 @@ class _BodyState extends State<_Body> {
         final data = state.data;
 
         /// not != but +1 cause it prevents scrolling on paging
+        /// TODO almost, except case when there's one new message
         if (_keys.isNotEmpty && _keys.length + 1 == data.messages.length) {
           /// if length of messages changes, need to maintain scroll
           _maintainScroll();
@@ -231,24 +229,31 @@ class _BodyState extends State<_Body> {
                           controller: widget._scrollController,
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           reverse: true,
-                          child: Column(
-                            children: [
-                              if (!data.isAllMessagesLoaded)
-                                SizedBox(height: 20),
-                              const SizedBox(width: double.infinity),
-                              //_DateWidget(),
+                          child: data.messages.isEmpty
+                              ? Center(
+                                  child: _TechMessage(
+                                    text:
+                                        '\nNo messages here yet...\n\nWrite something\n',
+                                  ),
+                                )
+                              : Column(
+                                  children: [
+                                    const SizedBox(width: double.infinity),
+                                    if (!data.isAllMessagesLoaded)
+                                      SizedBox(height: 20),
 
-                              /// TODO is it good to call reverse here?
-                              ...data.messages.reversed.mapIndexed(
-                                (i, message) => _MessageWidget(
-                                  key: keysReversed[i].$1,
-                                  message: message,
-                                  /// todo why user from data but not from message?
-                                  user: data.otherUser!,
+                                    /// TODO is it good to call reverse here?
+                                    ...data.messages.reversed.mapIndexed(
+                                      (i, message) => _MessageWidget(
+                                        key: keysReversed[i].$1,
+                                        message: message,
+
+                                        /// todo why user from data but not from message?
+                                        user: data.otherUser!,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
                         ),
                 ),
               ),
@@ -276,20 +281,23 @@ class _BodyState extends State<_Body> {
   }
 }
 
-class _DateWidget extends StatelessWidget {
-  const _DateWidget({super.key});
+class _TechMessage extends StatelessWidget {
+  const _TechMessage({required this.text, super.key});
+
+  final String text;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.black.withAlpha(100),
+        color: Colors.black.withAlpha(80),
         borderRadius: BorderRadius.circular(20),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       margin: const EdgeInsets.only(bottom: 6, top: 6),
       child: Text(
-        'February 19',
+        text,
+        textAlign: TextAlign.center,
         style: context.textTheme.bodyMedium?.copyWith(
           color: Colors.white,
           fontWeight: FontWeight.w500,

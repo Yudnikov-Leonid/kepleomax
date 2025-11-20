@@ -29,7 +29,6 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     _requestLastTimeCalled = now;
 
     try {
-      await Future.delayed(const Duration(seconds: 1));
       final newUsers = await _userRepository.search(
         search: _data.searchText,
         limit: _pagingLimit,
@@ -61,7 +60,6 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     final now = DateTime.now().millisecondsSinceEpoch;
     _requestLastTimeCalled = now;
     try {
-      await Future.delayed(const Duration(seconds: 1));
       final newUsers = await _userRepository.search(
         search: '',
         limit: _pagingLimit,
@@ -93,7 +91,6 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     final now = DateTime.now().millisecondsSinceEpoch;
     _requestLastTimeCalled = now;
 
-    await Future.delayed(const Duration(milliseconds: 500));
     if (_requestLastTimeCalled != now) {
       /// other event was called, isLoading: false will call there
       return;
@@ -103,7 +100,6 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     emit(PeopleStateBase(data: _data));
 
     try {
-      await Future.delayed(const Duration(seconds: 1));
       final newUsers = await _userRepository.search(
         search: _data.searchText,
         limit: _pagingLimit,

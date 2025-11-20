@@ -26,6 +26,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
        _messagesRepository = messagesRepository,
        _userId = userId,
        super(ChatsStateBase.initial()) {
+    print('chatsBlocInit: $_userId');
     on<ChatsEventLoad>(_onLoad);
     on<ChatsEventNewMessage>(_onNewMessage);
     on<ChatsEventReadMessages>(_onReadMessages);
@@ -142,7 +143,6 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     emit(ChatsStateBase(data: _data));
 
     try {
-      await Future.delayed(const Duration(milliseconds: 500));
       final chats = await _chatsRepository.getChats();
 
       _data = _data.copyWith(
@@ -159,6 +159,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
 
   @override
   Future<void> close() {
+    print('chatBlocClose');
     _subMessages.cancel();
     _subReadMessages.cancel();
     _subConnectionState.cancel();

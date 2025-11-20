@@ -108,7 +108,7 @@ List<_InitializationStep> _steps = [
       dependencies.postApi = PostApi(dependencies.dio, flavor.baseUrl);
       dependencies.messagesApi = MessagesApi(dependencies.dio, flavor.baseUrl);
       dependencies.chatsApi = ChatsApi(dependencies.dio, flavor.baseUrl);
-      dependencies.messagesWebSocket = MessagesWebSocket(baseUrl: flavor.baseUrl);
+      dependencies.messagesWebSocket = MessagesWebSocket(baseUrl: flavor.baseUrl, tokenProvider: dependencies.tokenProvider);
 
       dependencies.filesRepository = FilesRepository(
         filesApi: dependencies.filesApi,

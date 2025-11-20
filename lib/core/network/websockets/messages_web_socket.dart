@@ -2,13 +2,15 @@ import 'dart:async';
 
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
+import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 
 class MessagesWebSocket {
   final String baseUrl;
+  final TokenProvider tokenProvider;
 
-  MessagesWebSocket({required this.baseUrl});
+  MessagesWebSocket({required this.baseUrl, required this.tokenProvider});
 
   /// streams
   late StreamController<Message> _messageController;
@@ -25,19 +27,23 @@ class MessagesWebSocket {
   /// socket
   late Socket _socket;
 
-  void init({required int userId}) {
+  void init() {
     /// stream controllers
     _messageController = StreamController<Message>.broadcast();
     _readMessagesController = StreamController<ReadMessagesUpdate>.broadcast();
     _connectionController = StreamController<bool>.broadcast();
 
     /// socket
-    _socket = io(
+    final newSocket = io(
       baseUrl,
-      OptionBuilder().setTransports(['websocket']).enableAutoConnect().setQuery({
-        'user_id': userId,
-      }).build(),
+      OptionBuilder()
+          .setTransports(['websocket'])
+          //.enableAutoConnect()
+          .setAuth({'token' : 'Bearer ${tokenProvider.getAccessToken()}'}) /// TODO how to refresh?
+          .build(),
     );
+    newSocket.connect();
+    _socket = newSocket;
 
     /// events
     _socket.on('connect', (_) {
@@ -60,7 +66,7 @@ class MessagesWebSocket {
   }
 
   void dispose() {
-    _socket.disconnect();
+    _socket.dispose();
     _messageController.close();
     _connectionController.close();
     _readMessagesController.close();

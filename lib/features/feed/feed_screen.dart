@@ -20,9 +20,12 @@ class _FeedScreenState extends State<FeedScreen> {
   @override
   void initState() {
     _postBloc = PostListBloc(
-      postRepository: Dependencies.of(context).postRepository,
+      postRepository: Dependencies
+          .of(context)
+          .postRepository,
       userId: null,
-    )..add(const PostListEventLoad());
+    )
+      ..add(const PostListEventLoad());
     _scrollController.addListener(_onScrollListener);
     super.initState();
   }

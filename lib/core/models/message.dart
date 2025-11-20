@@ -30,13 +30,12 @@ abstract class Message with _$Message {
         user: dto.user != null
             ? User.fromDto(dto.user!)
             : User(
-          id: dto.senderId,
+          id: dto.isCurrentUser! ? (dto.otherUserId ?? dto.senderId) : dto.senderId,
           email: '',
           username: '',
           profileImage: '',
-          isCurrent: dto.isCurrentUser!,
-
           /// need only this field
+          isCurrent: dto.isCurrentUser!,
           fcmTokens: [],
         ),
         id: dto.id,
@@ -54,7 +53,7 @@ abstract class Message with _$Message {
         user: User.loading(),
         message: '',
         chatId: -1,
-        // should be true so counter of unread messages works properly
+        /// should be true so counter of unread messages works properly
         isRead: true,
         createdAt: 0,
         editedAt: null,

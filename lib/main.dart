@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:kepleomax/core/error_app.dart';
 import 'package:logger/logger.dart';
 
 import 'core/app.dart';
@@ -15,22 +16,30 @@ void _setFlavor(Flavor flavor) => _flavor = flavor;
 
 Flavor get flavor => _flavor;
 
-void main({Flavor? flavor}) => runZonedGuarded(
-  () async {
-    WidgetsFlutterBinding.ensureInitialized().deferFirstFrame();
+void main({Flavor? flavor}) {
+  bool isAppRunning = false;
 
-    logger = Logger();
+  runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized().deferFirstFrame();
 
-    _setFlavor(flavor!);
+      logger = Logger();
 
-    final dependencies = await initializeDependencies();
+      _setFlavor(flavor!);
 
-    WidgetsFlutterBinding.ensureInitialized().allowFirstFrame();
+      final dependencies = await initializeDependencies();
 
-    runApp(dependencies.inject(child: App()));
-  },
-  (err, st) {
-    logger.e(err, stackTrace: st);
-    // TODO
-  },
-);
+      WidgetsFlutterBinding.ensureInitialized().allowFirstFrame();
+
+      isAppRunning = true;
+      runApp(dependencies.inject(child: App()));
+    },
+    (err, st) {
+      logger.e(err, stackTrace: st);
+      if (!isAppRunning) {
+        WidgetsFlutterBinding.ensureInitialized().allowFirstFrame();
+        runApp(ErrorApp(error: err));
+      }
+    },
+  );
+}
