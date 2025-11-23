@@ -76,7 +76,7 @@ class KlmBackButton extends StatelessWidget {
           () {
             AppNavigator.pop(context);
           },
-      icon: icon ?? Icon(Icons.arrow_back_ios_new),
+      icon: icon ?? const Icon(Icons.arrow_back_ios_new),
     );
   }
 }

@@ -235,7 +235,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      emit(ChatStateMessage(message: 'Failed to load more messages', isError: true));
+      emit(const ChatStateMessage(message: 'Failed to load more messages', isError: true));
       _data = _data.copyWith(isAllMessagesLoaded: true);
     } finally {
       _isLoadingMore = false;

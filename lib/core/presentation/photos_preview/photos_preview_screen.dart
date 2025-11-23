@@ -150,7 +150,7 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
             height: _swipeViewHeight,
             child: PageView(
               physics: _isInZoom || widget.isOnePictureMode
-                  ? NeverScrollableScrollPhysics()
+                  ? const NeverScrollableScrollPhysics()
                   : null,
               controller: _pageController,
               onPageChanged: (newIndex) {
@@ -163,7 +163,7 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
                     (i, url) => Stack(
                       children: [
                         _Background(
-                          key: Key('photos_background'),
+                          key: const Key('photos_background'),
                           scrollController: _scrollController,
                           getAlpha: _getAlpha,
                           defaultOffset: _defaultOffset,
@@ -184,7 +184,7 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
                           ],
                         ),
                         _SpaceIllusion(
-                          key: Key('photos_space_illusion'),
+                          key: const Key('photos_space_illusion'),
                           pageController: _pageController,
                           maxLinesWidth:
                               context.screenSize.width * _spaceBetweenPhotosRatio,
@@ -430,7 +430,7 @@ class _AppBar extends StatefulWidget implements PreferredSizeWidget {
   State<_AppBar> createState() => _AppBarState();
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 class _AppBarState extends State<_AppBar> {
@@ -488,7 +488,7 @@ class _AppBarState extends State<_AppBar> {
             }
           },
           itemBuilder: (context) => [
-            PopupMenuItem<String>(value: 'save', child: Text('Save to gallery')),
+            const PopupMenuItem<String>(value: 'save', child: Text('Save to gallery')),
           ],
         ),
       ],

@@ -75,7 +75,7 @@ class _UserScreenState extends State<UserScreen> {
         },
         builder: (context, state) {
           if (state is! UserStateBase) {
-            return Scaffold(appBar: AppBar(leading: BackButton()));
+            return Scaffold(appBar: AppBar(leading: const BackButton()));
           }
 
           return Scaffold(
@@ -83,7 +83,7 @@ class _UserScreenState extends State<UserScreen> {
             appBar: _AppBar(
               scrollController: _scrollController,
               userId: widget.userId,
-              key: Key('user_app_bar'),
+              key: const Key('user_app_bar'),
             ),
             body: _ScrollControllerListeners(
               controller: _scrollController,
@@ -91,7 +91,7 @@ class _UserScreenState extends State<UserScreen> {
               child: _Body(
                 scrollController: _scrollController,
                 scrollPadding: MediaQuery.of(context).viewPadding.top,
-                key: Key('user_screen_body'),
+                key: const Key('user_screen_body'),
               ),
             ),
           );
@@ -125,7 +125,7 @@ class _Body extends StatelessWidget {
         return oldState.userData != newState.userData;
       },
       builder: (context, state) {
-        if (state is! UserStateBase) return SizedBox();
+        if (state is! UserStateBase) return const SizedBox();
 
         final data = state.userData;
         return RefreshIndicator(
@@ -134,18 +134,18 @@ class _Body extends StatelessWidget {
             context.read<PostListBloc>().add(const PostListEventLoad());
           },
           child: SingleChildScrollView(
-            key: Key('scroll_profile'),
+            key: const Key('scroll_profile'),
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.only(top: _scrollPadding),
             controller: _scrollController,
             child: Skeletonizer(
-              key: Key('screen_top_skeletonizer'),
+              key: const Key('screen_top_skeletonizer'),
               enabled: data.isLoading,
               child: Column(
                 children: [
                   /// user image
                   AutoScrollTag(
-                    key: Key('top_scroll_tag'),
+                    key: const Key('top_scroll_tag'),
                     controller: _scrollController,
                     index: 0,
                     highlightColor: Colors.red,
@@ -176,7 +176,7 @@ class _Body extends StatelessWidget {
                     ),
                   ),
                   AutoScrollTag(
-                    key: Key('bottom_of_username_scroll_tag'),
+                    key: const Key('bottom_of_username_scroll_tag'),
                     controller: _scrollController,
                     index: 1,
                     highlightColor: Colors.red,
@@ -218,8 +218,8 @@ class _Body extends StatelessWidget {
                   if (!data.isLoading && data.profile == null) ...[
                     KlmButton(
                       onPressed: () {
-                        context.read<UserBloc>().add(UserEventLoad());
-                        context.read<PostListBloc>().add(PostListEventLoad());
+                        context.read<UserBloc>().add(const UserEventLoad());
+                        context.read<PostListBloc>().add(const PostListEventLoad());
                       },
                       text: 'Retry',
                       width: 120,
@@ -248,7 +248,7 @@ class _Body extends StatelessWidget {
                   /// posts
                   Divider(thickness: 5, color: Colors.grey.shade300),
                   const SizedBox(height: 10),
-                  PostListWidget(key: Key('users_posts'), isUserPage: true),
+                  const PostListWidget(key: Key('users_posts'), isUserPage: true),
                 ],
               ),
             ),
@@ -339,7 +339,7 @@ class _AppBar extends StatefulWidget implements PreferredSizeWidget {
   State<_AppBar> createState() => _AppBarState();
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 class _AppBarState extends State<_AppBar> {
@@ -391,7 +391,7 @@ class _AppBarState extends State<_AppBar> {
             oldData.profile?.user.username != newData.profile?.user.username;
       },
       builder: (context, state) {
-        if (state is! UserStateBase) return SizedBox();
+        if (state is! UserStateBase) return const SizedBox();
 
         /// main content
         final data = state.userData;
@@ -405,7 +405,7 @@ class _AppBarState extends State<_AppBar> {
                       .toInt(),
           ),
           surfaceTintColor: Colors.white,
-          leading: KlmBackButton(),
+          leading: const KlmBackButton(),
           actions: [
             if (!data.isLoading && (data.profile?.user.isCurrent ?? false))
               PopupMenuButton<String>(

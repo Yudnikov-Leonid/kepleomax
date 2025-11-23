@@ -95,7 +95,7 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
             children: [
               ConstrainedBox(
                 constraints: _childSize == null
-                    ? BoxConstraints()
+                    ? const BoxConstraints()
                     : BoxConstraints(
                         maxHeight: _childSize!.height > screenHeight
                             ? screenHeight

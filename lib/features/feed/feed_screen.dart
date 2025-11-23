@@ -62,7 +62,7 @@ class _FeedScreenState extends State<FeedScreen> {
                 children: [
                   KlmAppBar(context, 'Feed'),
                   const SizedBox(height: 10),
-                  PostListWidget(key: Key('feed_posts'), isUserPage: false),
+                  const PostListWidget(key: Key('feed_posts'), isUserPage: false),
                 ],
               ),
             ),

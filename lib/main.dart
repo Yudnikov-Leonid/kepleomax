@@ -32,7 +32,7 @@ void main({Flavor? flavor}) {
       WidgetsFlutterBinding.ensureInitialized().allowFirstFrame();
 
       isAppRunning = true;
-      runApp(dependencies.inject(child: App()));
+      runApp(dependencies.inject(child: const App()));
     },
     (err, st) {
       logger.e(err, stackTrace: st);

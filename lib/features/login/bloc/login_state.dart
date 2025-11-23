@@ -62,7 +62,7 @@ class LoginScreenLogin implements LoginScreenState {
   }
 
   @override
-  LoginEvent event() => LoginEventLogin();
+  LoginEvent event() => const LoginEventLogin();
 
   @override
   String buttonText() => 'Login';
@@ -82,7 +82,7 @@ class LoginScreenRegister implements LoginScreenState {
   }
 
   @override
-  LoginEvent event() => LoginEventRegister();
+  LoginEvent event() => const LoginEventRegister();
 
   @override
   String buttonText() => 'Register';

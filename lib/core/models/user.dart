@@ -27,7 +27,7 @@ abstract class User with _$User {
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
-  factory User.loading() => User(
+  factory User.loading() => const User(
     id: -1,
     email: '',
     username: '-------------',

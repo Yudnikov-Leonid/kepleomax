@@ -58,7 +58,7 @@ class PostListWidget extends StatelessWidget {
                 const SizedBox(height: 10),
                 KlmButton(
                   onPressed: () {
-                    context.read<PostListBloc>().add(PostListEventLoad());
+                    context.read<PostListBloc>().add(const PostListEventLoad());
                   },
                   text: 'Retry',
                   width: 120,
@@ -120,7 +120,7 @@ class PostListWidget extends StatelessWidget {
           );
         }
 
-        return SizedBox();
+        return const SizedBox();
       },
     );
   }

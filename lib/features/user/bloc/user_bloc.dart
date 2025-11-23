@@ -58,7 +58,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
       _userData = _userData.copyWith(profile: newProfile);
       emit(UserStateUpdateUser(user: newProfile.user));
-      emit(UserStateMessage(message: 'Changes saved'));
+      emit(const UserStateMessage(message: 'Changes saved'));
     } catch (e, st) {
       logger.e(e, stackTrace: st);
       emit(UserStateError(message: e.toString()));

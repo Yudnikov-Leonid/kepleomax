@@ -19,12 +19,12 @@ class MenuScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 6),
         children: [
           _MenuItem(title: 'People', onTap: () {
-            AppNavigator.push(context, PeoplePage());
+            AppNavigator.push(context, const PeoplePage());
           }),
           _MenuItem(
             title: 'Settings',
             onTap: () {
-              AppNavigator.push(context, SettingsPage());
+              AppNavigator.push(context, const SettingsPage());
             },
           ),
         ],

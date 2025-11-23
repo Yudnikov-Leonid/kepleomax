@@ -38,10 +38,10 @@ class KlmButton extends StatelessWidget {
       ),
       child: Center(
         child: isLoading
-            ? SizedBox(
+            ? const SizedBox(
                 height: 20,
                 width: 20,
-                child: const CircularProgressIndicator(
+                child: CircularProgressIndicator(
                   color: KlmColors.primaryColor,
                   strokeWidth: 2,
                 ),

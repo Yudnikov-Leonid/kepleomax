@@ -32,7 +32,7 @@ class NotificationService {
     );
 
     await _localNotifications.initialize(
-      InitializationSettings(android: initializationSettingsAndroid),
+      const InitializationSettings(android: initializationSettingsAndroid),
       onDidReceiveNotificationResponse: (response) {
         _handleAppOpened(response);
       },
@@ -101,7 +101,7 @@ class NotificationService {
         messageIds[0],
         message.data['title'],
         message.data['body'],
-        NotificationDetails(
+        const NotificationDetails(
           android: AndroidNotificationDetails(
             'high_importance_channel',
             'High importance notifications',

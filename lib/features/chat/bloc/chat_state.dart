@@ -35,7 +35,7 @@ abstract class ChatData with _$ChatData implements ChatState {
     @Default(false) bool isLoading,
   }) = _ChatData;
 
-  factory ChatData.initial() => ChatData(
+  factory ChatData.initial() => const ChatData(
     chatId: -1,
     otherUser: null,
     messages: [],

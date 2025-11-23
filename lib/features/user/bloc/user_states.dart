@@ -35,5 +35,5 @@ abstract class UserData with _$UserData {
     @Default(true) bool isLoading,
   }) = _UserData;
 
-  factory UserData.initial() => UserData(profile: null);
+  factory UserData.initial() => const UserData(profile: null);
 }

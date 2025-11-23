@@ -66,11 +66,11 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         floatingActionButton: _ReadButton(scrollController: _scrollController),
-        appBar: _AppBar(key: Key('chat_appbar')),
+        appBar: const _AppBar(key: Key('chat_appbar')),
         body: _Body(
           bloc: _chatBloc,
           scrollController: _scrollController,
-          key: Key('chat_body'),
+          key: const Key('chat_body'),
         ),
       ),
     );
@@ -192,7 +192,7 @@ class _BodyState extends State<_Body> {
           return Center(child: Text('error: ${state.message}'));
         }
 
-        if (state is! ChatStateBase) return SizedBox();
+        if (state is! ChatStateBase) return const SizedBox();
 
         final data = state.data;
 
@@ -223,14 +223,14 @@ class _BodyState extends State<_Body> {
                 child: Container(
                   color: Colors.blue.shade100,
                   child: data.isLoading
-                      ? Center(child: CircularProgressIndicator())
+                      ? const Center(child: CircularProgressIndicator())
                       : SingleChildScrollView(
                           key: Key('chat_scroll_view_${data.chatId}'),
                           controller: widget._scrollController,
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           reverse: true,
                           child: data.messages.isEmpty
-                              ? Center(
+                              ? const Center(
                                   child: _TechMessage(
                                     text:
                                         '\nNo messages here yet...\n\nWrite something\n',
@@ -240,7 +240,7 @@ class _BodyState extends State<_Body> {
                                   children: [
                                     const SizedBox(width: double.infinity),
                                     if (!data.isAllMessagesLoaded)
-                                      SizedBox(height: 20),
+                                      const SizedBox(height: 20),
 
                                     /// TODO is it good to call reverse here?
                                     ...data.messages.reversed.mapIndexed(
@@ -271,7 +271,7 @@ class _BodyState extends State<_Body> {
                     ),
                   );
                 },
-                key: Key('chat_bottom'),
+                key: const Key('chat_bottom'),
               ),
             ],
           ),
@@ -358,7 +358,7 @@ class _BottomState extends State<_Bottom> {
               style: IconButton.styleFrom(backgroundColor: KlmColors.primaryColor),
               icon: Transform.rotate(
                 angle: math.pi / 2,
-                child: Icon(Icons.arrow_back, color: Colors.white),
+                child: const Icon(Icons.arrow_back, color: Colors.white),
               ),
             ),
           ],
@@ -418,7 +418,7 @@ class _MessageWidget extends StatelessWidget {
             constraints: BoxConstraints(maxWidth: context.screenSize.width * 0.78),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: _isCurrent ? Color.fromARGB(255, 213, 255, 255) : Colors.white,
+              color: _isCurrent ? const Color.fromARGB(255, 213, 255, 255) : Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Stack(
@@ -480,13 +480,13 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
             oldState.data.isLoading != newState.data.isLoading;
       },
       builder: (context, state) {
-        if (state is! ChatStateBase) return SizedBox();
+        if (state is! ChatStateBase) return const SizedBox();
 
         final data = state.data;
         final isLoading = data.isLoading || data.otherUser == null;
 
         return AppBar(
-          leading: KlmBackButton(),
+          leading: const KlmBackButton(),
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.transparent,
           titleSpacing: 0,
@@ -545,7 +545,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 class _ReadButton extends StatefulWidget {
@@ -589,16 +589,16 @@ class _ReadButtonState extends State<_ReadButton> {
   Widget build(BuildContext context) {
     return BlocBuilder<ChatBloc, ChatState>(
       builder: (context, state) {
-        if (state is! ChatStateBase) return SizedBox();
+        if (state is! ChatStateBase) return const SizedBox();
 
         final data = state.data;
-        if (state.data.messages.isEmpty) return SizedBox();
+        if (state.data.messages.isEmpty) return const SizedBox();
         final allMessagesIsRead =
             data.messages.first.user.isCurrent || data.messages.first.isRead;
         final isScrolledUp = widget._scrollController.positions.length == 1
             ? widget._scrollController.offset > _offsetToShow
             : false;
-        if (allMessagesIsRead && !isScrolledUp) return SizedBox();
+        if (allMessagesIsRead && !isScrolledUp) return const SizedBox();
         return Padding(
           padding: const EdgeInsets.only(bottom: 75),
           child: Stack(
@@ -612,7 +612,7 @@ class _ReadButtonState extends State<_ReadButton> {
                 isExtended: true,
                 child: Transform.rotate(
                   angle: 270 * math.pi / 180,
-                  child: Icon(Icons.arrow_back_ios_new, color: Colors.black),
+                  child: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
                 ),
                 onPressed: () {
                   widget._scrollController.animateTo(
@@ -630,7 +630,7 @@ class _ReadButtonState extends State<_ReadButton> {
                   top: -14,
                   child: Container(
                     width: 35,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: KlmColors.primaryColor,
                       shape: BoxShape.circle,
                     ),

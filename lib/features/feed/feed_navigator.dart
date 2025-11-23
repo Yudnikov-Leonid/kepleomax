@@ -12,7 +12,7 @@ class FeedNavigator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppNavigator(
-      initialState: [FeedPage()],
+      initialState: [const FeedPage()],
       navigatorKey: feedNavigatorKey,
       key: feedNavigatorGlobalKey,
     );

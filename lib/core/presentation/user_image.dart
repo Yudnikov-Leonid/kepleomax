@@ -18,9 +18,9 @@ class UserImage extends StatelessWidget {
       width: size,
       child: ClipOval(
         child: isLoading
-            ? ColoredBox(color: Colors.grey)
+            ? const ColoredBox(color: Colors.grey)
             : url == null || url!.isEmpty
-            ? DefaultUserIcon()
+            ? const DefaultUserIcon()
             : KlmCachedImage(imageUrl: flavor.imageUrl + url!, fit: BoxFit.cover),
       ),
     );

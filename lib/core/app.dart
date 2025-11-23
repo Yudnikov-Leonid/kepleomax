@@ -33,7 +33,7 @@ class _AppState extends State<App> {
         darkTheme: ThemeData(
           brightness: Brightness.dark,
           scaffoldBackgroundColor: Colors.black,
-          appBarTheme: AppBarTheme(backgroundColor: Colors.black),
+          appBarTheme: const AppBarTheme(backgroundColor: Colors.black),
         ),
         themeMode: ThemeMode.system,
         debugShowCheckedModeBanner: false,
@@ -41,7 +41,7 @@ class _AppState extends State<App> {
           return AuthScope(
             child: ChatScope(
               child: AppNavigator(
-                initialState: [MainPage()],
+                initialState: [const MainPage()],
                 navigatorKey: mainNavigatorKey,
                 key: mainNavigatorGlobalKey,
               ),

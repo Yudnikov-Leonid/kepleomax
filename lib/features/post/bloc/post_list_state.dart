@@ -45,5 +45,5 @@ abstract class PostListData with _$PostListData {
     @Default(false) bool isAllPostsLoaded,
   }) = _PostListData;
 
-  factory PostListData.initial() => PostListData(posts: []);
+  factory PostListData.initial() => const PostListData(posts: []);
 }

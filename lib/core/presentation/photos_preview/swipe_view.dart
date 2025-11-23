@@ -102,7 +102,7 @@ class _SwipeViewState extends State<_SwipeView> {
         controller: controller,
         physics: widget.canScroll()
             ? _scrollPhysics
-            : NeverScrollableScrollPhysics(),
+            : const NeverScrollableScrollPhysics(),
         child: widget.child,
       ),
     );

@@ -26,5 +26,5 @@ abstract class PeopleData with _$PeopleData implements PeopleState {
     @Default(false) bool isAllUsersLoaded
   }) = _PeopleData;
 
-  factory PeopleData.initial() => PeopleData(searchText: '', users: []);
+  factory PeopleData.initial() => const PeopleData(searchText: '', users: []);
 }

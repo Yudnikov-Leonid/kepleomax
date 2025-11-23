@@ -49,8 +49,8 @@ class PostEditorScreen extends StatelessWidget {
         },
         child: Scaffold(
           resizeToAvoidBottomInset: true,
-          appBar: _AppBar(isEditing: _post != null, key: Key('post_editor_app_bar')),
-          body: _Body(key: Key('post_editor_body')),
+          appBar: _AppBar(isEditing: _post != null, key: const Key('post_editor_app_bar')),
+          body: const _Body(key: Key('post_editor_body')),
         ),
       ),
     );
@@ -99,7 +99,7 @@ class _BodyState extends State<_Body> {
             oldState.data.isLoading != newState.data.isLoading;
       },
       builder: (context, state) {
-        if (state is! PostEditorStateBase) return SizedBox();
+        if (state is! PostEditorStateBase) return const SizedBox();
 
         final data = state.data;
         return Padding(
@@ -170,7 +170,7 @@ class _Images extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (_images.isEmpty) return SizedBox();
+    if (_images.isEmpty) return const SizedBox();
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -213,7 +213,7 @@ class _Images extends StatelessWidget {
                                       PostEditorEventRemovePhoto(index: i),
                                     );
                                   },
-                                  icon: Icon(
+                                  icon: const Icon(
                                     Icons.close,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -262,7 +262,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
         return oldState.data != newState.data;
       },
       builder: (context, state) {
-        if (state is! PostEditorStateBase) return SizedBox();
+        if (state is! PostEditorStateBase) return const SizedBox();
 
         final data = state.data;
         return AppBar(
@@ -277,7 +277,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
           leading: IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.close,
               color: KlmColors.primaryColor,
               fontWeight: FontWeight.w500,
@@ -322,5 +322,5 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

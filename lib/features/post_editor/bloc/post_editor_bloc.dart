@@ -40,7 +40,7 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
 
   void _onSave(PostEditorEventSave post, Emitter<PostEditorState> emit) async {
     if (_data.text.isEmpty && _data.images.isEmpty) {
-      emit(PostEditorStateError(message: "Post can't be empty"));
+      emit(const PostEditorStateError(message: "Post can't be empty"));
     }
 
     _data = _data.copyWith(isLoading: true);
@@ -62,7 +62,7 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
         await _repository.createNewPost(content: _data.text.trim(), images: imagesList);
       } else {
         final isSomethingChanged = _data.text != _data.originalPost!.content ||
-            !ListEquality().equals(_data.images, _data.originalPost!.images);
+            !const ListEquality().equals(_data.images, _data.originalPost!.images);
         if (isSomethingChanged) {
           await _repository.updatePost(
             postId: _data.originalPost!.id,

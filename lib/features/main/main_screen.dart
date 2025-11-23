@@ -63,7 +63,7 @@ class _MainScreenState extends State<MainScreen> {
 
               return BottomNavigationBar(
                 currentIndex: _currentIndex,
-                key: Key('main_bottom_navigation_bar'),
+                key: const Key('main_bottom_navigation_bar'),
                 showSelectedLabels: false,
                 showUnselectedLabels: false,
                 selectedFontSize: 0,
@@ -79,7 +79,7 @@ class _MainScreenState extends State<MainScreen> {
                 selectedItemColor: KlmColors.primaryColor,
                 unselectedItemColor: KlmColors.inactiveColor,
                 items: [
-                  BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Feed'),
+                  const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Feed'),
                   BottomNavigationBarItem(
                     key: Key('messages_navigation_item_$unreadCount'),
                     icon: SizedBox(
@@ -88,13 +88,13 @@ class _MainScreenState extends State<MainScreen> {
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          Icon(Icons.chat_bubble_outline),
+                          const Icon(Icons.chat_bubble_outline),
                           if (unreadCount != null && unreadCount > 0)
                             Positioned(
                               top: 0,
                               right: 0,
                               child: Container(
-                                decoration: BoxDecoration(
+                                decoration: const BoxDecoration(
                                   color: Colors.red,
                                   shape: BoxShape.circle,
                                 ),

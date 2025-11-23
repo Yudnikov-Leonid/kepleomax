@@ -31,7 +31,7 @@ class PeopleScreen extends StatelessWidget {
             context.showSnackBar(text: state.message, color: KlmColors.errorRed);
           }
         },
-        child: Scaffold(
+        child: const Scaffold(
           appBar: _AppBar(key: Key('people_app_bar')),
           body: _Body(key: Key('people_body')),
         ),
@@ -64,20 +64,20 @@ class _BodyState extends State<_Body> {
   @override
   Widget build(BuildContext context) {
     return _PagingListener(
-      key: Key('people_paging_listener'),
+      key: const Key('people_paging_listener'),
       scrollController: _scrollController,
       child: BlocBuilder<PeopleBloc, PeopleState>(
         builder: (context, state) {
-          if (state is! PeopleStateBase) return SizedBox();
+          if (state is! PeopleStateBase) return const SizedBox();
 
           final data = state.data;
           return SingleChildScrollView(
-            key: Key('users_scroll_view'),
+            key: const Key('users_scroll_view'),
             controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Column(
-              key: Key('users_column'),
+              key: const Key('users_column'),
               children: [
                 KlmTextField(
                   controller: _controller,
@@ -90,7 +90,7 @@ class _BodyState extends State<_Body> {
                 ),
                 const SizedBox(height: 20),
                 if (data.isLoading)
-                  SizedBox(
+                  const SizedBox(
                     height: 40,
                     width: 40,
                     child: CircularProgressIndicator(),
@@ -169,7 +169,7 @@ class _UserCard extends StatelessWidget {
                   mainNavigatorKey,
                 )!.push(ChatPage(chatId: -1, otherUser: user));
               },
-              icon: Icon(Icons.chat_outlined),
+              icon: const Icon(Icons.chat_outlined),
             ),
           ],
         ),
@@ -237,10 +237,10 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
           fontWeight: FontWeight.w500,
         ),
       ),
-      leading: KlmBackButton(),
+      leading: const KlmBackButton(),
     );
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

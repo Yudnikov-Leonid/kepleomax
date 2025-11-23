@@ -21,8 +21,8 @@ class ChatsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: KlmAppBar(context, 'Chats', key: Key('chats_app_bar')),
-      body: _Body(key: Key('chats_body')),
+      appBar: KlmAppBar(context, 'Chats', key: const Key('chats_app_bar')),
+      body: const _Body(key: Key('chats_body')),
     );
   }
 }
@@ -60,7 +60,7 @@ class _Body extends StatelessWidget {
           );
         }
 
-        if (state is! ChatsStateBase) return SizedBox();
+        if (state is! ChatsStateBase) return const SizedBox();
 
         final data = state.data;
 
@@ -114,7 +114,7 @@ class _Body extends StatelessWidget {
                 children: data.chats
                     .map(
                       (chat) => chat.otherUser == null
-                          ? SizedBox()
+                          ? const SizedBox()
                           : _ChatWidget(key: Key('chat-${chat.id}'), chat: chat),
                     )
                     .toList(),
@@ -221,7 +221,7 @@ class _ChatWidget extends StatelessWidget {
                 Icon(chat.lastMessage!.isRead ? Icons.check_box : Icons.check)
               else if (chat.lastMessage != null && chat.unreadCount > 0)
                 Container(
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: KlmColors.primaryColor,
                   ),

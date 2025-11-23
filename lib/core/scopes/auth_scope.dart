@@ -58,7 +58,7 @@ class _AuthScopeState extends State<AuthScope> {
     return _InheritedAuth(
       key: ValueKey(_controller.user?.id ?? -1),
       controller: _controller,
-      child: _controller.user == null ? AppNavigator(initialState: [LoginPage()], navigatorKey: loginNavigatorKey) : widget.child,
+      child: _controller.user == null ? AppNavigator(initialState: [const LoginPage()], navigatorKey: loginNavigatorKey) : widget.child,
     );
   }
 }

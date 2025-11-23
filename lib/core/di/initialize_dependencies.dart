@@ -48,7 +48,7 @@ List<_InitializationStep> _steps = [
     name: 'storages',
     call: (dependencies) async {
       dependencies.sharedPreferences = await SharedPreferences.getInstance();
-      dependencies.secureStorage = FlutterSecureStorage();
+      dependencies.secureStorage = const FlutterSecureStorage();
       dependencies.tokenProvider = TokenProvider(
         prefs: dependencies.sharedPreferences,
         secureStorage: dependencies.secureStorage,

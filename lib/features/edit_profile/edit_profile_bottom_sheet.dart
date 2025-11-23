@@ -71,7 +71,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
                           },
                   )
                 else
-                  SizedBox(width: 55),
+                  const SizedBox(width: 55),
                 Stack(
                   children: [
                     Container(
@@ -83,7 +83,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
                       ),
                       child: ClipOval(
                         child: _imageUrl == null
-                            ? DefaultUserIcon()
+                            ? const DefaultUserIcon()
                             : _isImageEdited
                             ? Image.file(File(_imageUrl!), fit: BoxFit.cover)
                             : KlmCachedImage(
@@ -97,7 +97,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
                       right: 0,
                       child: IconButton.filled(
                         onPressed: _isClosing ? null : _editImage,
-                        icon: Icon(Icons.edit),
+                        icon: const Icon(Icons.edit),
                         style: IconButton.styleFrom(
                           backgroundColor: Colors.grey.shade200,
                           foregroundColor: Colors.black,
@@ -111,7 +111,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
                       right: 0,
                       child: IconButton.filled(
                         onPressed: _isClosing ? null : _removeImage,
-                        icon: Icon(Icons.close, fontWeight: FontWeight.w600),
+                        icon: const Icon(Icons.close, fontWeight: FontWeight.w600),
                         style: IconButton.styleFrom(
                           backgroundColor: Colors.grey.shade300,
                           foregroundColor: Colors.red.shade600,

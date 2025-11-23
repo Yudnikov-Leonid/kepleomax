@@ -48,7 +48,7 @@ abstract class PostEditorData with _$PostEditorData {
 
   bool isEmpty() => text.isEmpty && images.isEmpty;
 
-  factory PostEditorData.initial() => PostEditorData(text: '', images: []);
+  factory PostEditorData.initial() => const PostEditorData(text: '', images: []);
 
   factory PostEditorData.fromPost(Post post) => PostEditorData(
     originalPost: post,

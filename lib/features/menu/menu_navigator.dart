@@ -13,7 +13,7 @@ class MenuNavigator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppNavigator(
-      initialState: [MenuPage()],
+      initialState: [const MenuPage()],
       navigatorKey: menuNavigatorKey,
       key: menuNavigatorGlobalKey,
     );

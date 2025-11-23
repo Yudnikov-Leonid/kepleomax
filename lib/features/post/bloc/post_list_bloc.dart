@@ -38,7 +38,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     try {
       await _postRepository.deletePost(postId: event.postId);
       _data = _data = _data.copyWith(posts: newPosts..removeAt(event.index));
-      emit(PostListStateMessage(message: 'Post deleted'));
+      emit(const PostListStateMessage(message: 'Post deleted'));
     } catch (e, st) {
       logger.e(e, stackTrace: st);
       _data = _data.copyWith(posts: oldPosts);

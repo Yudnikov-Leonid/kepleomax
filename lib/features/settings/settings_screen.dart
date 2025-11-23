@@ -10,9 +10,9 @@ class SettingsScreen extends StatelessWidget {
       appBar: KlmAppBar(
         context,
         'Settings',
-        leading: KlmBackButton()
+        leading: const KlmBackButton()
       ),
-      body: Center(child: Text('Settings')),
+      body: const Center(child: Text('Settings')),
     );
   }
 }

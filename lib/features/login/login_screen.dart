@@ -19,7 +19,7 @@ class LoginScreen extends StatelessWidget {
     return BlocProvider<LoginBloc>(
       create: (context) =>
           LoginBloc(authController: Dependencies.of(context).authController),
-      child: _Body(key: Key('login_body'),)
+      child: const _Body(key: Key('login_body'),)
     );
   }
 }
@@ -68,7 +68,7 @@ class _BodyState extends State<_Body> {
         }
       },
       builder: (context, state) {
-        if (state is! LoginStateBase) return SizedBox();
+        if (state is! LoginStateBase) return const SizedBox();
 
         return Scaffold(
           body: Padding(
@@ -151,7 +151,7 @@ class _BodyState extends State<_Body> {
                           },
                     style: TextButton.styleFrom(
                       overlayColor: Colors.grey,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                       padding: const EdgeInsets.all(8),
                       minimumSize: Size.zero,
                     ),

@@ -1,6 +1,6 @@
 class ApiConstants {
   ApiConstants._();
 
-  static Duration get timeout => Duration(seconds: 6);
-  static Duration get longTimeout => Duration(seconds: 15);
+  static Duration get timeout => const Duration(seconds: 6);
+  static Duration get longTimeout => const Duration(seconds: 15);
 }

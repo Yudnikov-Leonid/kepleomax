@@ -14,6 +14,6 @@ class KlmCachedImage extends CachedNetworkImage {
          progressIndicatorBuilder: (context, url, downloadProgress) => !showProgress
              ? const SizedBox()
              : ColoredBox(color: Colors.grey.shade200),
-         errorWidget: (context, url, error) => Icon(Icons.error),
+         errorWidget: (context, url, error) => const Icon(Icons.error),
        );
 }

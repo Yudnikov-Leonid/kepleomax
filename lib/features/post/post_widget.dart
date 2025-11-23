@@ -75,7 +75,7 @@ class PostWidget extends StatelessWidget {
                     },
                     itemBuilder: (context) => [
                       if (onEdit != null)
-                        PopupMenuItem(value: 'edit', child: Text('Edit post')),
+                        const PopupMenuItem(value: 'edit', child: Text('Edit post')),
                       if (onDelete != null)
                         PopupMenuItem(
                           value: 'delete',
@@ -90,7 +90,7 @@ class PostWidget extends StatelessWidget {
                     ],
                   )
                 else
-                  SizedBox(height: 42),
+                  const SizedBox(height: 42),
               ],
             ),
           ),
@@ -136,7 +136,7 @@ class PostWidget extends StatelessWidget {
                       '${ParseTime.unixTimeToPreciseDate(post.createdAt)}${post.updatedAt == null ? '' : '\nedited: ${ParseTime.unixTimeToPreciseDate(post.updatedAt!)}'}',
                   triggerMode: TooltipTriggerMode.tap,
                   preferBelow: false,
-                  showDuration: Duration(seconds: 5),
+                  showDuration: const Duration(seconds: 5),
                   child: Text(
                     ParseTime.unixTimeToPassTime(post.createdAt),
                     style: context.textTheme.bodyMedium?.copyWith(

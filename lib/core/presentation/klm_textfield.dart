@@ -108,7 +108,7 @@ class _KlmTextFieldState extends State<KlmTextField> {
                     )
                   : null,
               counter: const SizedBox(),
-              contentPadding: EdgeInsets.only(
+              contentPadding: const EdgeInsets.only(
                 bottom: 15,
                 left: 15,
                 right: 15,
@@ -166,7 +166,7 @@ class _KlmTextFieldState extends State<KlmTextField> {
     if (isError) {
       return OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(
+        borderSide: const BorderSide(
           color: KlmColors.errorRed,
           width: 2,
           strokeAlign: BorderSide.strokeAlignOutside,
