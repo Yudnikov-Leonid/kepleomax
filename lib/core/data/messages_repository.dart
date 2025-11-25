@@ -20,7 +20,7 @@ class MessagesRepository {
 
   void initSocket() => _webSocket.init();
 
-  void dispose() => _webSocket.dispose();
+  void dispose() => _webSocket.disconnect();
 
   Future<List<Message>> getMessages({
     required int chatId,

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/messages_repository.dart';
@@ -26,18 +27,12 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
        _messagesRepository = messagesRepository,
        _userId = userId,
        super(ChatsStateBase.initial()) {
-    print('chatsBlocInit: $_userId');
-    on<ChatsEventLoad>(_onLoad);
-    on<ChatsEventNewMessage>(_onNewMessage);
-    on<ChatsEventReadMessages>(_onReadMessages);
-    on<ChatsEventLoading>(_onLoading);
-
     _subMessages = _messagesRepository.messagesStream.listen((newMessage) {
       add(ChatsEventNewMessage(message: newMessage));
-    });
+    }, cancelOnError: false);
     _subReadMessages = _messagesRepository.readMessagesStream.listen((data) {
       add(ChatsEventReadMessages(updates: data));
-    });
+    }, cancelOnError: false);
     _subConnectionState = _messagesRepository.connectionStateStream.listen((
       isConnected,
     ) {
@@ -46,7 +41,18 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
       } else {
         add(const ChatsEventLoading());
       }
-    });
+    }, cancelOnError: false);
+
+    on<ChatsEvent>(
+      (event, emit) => switch (event) {
+        ChatsEventLoad event => _onLoad(event, emit),
+        ChatsEventNewMessage event => _onNewMessage(event, emit),
+        ChatsEventReadMessages event => _onReadMessages(event, emit),
+        ChatsEventLoading event => _onLoading(event, emit),
+        ChatsEvent _ => () {},
+      },
+      transformer: sequential(),
+    );
   }
 
   void _onLoading(ChatsEventLoading event, Emitter<ChatsState> emit) {
@@ -71,9 +77,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
         newChats[chatIndex] = newChats[chatIndex].copyWith(
           lastMessage: newChats[chatIndex].lastMessage!.copyWith(isRead: true),
         );
-        _data = _data.copyWith(
-          chats: newChats,
-        );
+        _data = _data.copyWith(chats: newChats);
         emit(ChatsStateBase(data: _data));
       }
       return;
@@ -106,8 +110,8 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
         final newChat = await _chatsRepository.getChatWithId(event.message.chatId);
         _data = _data.copyWith(
           chats: [newChat!, ..._data.chats],
-          totalUnreadCount: _data.totalUnreadCount +
-              (event.message.user.isCurrent ? 0 : 1),
+          totalUnreadCount:
+              _data.totalUnreadCount + (event.message.user.isCurrent ? 0 : 1),
         );
       } catch (e, st) {
         emit(ChatsStateError(message: e.toString()));
@@ -123,8 +127,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
       _data = _data.copyWith(
         chats: [chat, ...newList],
         totalUnreadCount:
-            _data.totalUnreadCount +
-            (event.message.user.isCurrent ? 0 : 1),
+            _data.totalUnreadCount + (event.message.user.isCurrent ? 0 : 1),
       );
     }
     emit(ChatsStateBase(data: _data));

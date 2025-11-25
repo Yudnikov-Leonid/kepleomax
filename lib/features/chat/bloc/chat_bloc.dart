@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/messages_repository.dart';
@@ -30,14 +31,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
        _chatsRepository = chatsRepository,
        _userId = userId,
        super(ChatStateBase.initial()) {
-    print('chatBlocInit: $_userId');
     _messagesRepository.initSocket();
     _subMessages = _messagesRepository.messagesStream.listen((message) {
       add(ChatEventNewMessage(newMessage: message));
-    });
+    }, cancelOnError: false);
     _subReadMessages = _messagesRepository.readMessagesStream.listen((data) {
       add(ChatEventReadMessagesUpdate(updates: data));
-    });
+    }, cancelOnError: false);
     _subConnectionState = _messagesRepository.connectionStateStream.listen((
       isConnected,
     ) {
@@ -47,91 +47,27 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       } else {
         add(const ChatEventLoading());
       }
-    });
+    }, cancelOnError: false);
 
-    on<ChatEventLoad>(_onLoad);
-    on<ChatEventNewMessage>(_onNewMessage);
+    on<ChatEvent>(
+      (event, emit) => switch (event) {
+        ChatEventLoad event => _onLoad(event, emit),
+        ChatEventNewMessage event => _onNewMessage(event, emit),
+        ChatEventReadMessagesUpdate event => _onReadMessagesUpdate(event, emit),
+        ChatEventLoading event => _onLoading(event, emit),
+        ChatEventLoadMore event => _onLoadMore(event, emit),
+        ChatEventClear event => _onClear(event, emit),
+        _ => () {},
+      },
+      transformer: sequential(),
+    );
     on<ChatEventSendMessage>(_onSendMessage);
-    on<ChatEventReadMessagesUpdate>(_onReadMessagesUpdate);
     on<ChatEventReadAllMessages>(_onReadAllMessages);
-    on<ChatEventClear>(_onClear);
-    on<ChatEventLoading>(_onLoading);
-    on<ChatEventLoadMore>(_onLoadMore);
     on<ChatEventReadMessagesBeforeTime>(_onReadMessagesBeforeTime);
   }
 
-  void _onReadMessagesBeforeTime(
-    ChatEventReadMessagesBeforeTime event,
-    Emitter<ChatState> emit,
-  ) {
-    _messagesRepository.readMessageBeforeTime(
-      chatId: _data.chatId,
-      time: event.time,
-    );
-    _data = _data.copyWith(
-      messages: _data.messages
-          .map(
-            (msg) => msg.createdAt <= event.time ? msg.copyWith(isRead: true) : msg,
-          )
-          .toList(),
-    );
-    emit(ChatStateBase(data: _data));
-  }
-
-  void _onReadAllMessages(ChatEventReadAllMessages event, Emitter<ChatState> emit) {
-    _messagesRepository.readAllMessages(chatId: _data.chatId);
-    _data = _data.copyWith(
-      messages: _data.messages.map((e) => e.copyWith(isRead: true)).toList(),
-    );
-    emit(ChatStateBase(data: _data));
-  }
-
-  void _onReadMessagesUpdate(
-    ChatEventReadMessagesUpdate event,
-    Emitter<ChatState> emit,
-  ) {
-    if (_data.chatId != event.updates.chatId) return;
-
-    final updates = event.updates.messagesIds;
-    final newMessages = <Message>[];
-    for (final message in _data.messages) {
-      /// TODO optimize
-      if (updates.contains(message.id)) {
-        newMessages.add(message.copyWith(isRead: true));
-        NotificationService.instance.closeNotification(message.id);
-      } else {
-        newMessages.add(message);
-      }
-    }
-    _data = _data.copyWith(messages: newMessages);
-    emit(ChatStateBase(data: _data));
-  }
-
-  void _onSendMessage(ChatEventSendMessage event, Emitter<ChatState> emit) {
-    _messagesRepository.sendMessage(
-      message: event.message,
-      recipientId: event.otherUserId,
-    );
-  }
-
-  void _onNewMessage(ChatEventNewMessage event, Emitter<ChatState> emit) {
-    print(
-      'onNewMessage: ${event.newMessage}, chatId: ${_data.chatId}, otherUserId: ${_data.otherUser?.id}',
-    );
-    if (_data.chatId == -1 && event.newMessage.user.id == _data.otherUser?.id) {
-      _data = _data.copyWith(chatId: event.newMessage.chatId);
-    }
-    if (event.newMessage.chatId == _data.chatId) {
-      _data = _data.copyWith(
-        chatId: event.newMessage.chatId,
-        messages: [event.newMessage, ..._data.messages],
-      );
-    }
-    emit(ChatStateBase(data: _data));
-  }
-
+  /// cause can be called on init and on connect at the same time
   int _lastTimeLoadWasCalled = 0;
-
   void _onLoad(ChatEventLoad event, Emitter<ChatState> emit) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     if (now - 300 < _lastTimeLoadWasCalled) {
@@ -215,6 +151,64 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     }
   }
 
+  void _onReadMessagesBeforeTime(
+    ChatEventReadMessagesBeforeTime event,
+    Emitter<ChatState> emit,
+  ) {
+    _messagesRepository.readMessageBeforeTime(
+      chatId: _data.chatId,
+      time: event.time,
+    );
+  }
+
+  void _onReadAllMessages(ChatEventReadAllMessages event, Emitter<ChatState> emit) {
+    _messagesRepository.readAllMessages(chatId: _data.chatId);
+  }
+
+  void _onReadMessagesUpdate(
+    ChatEventReadMessagesUpdate event,
+    Emitter<ChatState> emit,
+  ) {
+    if (_data.chatId != event.updates.chatId) return;
+
+    final updates = event.updates.messagesIds;
+    final newMessages = <Message>[];
+    for (final message in _data.messages) {
+      /// TODO optimize
+      if (updates.contains(message.id)) {
+        newMessages.add(message.copyWith(isRead: true));
+        NotificationService.instance.closeNotification(message.id);
+      } else {
+        newMessages.add(message);
+      }
+    }
+    _data = _data.copyWith(messages: newMessages);
+    emit(ChatStateBase(data: _data));
+  }
+
+  void _onSendMessage(ChatEventSendMessage event, Emitter<ChatState> emit) {
+    _messagesRepository.sendMessage(
+      message: event.message,
+      recipientId: event.otherUserId,
+    );
+  }
+
+  void _onNewMessage(ChatEventNewMessage event, Emitter<ChatState> emit) {
+    print(
+      'onNewMessage: ${event.newMessage}, chatId: ${_data.chatId}, otherUserId: ${_data.otherUser?.id}',
+    );
+    if (_data.chatId == -1 && event.newMessage.user.id == _data.otherUser?.id) {
+      _data = _data.copyWith(chatId: event.newMessage.chatId);
+    }
+    if (event.newMessage.chatId == _data.chatId) {
+      _data = _data.copyWith(
+        chatId: event.newMessage.chatId,
+        messages: [event.newMessage, ..._data.messages],
+      );
+    }
+    emit(ChatStateBase(data: _data));
+  }
+
   bool _isLoadingMore = false;
 
   void _onLoadMore(ChatEventLoadMore event, Emitter<ChatState> emit) async {
@@ -235,7 +229,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      emit(const ChatStateMessage(message: 'Failed to load more messages', isError: true));
+      emit(
+        const ChatStateMessage(
+          message: 'Failed to load more messages',
+          isError: true,
+        ),
+      );
       _data = _data.copyWith(isAllMessagesLoaded: true);
     } finally {
       _isLoadingMore = false;

@@ -37,7 +37,6 @@ class _ChatScreenState extends State<ChatScreen> {
   /// callbacks
   @override
   void initState() {
-    print('chatScreen initState');
     _chatBloc = context.read<ChatBloc>()
       ..add(ChatEventLoad(chatId: widget.chatId, otherUser: widget.otherUser));
     super.initState();
@@ -45,9 +44,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    print('chatScreen dispose');
     _scrollController.dispose();
-    //_chatBloc.add(const ChatEventClear());
+    _chatBloc.add(const ChatEventClear());
     super.dispose();
   }
 
@@ -65,7 +63,10 @@ class _ChatScreenState extends State<ChatScreen> {
       },
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        floatingActionButton: _ReadButton(scrollController: _scrollController),
+        floatingActionButton: _ReadButton(
+          scrollController: _scrollController,
+          key: const Key('chat_read_button'),
+        ),
         appBar: const _AppBar(key: Key('chat_appbar')),
         body: _Body(
           bloc: _chatBloc,
@@ -77,6 +78,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 }
 
+/// body
 class _Body extends StatefulWidget {
   const _Body({
     required ScrollController scrollController,
@@ -97,49 +99,17 @@ class _BodyState extends State<_Body> {
   final Set<Message> _visibleMessages = {};
   bool _isScreenActive = false;
 
-  void _onScrollListener() {
-    if (!widget._scrollController.hasClients || !_isScreenActive) return;
+  /// callbacks
+  @override
+  void initState() {
+    widget._scrollController.addListener(_onScrollListener);
+    super.initState();
+  }
 
-    if (widget._scrollController.offset >
-        widget._scrollController.position.maxScrollExtent - 100) {
-      widget._chatBloc.add(const ChatEventLoadMore());
-    }
-
-    if (_keys.isEmpty) return;
-
-    List<Message> newVisibleMessages = [];
-    double heightOffset = 0;
-    for (int i = 0; i < _keys.length; i++) {
-      if (_keys[i].$2.user.isCurrent || _keys[i].$2.isRead) break;
-
-      final renderBox = _keys[i].$1.currentContext!.findRenderObject() as RenderBox;
-      double widgetTop = renderBox.size.height;
-
-      double viewportTop = widget._scrollController.position.pixels;
-
-      widgetTop += heightOffset;
-      heightOffset += renderBox.size.height;
-
-      if (widgetTop >= viewportTop + 20) {
-        final isAdded = _visibleMessages.add(_keys[i].$2);
-        if (isAdded) {
-          newVisibleMessages.add(_keys[i].$2);
-          //print('newVisibleMessage: ${_keys[i].$2.message}');
-        }
-      } else {
-        final isRemoved = _visibleMessages.remove(_keys[i].$2);
-        if (isRemoved) {
-          // print('deletedVisibleMessage: ${_keys[i].$2}');
-        }
-      }
-    }
-    if (newVisibleMessages.isNotEmpty) {
-      print('read message: ${newVisibleMessages[0].message}');
-
-      context.read<ChatBloc>().add(
-        ChatEventReadMessagesBeforeTime(time: newVisibleMessages[0].createdAt),
-      );
-    }
+  @override
+  void dispose() {
+    widget._scrollController.removeListener(_onScrollListener);
+    super.dispose();
   }
 
   void _onResume(int chatId) {
@@ -153,37 +123,7 @@ class _BodyState extends State<_Body> {
     NotificationService.instance.enableAllNotifications();
   }
 
-  @override
-  void initState() {
-    widget._scrollController.addListener(_onScrollListener);
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    widget._scrollController.removeListener(_onScrollListener);
-    super.dispose();
-  }
-
-  void _maintainScroll() {
-    if (!widget._scrollController.hasClients) return;
-    if (widget._scrollController.offset == 0 || _keys.isEmpty) return;
-    double currentOffset = widget._scrollController.offset;
-    widget._scrollController.jumpTo(currentOffset + 45);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      /// here new keys is already added
-      if (_keys.isEmpty) return;
-      final newMessageHeight =
-          (_keys.first.$1.currentContext!.findRenderObject() as RenderBox)
-              .size
-              .height;
-      print('newMessageHeight: $newMessageHeight, message: ${_keys[0].$2}');
-      if (newMessageHeight != 45) {
-        widget._scrollController.jumpTo(currentOffset + newMessageHeight);
-      }
-    });
-  }
-
+  /// build
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChatBloc, ChatState>(
@@ -206,7 +146,7 @@ class _BodyState extends State<_Body> {
         _keys.addAll(data.messages.map((e) => (GlobalKey(), e)));
         if (data.messages.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            /// to read all new messages
+            /// to read new messages
             _onScrollListener();
           });
         }
@@ -232,6 +172,7 @@ class _BodyState extends State<_Body> {
                           child: data.messages.isEmpty
                               ? const Center(
                                   child: _TechMessage(
+                                    key: Key('no_messages_widget'),
                                     text:
                                         '\nNo messages here yet...\n\nWrite something\n',
                                   ),
@@ -279,8 +220,73 @@ class _BodyState extends State<_Body> {
       },
     );
   }
+
+  /// listeners
+  void _onScrollListener() {
+    if (!widget._scrollController.hasClients || !_isScreenActive) return;
+
+    if (widget._scrollController.offset >
+        widget._scrollController.position.maxScrollExtent - 100) {
+      widget._chatBloc.add(const ChatEventLoadMore());
+    }
+
+    if (_keys.isEmpty) return;
+
+    List<Message> newVisibleMessages = [];
+    double heightOffset = 0;
+    for (int i = 0; i < _keys.length; i++) {
+      if (_keys[i].$2.user.isCurrent || _keys[i].$2.isRead) break;
+
+      final renderBox = _keys[i].$1.currentContext!.findRenderObject() as RenderBox;
+      double widgetTop = renderBox.size.height;
+
+      double viewportTop = widget._scrollController.position.pixels;
+
+      widgetTop += heightOffset;
+      heightOffset += renderBox.size.height;
+
+      if (widgetTop >= viewportTop + 20) {
+        final isAdded = _visibleMessages.add(_keys[i].$2);
+        if (isAdded) {
+          newVisibleMessages.add(_keys[i].$2);
+          //print('newVisibleMessage: ${_keys[i].$2.message}');
+        }
+      } else {
+        final isRemoved = _visibleMessages.remove(_keys[i].$2);
+        if (isRemoved) {
+          // print('deletedVisibleMessage: ${_keys[i].$2}');
+        }
+      }
+    }
+    if (newVisibleMessages.isNotEmpty) {
+      print('read message: ${newVisibleMessages[0].message}');
+
+      context.read<ChatBloc>().add(
+        ChatEventReadMessagesBeforeTime(time: newVisibleMessages[0].createdAt),
+      );
+    }
+  }
+
+  void _maintainScroll() {
+    if (!widget._scrollController.hasClients) return;
+    if (widget._scrollController.offset == 0 || _keys.isEmpty) return;
+    double currentOffset = widget._scrollController.offset;
+    widget._scrollController.jumpTo(currentOffset + 45);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      /// here new keys is already added
+      if (_keys.isEmpty) return;
+      final newMessageHeight =
+          (_keys.first.$1.currentContext!.findRenderObject() as RenderBox)
+              .size
+              .height;
+      if (newMessageHeight != 45) {
+        widget._scrollController.jumpTo(currentOffset + newMessageHeight);
+      }
+    });
+  }
 }
 
+/// widgets
 class _TechMessage extends StatelessWidget {
   const _TechMessage({required this.text, super.key});
 
@@ -405,6 +411,8 @@ class _MessageWidget extends StatelessWidget {
           else ...[
             InkWell(
               onTap: () {
+                context.findAncestorStateOfType<AppNavigatorState>();
+
                 AppNavigator.withKeyOf(
                   context,
                   mainNavigatorKey,
@@ -418,7 +426,9 @@ class _MessageWidget extends StatelessWidget {
             constraints: BoxConstraints(maxWidth: context.screenSize.width * 0.78),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: _isCurrent ? const Color.fromARGB(255, 213, 255, 255) : Colors.white,
+              color: _isCurrent
+                  ? const Color.fromARGB(255, 213, 255, 255)
+                  : Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Stack(
@@ -515,26 +525,6 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  // Column(
-                  //   crossAxisAlignment: CrossAxisAlignment.start,
-                  //   mainAxisAlignment: MainAxisAlignment.center,
-                  //   children: [
-                  //     Text(
-                  //       user.username,
-                  //       style: context.textTheme.bodyLarge?.copyWith(
-                  //         fontWeight: FontWeight.w700,
-                  //         fontSize: 20,
-                  //       ),
-                  //     ),
-                  //     Text(
-                  //       'Last seen today at 10:40 AM',
-                  //       style: context.textTheme.bodyLarge?.copyWith(
-                  //         color: Colors.grey,
-                  //         fontSize: 14,
-                  //       ),
-                  //     ),
-                  //   ],
-                  // ),
                 ],
               ),
             ),

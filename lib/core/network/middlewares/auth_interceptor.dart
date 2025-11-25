@@ -8,12 +8,15 @@ import 'package:ntp/ntp.dart';
 class AuthInterceptor extends QueuedInterceptorsWrapper {
   final TokenProvider _tokenProvider;
   final AuthController _authController;
+  final Function() _onRefresh;
 
   AuthInterceptor({
     required TokenProvider tokenProvider,
     required AuthController authController,
+    required Function() onRefresh,
   }) : _authController = authController,
-       _tokenProvider = tokenProvider;
+       _tokenProvider = tokenProvider,
+       _onRefresh = onRefresh;
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
@@ -35,11 +38,16 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
           type: DioExceptionType.cancel,
         ),
       );
+      return;
     }
 
     final now = await NTP.now();
-    final accessTokenHasExpired = now.isAfter(JwtDecoder.getExpirationDate(accessToken!));
-    final refreshTokenHasExpired = now.isAfter(JwtDecoder.getExpirationDate(refreshToken!));
+    final accessTokenHasExpired = now.isAfter(
+      JwtDecoder.getExpirationDate(accessToken),
+    );
+    final refreshTokenHasExpired = now.isAfter(
+      JwtDecoder.getExpirationDate(refreshToken),
+    );
 
     if (refreshTokenHasExpired) {
       logger.i('refresh token has expired');
@@ -55,6 +63,7 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
       final newAccessToken = await _refreshToken(refreshToken);
       if (newAccessToken == null) {
         logger.i('access token has expired, failed to refresh');
+
         /// don't need to logout, cause this error can be if the server is unavailable
         /// or there's no internet connection. We should logout only if request
         /// if success and the status code == 401/403, this logic is made in
@@ -70,6 +79,7 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
         logger.i('access token has expired, success to refresh');
         await _tokenProvider.saveAccessToken(newAccessToken);
         accessToken = newAccessToken;
+        _onRefresh();
       }
     }
 

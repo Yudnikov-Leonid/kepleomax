@@ -23,27 +23,24 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     on<PostListEventDeletePost>(_onDeletePost);
   }
 
-  void _onDeletePost(
-    PostListEventDeletePost event,
-    Emitter<PostListState> emit,
-  ) async {
-    final oldPosts = [..._data.posts];
-    final newPosts = _data.posts.toList();
-    _data = _data.copyWith(
-      posts: newPosts
-        ..[event.index] = newPosts[event.index].copyWith(isMockLoadingPost: true),
-    );
-    emit(PostListStateBase(data: _data));
+  void _onLoad(PostListEventLoad event, Emitter<PostListState> emit) async {
+    /// to prevent paging
+    _data = _data.copyWith(isNewPostsLoading: true);
+    emit(const PostListStateLoading());
 
     try {
-      await _postRepository.deletePost(postId: event.postId);
-      _data = _data = _data.copyWith(posts: newPosts..removeAt(event.index));
-      emit(const PostListStateMessage(message: 'Post deleted'));
+      _loadTime = (await NTP.now()).millisecondsSinceEpoch;
+      final posts = await _getPosts(offset: 0, beforeTime: _loadTime);
+
+      _data = _data.copyWith(
+        posts: posts,
+        isAllPostsLoaded: posts.length < _pagingLimit,
+      );
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      _data = _data.copyWith(posts: oldPosts);
-      emit(PostListStateMessage(message: e.toString(), isError: true));
+      emit(PostListStateError(message: e.toString()));
     } finally {
+      _data = _data.copyWith(isNewPostsLoading: false);
       emit(PostListStateBase(data: _data));
     }
   }
@@ -77,24 +74,27 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     }
   }
 
-  void _onLoad(PostListEventLoad event, Emitter<PostListState> emit) async {
-    /// to prevent paging
-    _data = _data.copyWith(isNewPostsLoading: true);
-    emit(const PostListStateLoading());
+  void _onDeletePost(
+      PostListEventDeletePost event,
+      Emitter<PostListState> emit,
+      ) async {
+    final oldPosts = [..._data.posts];
+    final newPosts = _data.posts.toList();
+    _data = _data.copyWith(
+      posts: newPosts
+        ..[event.index] = newPosts[event.index].copyWith(isMockLoadingPost: true),
+    );
+    emit(PostListStateBase(data: _data));
 
     try {
-      _loadTime = (await NTP.now()).millisecondsSinceEpoch;
-      final posts = await _getPosts(offset: 0, beforeTime: _loadTime);
-
-      _data = _data.copyWith(
-        posts: posts,
-        isAllPostsLoaded: posts.length < _pagingLimit,
-      );
+      await _postRepository.deletePost(postId: event.postId);
+      _data = _data = _data.copyWith(posts: newPosts..removeAt(event.index));
+      emit(const PostListStateMessage(message: 'Post deleted'));
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      emit(PostListStateError(message: e.toString()));
+      _data = _data.copyWith(posts: oldPosts);
+      emit(PostListStateMessage(message: e.toString(), isError: true));
     } finally {
-      _data = _data.copyWith(isNewPostsLoading: false);
       emit(PostListStateBase(data: _data));
     }
   }

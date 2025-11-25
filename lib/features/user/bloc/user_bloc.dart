@@ -7,6 +7,7 @@ import 'package:kepleomax/main.dart';
 class UserBloc extends Bloc<UserEvent, UserState> {
   final UserRepository _userRepository;
   final int _userId;
+  late UserData _userData = UserData.initial();
 
   UserBloc({required UserRepository userRepository, required int userId})
     : _userRepository = userRepository,
@@ -15,8 +16,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<UserEventLoad>(_onLoad);
     on<UserEventUpdateProfile>(_onUpdateProfile);
   }
-
-  late UserData _userData = UserData.initial();
 
   void _onLoad(UserEventLoad event, Emitter<UserState> emit) async {
     _userData = _userData.copyWith(isLoading: true, profile: null);

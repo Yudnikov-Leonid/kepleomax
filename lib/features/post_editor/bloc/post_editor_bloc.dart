@@ -83,11 +83,6 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
     }
   }
 
-  void _onEditText(PostEditorEventEditText event, Emitter<PostEditorState> emit) {
-    _data = _data.copyWith(text: event.newText);
-    emit(PostEditorStateBase(data: _data));
-  }
-
   void _onAddPhotos(
     PostEditorEventAddPhotos event,
     Emitter<PostEditorState> emit,
@@ -177,6 +172,11 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
     }
 
     _data = _data.copyWith(images: newList);
+    emit(PostEditorStateBase(data: _data));
+  }
+
+  void _onEditText(PostEditorEventEditText event, Emitter<PostEditorState> emit) {
+    _data = _data.copyWith(text: event.newText);
     emit(PostEditorStateBase(data: _data));
   }
 }

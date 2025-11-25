@@ -95,6 +95,9 @@ List<_InitializationStep> _steps = [
         AuthInterceptor(
           tokenProvider: dependencies.tokenProvider,
           authController: dependencies.authController,
+          onRefresh: () {
+            dependencies.messagesWebSocket.reconnect();
+          }
         ),
       ]);
 

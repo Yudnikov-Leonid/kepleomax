@@ -24,7 +24,7 @@ class PeopleScreen extends StatelessWidget {
     return BlocProvider<PeopleBloc>(
       create: (context) =>
           PeopleBloc(userRepository: Dependencies.of(context).userRepository)
-            ..add(const PeopleEventLoad()),
+            ..add(const PeopleEventInitialLoad()),
       child: BlocListener<PeopleBloc, PeopleState>(
         listener: (context, state) {
           if (state is PeopleStateError) {
