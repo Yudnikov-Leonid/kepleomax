@@ -55,6 +55,33 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     );
   }
 
+  int _lastTimeLoadWasCalled = 0;
+
+  void _onLoad(ChatsEventLoad event, Emitter<ChatsState> emit) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (now - 300 < _lastTimeLoadWasCalled) {
+      return;
+    }
+    _lastTimeLoadWasCalled = now;
+
+    _data = _data.copyWith(isLoading: true);
+    emit(ChatsStateBase(data: _data));
+
+    try {
+      final chats = await _chatsRepository.getChats();
+
+      _data = _data.copyWith(
+        chats: chats,
+        totalUnreadCount: chats.fold(0, (a, b) => a + b.unreadCount),
+        isLoading: false,
+      );
+      emit(ChatsStateBase(data: _data));
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
+      emit(ChatsStateError(message: e.toString()));
+    }
+  }
+
   void _onLoading(ChatsEventLoading event, Emitter<ChatsState> emit) {
     _data = _data.copyWith(isLoading: true);
     emit(ChatsStateBase(data: _data));
@@ -131,33 +158,6 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
       );
     }
     emit(ChatsStateBase(data: _data));
-  }
-
-  int _lastTimeLoadWasCalled = 0;
-
-  void _onLoad(ChatsEventLoad event, Emitter<ChatsState> emit) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    if (now - 300 < _lastTimeLoadWasCalled) {
-      return;
-    }
-    _lastTimeLoadWasCalled = now;
-
-    _data = _data.copyWith(isLoading: true);
-    emit(ChatsStateBase(data: _data));
-
-    try {
-      final chats = await _chatsRepository.getChats();
-
-      _data = _data.copyWith(
-        chats: chats,
-        totalUnreadCount: chats.fold(0, (a, b) => a + b.unreadCount),
-        isLoading: false,
-      );
-      emit(ChatsStateBase(data: _data));
-    } catch (e, st) {
-      logger.e(e, stackTrace: st);
-      emit(ChatsStateError(message: e.toString()));
-    }
   }
 
   @override

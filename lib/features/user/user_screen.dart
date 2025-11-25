@@ -17,9 +17,11 @@ import 'package:kepleomax/features/user/bloc/user_states.dart';
 import 'package:num_remap/num_remap.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-
 import '../../core/presentation/colors.dart';
 import '../../core/presentation/photos_preview/photos_preview_screen.dart';
+
+part 'widgets/primary_button.dart';
+part 'widgets/user_scroll_listeners.dart';
 
 const int _appBarUsernameFullShownOffset = 130;
 
@@ -229,7 +231,7 @@ class _Body extends StatelessWidget {
 
                   /// action button
                   if (!data.isLoading && data.profile != null) ...[
-                    _ActionButton(
+                    _PrimaryButton(
                       isCurrentUser: data.profile!.user.isCurrent,
                       navigateToPage: data.profile!.user.isCurrent
                           ? PostEditorPage(
@@ -255,76 +257,6 @@ class _Body extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-/// widgets
-class _ScrollControllerListeners extends StatefulWidget {
-  const _ScrollControllerListeners({
-    required this.controller,
-    required this.userId,
-    required this.child,
-  });
-
-  final AutoScrollController controller;
-  final int userId;
-  final Widget child;
-
-  @override
-  State<_ScrollControllerListeners> createState() =>
-      _ScrollControllerListenersState();
-}
-
-class _ScrollControllerListenersState extends State<_ScrollControllerListeners> {
-  late PostListBloc _postBloc;
-
-  /// callbacks
-  @override
-  void initState() {
-    _postBloc = PostListBloc(
-      postRepository: Dependencies.of(context).postRepository,
-      userId: widget.userId,
-    )..add(const PostListEventLoad());
-    widget.controller.addListener(_onScrollListener);
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_onScrollListener);
-    super.dispose();
-  }
-
-  /// listeners
-  void _onScrollListener() {
-    if (widget.controller.offset >
-        widget.controller.position.maxScrollExtent - 180) {
-      _postBloc.add(const PostListEventLoadMore());
-    }
-  }
-
-  bool _onScrollNotification(ScrollNotification notification) {
-    if (notification is ScrollEndNotification) {
-      final offset = widget.controller.offset;
-      if (offset > 0 && offset <= 75) {
-        widget.controller.scrollToIndex(0, preferPosition: AutoScrollPosition.end);
-      } else if (offset > 75 && offset < 125) {
-        widget.controller.scrollToIndex(1, preferPosition: AutoScrollPosition.begin);
-      }
-    }
-    return false;
-  }
-
-  /// build
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider<PostListBloc>(
-      create: (context) => _postBloc,
-      child: NotificationListener<ScrollNotification>(
-        onNotification: _onScrollNotification,
-        child: widget.child,
-      ),
     );
   }
 }
@@ -487,53 +419,6 @@ class _AppBarState extends State<_AppBar> {
           ),
         );
       },
-    );
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({required this.isCurrentUser, required this.navigateToPage});
-
-  final bool isCurrentUser;
-  final AppPage navigateToPage;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        height: 50,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: KlmColors.primaryColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: TextButton(
-          onPressed: () {
-            AppNavigator.withKeyOf(context, mainNavigatorKey)!.push(navigateToPage);
-          },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isCurrentUser ? Icons.add : Icons.message_sharp,
-                weight: 4,
-                color: Colors.white,
-                size: 24,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                isCurrentUser ? 'Post' : 'Message',
-                style: context.textTheme.bodyLarge?.copyWith(
-                  fontSize: 20,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

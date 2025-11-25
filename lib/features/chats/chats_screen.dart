@@ -14,6 +14,8 @@ import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
+part 'widgets/chat_widget.dart';
+
 /// screen
 class ChatsScreen extends StatelessWidget {
   const ChatsScreen({super.key});
@@ -123,121 +125,6 @@ class _Body extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-/// widgets
-class _ChatWidget extends StatelessWidget {
-  const _ChatWidget({required this.chat, this.isLoading = false, super.key});
-
-  final Chat chat;
-  final bool isLoading;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      height: 70,
-      child: InkWell(
-        onTap: isLoading
-            ? null
-            : () {
-                AppNavigator.withKeyOf(
-                  context,
-                  mainNavigatorKey,
-                )!.push(ChatPage(chatId: chat.id, otherUser: chat.otherUser));
-              },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              SizedBox(
-                height: 60,
-                width: 60,
-                child: UserImage(url: chat.otherUser!.profileImage),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            chat.otherUser!.username,
-                            overflow: TextOverflow.ellipsis,
-                            style: context.textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 20,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (chat.lastMessage != null) ...[
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          if (chat.lastMessage!.user.isCurrent)
-                            Text(
-                              'You: ',
-                              style: context.textTheme.bodyLarge?.copyWith(
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxWidth: context.screenSize.width * 0.3,
-                            ),
-                            child: Text(
-                              chat.lastMessage!.message,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: context.textTheme.bodyLarge?.copyWith(
-                                fontSize: 15,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            ' • ${ParseTime.unixTimeToPassTimeSlim(chat.lastMessage!.createdAt)}',
-                            style: context.textTheme.bodyLarge?.copyWith(
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              if (chat.lastMessage?.user.isCurrent ?? false)
-                Icon(chat.lastMessage!.isRead ? Icons.check_box : Icons.check)
-              else if (chat.lastMessage != null && chat.unreadCount > 0)
-                Container(
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: KlmColors.primaryColor,
-                  ),
-                  padding: const EdgeInsets.all(6),
-                  child: Text(
-                    chat.unreadCount.toString(),
-                    style: context.textTheme.bodyLarge?.copyWith(
-                      color: Colors.white,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
