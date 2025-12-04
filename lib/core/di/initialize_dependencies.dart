@@ -59,6 +59,16 @@ List<_InitializationStep> _steps = [
   _InitializationStep(
     name: 'dio, authController',
     call: (dependencies) async {
+      dependencies.prettyDioLogger = PrettyDioLogger(
+        request: kDebugMode,
+        requestHeader: kDebugMode,
+        requestBody: kDebugMode,
+        responseHeader: kDebugMode,
+        responseBody: kDebugMode,
+        error: kDebugMode,
+        logPrint: (Object object) => debugPrint(object.toString(), wrapWidth: 1024),
+      );
+
       final dio = Dio(BaseOptions(validateStatus: (_) => true));
 
       /// cause need dio in authController and need authController in dio
@@ -82,22 +92,15 @@ List<_InitializationStep> _steps = [
       dependencies.authController = authController;
 
       dio.interceptors.addAll([
-        PrettyDioLogger(
-          request: kDebugMode,
-          requestHeader: kDebugMode,
-          requestBody: kDebugMode,
-          responseHeader: kDebugMode,
-          responseBody: kDebugMode,
-          error: kDebugMode,
-          logPrint: (Object object) =>
-              debugPrint(object.toString(), wrapWidth: 1024),
-        ),
+        dependencies.prettyDioLogger,
         AuthInterceptor(
+          refreshTokenDio: Dio(BaseOptions(validateStatus: (_) => true))
+            ..interceptors.add(dependencies.prettyDioLogger),
           tokenProvider: dependencies.tokenProvider,
           authController: dependencies.authController,
           onRefresh: () {
             dependencies.messagesWebSocket.reconnect();
-          }
+          },
         ),
       ]);
 
@@ -111,7 +114,11 @@ List<_InitializationStep> _steps = [
       dependencies.postApi = PostApi(dependencies.dio, flavor.baseUrl);
       dependencies.messagesApi = MessagesApi(dependencies.dio, flavor.baseUrl);
       dependencies.chatsApi = ChatsApi(dependencies.dio, flavor.baseUrl);
-      dependencies.messagesWebSocket = MessagesWebSocket(baseUrl: flavor.baseUrl, tokenProvider: dependencies.tokenProvider);
+      dependencies.messagesWebSocket = MessagesWebSocket(
+        dio: dependencies.dio,
+        baseUrl: flavor.baseUrl,
+        tokenProvider: dependencies.tokenProvider,
+      );
 
       dependencies.filesRepository = FilesRepository(
         filesApi: dependencies.filesApi,
@@ -119,7 +126,7 @@ List<_InitializationStep> _steps = [
       dependencies.postRepository = PostRepository(postApi: dependencies.postApi);
       dependencies.messagesRepository = MessagesRepository(
         messagesApi: dependencies.messagesApi,
-        messagesWebSocket: dependencies.messagesWebSocket
+        messagesWebSocket: dependencies.messagesWebSocket,
       );
       dependencies.chatsRepository = ChatsRepository(
         chatsApi: dependencies.chatsApi,

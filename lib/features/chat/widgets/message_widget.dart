@@ -31,6 +31,7 @@ class _MessageWidget extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (_isCurrent)
             const Expanded(child: SizedBox())

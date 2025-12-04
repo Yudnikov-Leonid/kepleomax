@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
+import 'package:kepleomax/core/network/common/refresh_token.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
 import 'package:ntp/ntp.dart';
@@ -9,12 +10,15 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
   final TokenProvider _tokenProvider;
   final AuthController _authController;
   final Function() _onRefresh;
+  final Dio _refreshTokenDio;
 
   AuthInterceptor({
     required TokenProvider tokenProvider,
     required AuthController authController,
     required Function() onRefresh,
-  }) : _authController = authController,
+    required Dio refreshTokenDio,
+  }) : _refreshTokenDio = refreshTokenDio,
+       _authController = authController,
        _tokenProvider = tokenProvider,
        _onRefresh = onRefresh;
 
@@ -31,6 +35,7 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
         refreshToken == null ||
         accessToken.isEmpty ||
         refreshToken.isEmpty) {
+      logger.e('No token');
       handler.reject(
         DioException(
           requestOptions: options,
@@ -41,7 +46,7 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
       return;
     }
 
-    final now = await NTP.now();
+    final now = await NTP.now(timeout: const Duration(seconds: 4));
     final accessTokenHasExpired = now.isAfter(
       JwtDecoder.getExpirationDate(accessToken),
     );
@@ -60,7 +65,10 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
         ),
       );
     } else if (accessTokenHasExpired) {
-      final newAccessToken = await _refreshToken(refreshToken);
+      final newAccessToken = await RefreshToken(
+        dio: _refreshTokenDio,
+        logout: _logout,
+      ).refreshToken(refreshToken);
       if (newAccessToken == null) {
         logger.i('access token has expired, failed to refresh');
 
@@ -97,33 +105,5 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
   Future<void> _logout() async {
     await _authController.logout();
     await _tokenProvider.clearAll();
-  }
-
-  Future<String?> _refreshToken(String refreshToken) async {
-    try {
-      final dio = Dio(
-        BaseOptions(validateStatus: (_) => true),
-      ); // because current dio is locked
-
-      final response = await dio.post(
-        '${flavor.baseUrl}/api/auth/refresh',
-        data: {'refreshToken': refreshToken},
-      );
-
-      if (response.statusCode == 401 || response.statusCode == 403) {
-        logger.e('Forbidden to refresh token: ${response.statusCode}');
-        _logout();
-        return null;
-      }
-
-      if (response.statusCode == 200) {
-        return response.data['accessToken'];
-      } else {
-        throw Exception('Failed to refreshToken: ${response.statusCode}, $response');
-      }
-    } catch (e, st) {
-      logger.e(e, stackTrace: st);
-      return null;
-    }
   }
 }

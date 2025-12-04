@@ -17,6 +17,7 @@ import 'package:kepleomax/core/network/apis/profile/profile_api.dart';
 import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Dependencies {
@@ -41,6 +42,7 @@ class Dependencies {
   late FilesRepository filesRepository;
   late MessagesRepository messagesRepository;
   late ChatsRepository chatsRepository;
+  late PrettyDioLogger prettyDioLogger;
 
   Widget inject({required Widget child}) =>
       InheritedDependencies(dependencies: this, child: child);
