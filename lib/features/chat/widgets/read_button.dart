@@ -2,7 +2,7 @@ part of '../chat_screen.dart';
 
 class _ReadButton extends StatefulWidget {
   const _ReadButton({required ScrollController scrollController, super.key})
-      : _scrollController = scrollController;
+    : _scrollController = scrollController;
 
   final ScrollController _scrollController;
 
@@ -40,6 +40,13 @@ class _ReadButtonState extends State<_ReadButton> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChatBloc, ChatState>(
+      buildWhen: (oldState, newState) {
+        if (newState is! ChatStateBase) return false;
+
+        if (oldState is! ChatStateBase) return true;
+
+        return oldState.data != newState.data;
+      },
       builder: (context, state) {
         if (state is! ChatStateBase) return const SizedBox();
 

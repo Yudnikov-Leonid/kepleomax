@@ -26,16 +26,9 @@ class PeopleScreen extends StatelessWidget {
       create: (context) =>
           PeopleBloc(userRepository: Dependencies.of(context).userRepository)
             ..add(const PeopleEventInitialLoad()),
-      child: BlocListener<PeopleBloc, PeopleState>(
-        listener: (context, state) {
-          if (state is PeopleStateError) {
-            context.showSnackBar(text: state.message, color: KlmColors.errorRed);
-          }
-        },
-        child: const Scaffold(
-          appBar: _AppBar(key: Key('people_app_bar')),
-          body: _Body(key: Key('people_body')),
-        ),
+      child: const Scaffold(
+        appBar: _AppBar(key: Key('people_app_bar')),
+        body: _Body(key: Key('people_body')),
       ),
     );
   }
@@ -67,7 +60,19 @@ class _BodyState extends State<_Body> {
     return _PagingListener(
       key: const Key('people_paging_listener'),
       scrollController: _scrollController,
-      child: BlocBuilder<PeopleBloc, PeopleState>(
+      child: BlocConsumer<PeopleBloc, PeopleState>(
+        buildWhen: (oldState, newState) {
+          if (newState is! PeopleStateBase) return false;
+
+          if (oldState is! PeopleStateBase) return true;
+
+          return oldState.data != newState.data;
+        },
+        listener: (context, state) {
+          if (state is PeopleStateError) {
+            context.showSnackBar(text: state.message, color: KlmColors.errorRed);
+          }
+        },
         builder: (context, state) {
           if (state is! PeopleStateBase) return const SizedBox();
 

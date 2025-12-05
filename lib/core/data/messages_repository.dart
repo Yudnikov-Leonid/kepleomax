@@ -8,7 +8,31 @@ import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/core/presentation/map_exceptions.dart';
 import 'package:kepleomax/main.dart';
 
-class MessagesRepository {
+abstract class IMessagesRepository {
+  /// callbacks
+  void initSocket();
+  void dispose();
+
+  /// api calls
+  Future<List<Message>> getMessages({
+    required int chatId,
+    required int userId,
+    required int limit,
+    required int offset,
+  });
+
+  /// ws sends
+  void sendMessage({required String message, required int recipientId});
+  void readAllMessages({required int chatId});
+  void readMessageBeforeTime({required int chatId, required int time});
+
+  /// ws streams
+  Stream<Message> get messagesStream;
+  Stream<ReadMessagesUpdate> get readMessagesStream;
+  Stream<bool> get connectionStateStream;
+}
+
+class MessagesRepository implements IMessagesRepository {
   final MessagesApi _messagesApi;
   final MessagesWebSocket _webSocket;
 
@@ -18,10 +42,15 @@ class MessagesRepository {
   }) : _messagesApi = messagesApi,
        _webSocket = messagesWebSocket;
 
+  /// callbacks
+  @override
   void initSocket() => _webSocket.init();
 
+  @override
   void dispose() => _webSocket.disconnect();
 
+  /// api calls
+  @override
   Future<List<Message>> getMessages({
     required int chatId,
     required int userId,
@@ -46,18 +75,26 @@ class MessagesRepository {
     }
   }
 
+  /// ws sends
+  @override
   void sendMessage({required String message, required int recipientId}) =>
       _webSocket.sendMessage(message: message, recipientId: recipientId);
 
+  @override
   void readAllMessages({required int chatId}) =>
       _webSocket.readAllMessages(chatId: chatId);
 
+  @override
   void readMessageBeforeTime({required int chatId, required int time}) =>
       _webSocket.readMessageBeforeTime(chatId: chatId, time: time);
 
+  /// ws streams
+  @override
   Stream<Message> get messagesStream => _webSocket.messagesStream;
 
+  @override
   Stream<ReadMessagesUpdate> get readMessagesStream => _webSocket.readMessagesStream;
 
+  @override
   Stream<bool> get connectionStateStream => _webSocket.connectionStateStream;
 }

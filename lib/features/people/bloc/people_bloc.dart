@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
+import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/people/bloc/people_state.dart';
 import 'package:kepleomax/main.dart';
 import 'package:rxdart/rxdart.dart';
@@ -7,11 +8,11 @@ import 'package:rxdart/rxdart.dart';
 const _pagingLimit = 12;
 
 class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
-  final UserRepository _userRepository;
+  final IUserRepository _userRepository;
 
   late PeopleData _data = PeopleData.initial();
 
-  PeopleBloc({required UserRepository userRepository})
+  PeopleBloc({required IUserRepository userRepository})
     : _userRepository = userRepository,
       super(PeopleStateBase.initial()) {
     on<PeopleEventLoad>(
@@ -48,7 +49,7 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      emit(PeopleStateError(message: e.toString()));
+      emit(PeopleStateError(message: e.userErrorMessage));
       _data = _data.copyWith(isLoading: false, isAllUsersLoaded: true);
     } finally {
       emit(PeopleStateBase(data: _data));
@@ -71,7 +72,7 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      emit(PeopleStateError(message: e.toString()));
+      emit(PeopleStateError(message: e.userErrorMessage));
     } finally {
       emit(PeopleStateBase(data: _data));
     }
@@ -98,7 +99,7 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      emit(PeopleStateError(message: e.toString()));
+      emit(PeopleStateError(message: e.userErrorMessage));
       _data = _data.copyWith(isLoading: false, isAllUsersLoaded: true);
     } finally {
       emit(PeopleStateBase(data: _data));

@@ -22,6 +22,7 @@ class PostListWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<PostListBloc, PostListState>(
+      /// don't need buildWhen
       listener: (context, state) {
         if (state is PostListStateMessage) {
           context.showSnackBar(

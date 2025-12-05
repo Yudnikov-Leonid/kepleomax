@@ -26,35 +26,36 @@ class _BottomState extends State<_Bottom> {
         width: context.screenSize.width,
         color: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-        child: Row(
-          children: [
-            Expanded(
-              child: KlmTextField(
-                controller: _controller,
-                hint: 'Message',
-                onChanged: (newText) {},
-                multiline: true,
-                maxLength: 4000,
-                textCapitalization: TextCapitalization.sentences,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 200),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: KlmTextField(
+                  controller: _controller,
+                  hint: 'Message',
+                  onChanged: (newText) {},
+                  multiline: true,
+                  maxLength: 4000,
+                  textCapitalization: TextCapitalization.sentences,
+                ),
               ),
-            ),
-            const SizedBox(width: 6),
-            IconButton(
-              onPressed: widget._onSend == null
-                  ? null
-                  : () {
-                if (_controller.text.isEmpty) return;
-                widget._onSend!(_controller.text.trim());
-                _controller.clear();
-                setState(() {});
-              },
-              style: IconButton.styleFrom(backgroundColor: KlmColors.primaryColor),
-              icon: Transform.rotate(
-                angle: math.pi / 2,
-                child: const Icon(Icons.arrow_back, color: Colors.white),
+              const SizedBox(width: 6),
+              IconButton(
+                onPressed: widget._onSend == null
+                    ? null
+                    : () {
+                  if (_controller.text.isEmpty) return;
+                  widget._onSend!(_controller.text.trim());
+                  _controller.clear();
+                  setState(() {});
+                },
+                style: IconButton.styleFrom(backgroundColor: KlmColors.primaryColor),
+                icon: const Icon(Icons.arrow_upward, color: Colors.white),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

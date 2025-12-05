@@ -8,10 +8,10 @@ abstract class LoginState {}
 
 @freezed
 abstract class LoginStateBase with _$LoginStateBase implements LoginState {
-  const factory LoginStateBase({required LoginData loginData, @Default(false) bool updateControllers}) = _LoginStateBase;
+  const factory LoginStateBase({required LoginData data, @Default(false) bool updateControllers}) = _LoginStateBase;
 
   factory LoginStateBase.initial() => LoginStateBase(
-    loginData: LoginData.initial(),
+    data: LoginData.initial(),
   );
 }
 

@@ -7,11 +7,18 @@ import 'package:kepleomax/core/presentation/map_exceptions.dart';
 
 import '../../main.dart';
 
-class AuthRepository {
+abstract class IAuthRepository {
+  Future<LoginResponseData> login({required String email, required String password});
+  Future<void> logout({required String refreshToken});
+  Future<void> register({required String email, required String password});
+}
+
+class AuthRepository implements IAuthRepository {
   final AuthApi _authApi;
 
   AuthRepository({required AuthApi authApi}) : _authApi = authApi;
 
+  @override
   Future<LoginResponseData> login({
     required String email,
     required String password,
@@ -36,6 +43,7 @@ class AuthRepository {
     }
   }
 
+  @override
   Future<void> logout({required String refreshToken}) async {
     try {
       await _authApi
@@ -47,13 +55,17 @@ class AuthRepository {
     }
   }
 
+  @override
   Future<void> register({required String email, required String password}) async {
     try {
-      final res = await _authApi.register(data: LoginRequestDto(email: email, password: password));
+      final res = await _authApi.register(
+        data: LoginRequestDto(email: email, password: password),
+      );
 
       if (res.response.statusCode != 201 && res.response.statusCode != 200) {
         throw Exception(
-          res.data.message ?? 'Failed to register a user: ${res.response.statusCode}',
+          res.data.message ??
+              'Failed to register a user: ${res.response.statusCode}',
         );
       }
     } on DioException catch (e, st) {

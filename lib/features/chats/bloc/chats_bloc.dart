@@ -7,12 +7,13 @@ import 'package:kepleomax/core/data/messages_repository.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
+import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:kepleomax/main.dart';
 
 class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
-  final ChatsRepository _chatsRepository;
-  final MessagesRepository _messagesRepository;
+  final IChatsRepository _chatsRepository;
+  final IMessagesRepository _messagesRepository;
   late ChatsData _data = ChatsData.initial();
   late StreamSubscription _subMessages;
   late StreamSubscription _subReadMessages;
@@ -20,8 +21,8 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
   final int _userId;
 
   ChatsBloc({
-    required ChatsRepository chatsRepository,
-    required MessagesRepository messagesRepository,
+    required IChatsRepository chatsRepository,
+    required IMessagesRepository messagesRepository,
     required int userId,
   }) : _chatsRepository = chatsRepository,
        _messagesRepository = messagesRepository,
@@ -78,7 +79,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
       emit(ChatsStateBase(data: _data));
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      emit(ChatsStateError(message: e.toString()));
+      emit(ChatsStateError(message: e.userErrorMessage));
     }
   }
 
@@ -141,7 +142,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
               _data.totalUnreadCount + (event.message.user.isCurrent ? 0 : 1),
         );
       } catch (e, st) {
-        emit(ChatsStateError(message: e.toString()));
+        emit(ChatsStateError(message: e.userErrorMessage));
         logger.e(e, stackTrace: st);
       }
     } else {

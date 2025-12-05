@@ -49,9 +49,9 @@ class _MainScreenState extends State<MainScreen> {
           ),
           child: BlocBuilder<ChatsBloc, ChatsState>(
             buildWhen: (oldState, newState) {
-              if (newState is! ChatsStateBase) return false;
-
               if (oldState is! ChatsStateBase) return true;
+
+              if (newState is! ChatsStateBase) return false;
 
               return oldState.data.totalUnreadCount !=
                   newState.data.totalUnreadCount;
@@ -79,7 +79,10 @@ class _MainScreenState extends State<MainScreen> {
                 selectedItemColor: KlmColors.primaryColor,
                 unselectedItemColor: KlmColors.inactiveColor,
                 items: [
-                  const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Feed'),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.home),
+                    label: 'Feed',
+                  ),
                   BottomNavigationBarItem(
                     key: Key('messages_navigation_item_$unreadCount'),
                     icon: SizedBox(

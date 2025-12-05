@@ -9,8 +9,8 @@ import 'package:kepleomax/main.dart';
 import '../models/user.dart';
 
 class AuthController {
-  final AuthRepository _authRepository;
-  final UserRepository _userRepository;
+  final IAuthRepository _authRepository;
+  final IUserRepository _userRepository;
   final TokenProvider _tokenProvider;
   final UserProvider _userProvider;
   User? _user;
@@ -20,8 +20,8 @@ class AuthController {
   final List<VoidCallback> _listeners = [];
 
   AuthController({
-    required AuthRepository authRepository,
-    required UserRepository userRepository,
+    required IAuthRepository authRepository,
+    required IUserRepository userRepository,
     required TokenProvider tokenProvider,
     required UserProvider userProvider,
   }) : _authRepository = authRepository,

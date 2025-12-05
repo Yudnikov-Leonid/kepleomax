@@ -13,7 +13,25 @@ import 'package:kepleomax/core/presentation/map_exceptions.dart';
 
 import '../../main.dart';
 
-class UserRepository {
+abstract class IUserRepository {
+  Future<User> getUser({required int userId});
+
+  Future<List<User>> search({
+    required String search,
+    required int limit,
+    required int offset,
+  });
+
+  Future<UserProfile> getUserProfile(int userId);
+
+  Future<UserProfile> updateProfile(UserProfile profile, {updateImage = false});
+
+  Future<void> addFCMToken({required String token});
+
+  Future<void> deleteFCMToken({required String token});
+}
+
+class UserRepository implements IUserRepository {
   final UserApi _userApi;
   final ProfileApi _profileApi;
   final FilesApi _filesApi;
@@ -26,6 +44,7 @@ class UserRepository {
        _profileApi = profileApi,
        _filesApi = filesApi;
 
+  @override
   Future<User> getUser({required int userId}) async {
     try {
       final res = await _userApi
@@ -45,6 +64,7 @@ class UserRepository {
     }
   }
 
+  @override
   Future<List<User>> search({
     required String search,
     required int limit,
@@ -68,6 +88,7 @@ class UserRepository {
     }
   }
 
+  @override
   Future<UserProfile> getUserProfile(int userId) async {
     try {
       final res = await _profileApi
@@ -91,6 +112,7 @@ class UserRepository {
     }
   }
 
+  @override
   Future<UserProfile> updateProfile(
     UserProfile profile, {
     updateImage = false,
@@ -139,6 +161,7 @@ class UserRepository {
     }
   }
 
+  @override
   Future<void> addFCMToken({required String token}) async {
     try {
       await _userApi.addFCMToken(body: FCMTokenRequestDto(token: token));
@@ -148,6 +171,7 @@ class UserRepository {
     }
   }
 
+  @override
   Future<void> deleteFCMToken({required String token}) async {
     try {
       await _userApi.deleteFCMToken(body: FCMTokenRequestDto(token: token));

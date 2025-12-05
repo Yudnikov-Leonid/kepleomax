@@ -19,7 +19,7 @@ class LoginScreen extends StatelessWidget {
     return BlocProvider<LoginBloc>(
       create: (context) =>
           LoginBloc(authController: Dependencies.of(context).authController),
-      child: const _Body(key: Key('login_body'),)
+      child: const _Body(key: Key('login_body')),
     );
   }
 }
@@ -58,18 +58,26 @@ class _BodyState extends State<_Body> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<LoginBloc, LoginState>(
+      buildWhen: (oldState, newState) {
+        if (newState is! LoginStateBase) return false;
+
+        if (oldState is! LoginStateBase) return true;
+
+        return oldState.data != newState.data;
+      },
       listener: (context, state) {
         if (state is LoginStateError) {
           context.showSnackBar(text: state.message, color: KlmColors.errorRed);
         }
 
         if (state is LoginStateBase && state.updateControllers) {
-          _updateControllers(state.loginData);
+          _updateControllers(state.data);
         }
       },
       builder: (context, state) {
         if (state is! LoginStateBase) return const SizedBox();
 
+        final data = state.data;
         return Scaffold(
           body: Padding(
             padding: const EdgeInsets.all(20),
@@ -84,20 +92,20 @@ class _BodyState extends State<_Body> {
                   const SizedBox(height: 52),
                   KlmTextField(
                     controller: _emailController,
-                    validators: [UiValidator.emailValidator],
+                    validators: [loginEmailValidator],
                     onChanged: (text) {
                       context.read<LoginBloc>().add(
                         LoginEventEditEmail(email: text),
                       );
                     },
                     label: 'Email',
-                    showErrors: state.loginData.isButtonPressed,
-                    readOnly: state.loginData.isLoading,
+                    showErrors: data.isButtonPressed,
+                    readOnly: data.isLoading,
                   ),
                   const SizedBox(height: 20),
                   KlmTextField(
                     controller: _passwordController,
-                    validators: [UiValidator.passwordValidator],
+                    validators: [loginPasswordValidator],
                     onChanged: (text) {
                       context.read<LoginBloc>().add(
                         LoginEventEditPassword(password: text),
@@ -105,11 +113,11 @@ class _BodyState extends State<_Body> {
                     },
                     label: 'Password',
                     isPassword: true,
-                    showErrors: state.loginData.isButtonPressed,
-                    readOnly: state.loginData.isLoading,
+                    showErrors: data.isButtonPressed,
+                    readOnly: data.isLoading,
                   ),
                   const SizedBox(height: 20),
-                  if (state.loginData.screenState is LoginScreenRegister)
+                  if (data.screenState is LoginScreenRegister)
                     KlmTextField(
                       controller: _confirmPasswordController,
                       validators: [
@@ -124,41 +132,43 @@ class _BodyState extends State<_Body> {
                       },
                       label: 'Confirm password',
                       isPassword: true,
-                      showErrors: state.loginData.isButtonPressed,
-                      readOnly: state.loginData.isLoading,
+                      showErrors: data.isButtonPressed,
+                      readOnly: data.isLoading,
                     ),
                   const SizedBox(height: 40),
                   KlmButton(
                     onPressed: () {
                       context.read<LoginBloc>().add(
-                        state.loginData.screenState.event(),
+                        data.screenState.event(),
                       );
                     },
-                    text: state.loginData.screenState.buttonText(),
+                    text: data.screenState.buttonText(),
                     width: 200,
-                    isLoading: state.loginData.isLoading,
+                    isLoading: data.isLoading,
                   ),
                   const SizedBox(height: 10),
                   TextButton(
-                    onPressed: state.loginData.isLoading
+                    onPressed: data.isLoading
                         ? null
                         : () {
                             context.read<LoginBloc>().add(
                               LoginEventChangeScreenState(
-                                state.loginData.screenState.subButtonNextState(),
+                                data.screenState.subButtonNextState(),
                               ),
                             );
                           },
                     style: TextButton.styleFrom(
                       overlayColor: Colors.grey,
-                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.zero,
+                      ),
                       padding: const EdgeInsets.all(8),
                       minimumSize: Size.zero,
                     ),
                     child: Text(
-                      state.loginData.screenState.subButtonText(),
+                      data.screenState.subButtonText(),
                       style: context.textTheme.bodyLarge?.copyWith(
-                        color: state.loginData.isLoading
+                        color: data.isLoading
                             ? Colors.grey.shade600
                             : Colors.blue.shade900,
                       ),

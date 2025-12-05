@@ -8,6 +8,7 @@ import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/core/notifications/notifications_service.dart';
+import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/main.dart';
 
 import 'chat_state.dart';
@@ -15,8 +16,8 @@ import 'chat_state.dart';
 const _pagingCount = 25;
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
-  final MessagesRepository _messagesRepository;
-  final ChatsRepository _chatsRepository;
+  final IMessagesRepository _messagesRepository;
+  final IChatsRepository _chatsRepository;
   final int _userId;
   late ChatData _data = ChatData.initial();
   late StreamSubscription _subMessages;
@@ -25,8 +26,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   ChatBloc({
     required int userId,
-    required MessagesRepository messagesRepository,
-    required ChatsRepository chatsRepository,
+    required IMessagesRepository messagesRepository,
+    required IChatsRepository chatsRepository,
   }) : _messagesRepository = messagesRepository,
        _chatsRepository = chatsRepository,
        _userId = userId,
@@ -147,7 +148,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       emit(ChatStateBase(data: _data));
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      emit(ChatStateError(message: e.toString()));
+      emit(ChatStateError(message: e.userErrorMessage));
     }
   }
 

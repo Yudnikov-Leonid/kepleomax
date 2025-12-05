@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,6 +8,7 @@ import 'package:kepleomax/core/data/files_repository.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/presentation/image_url_or_file.dart';
+import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/post_editor/bloc/post_editor_state.dart';
 import 'package:kepleomax/main.dart';
 
@@ -14,24 +16,30 @@ const imagesCountLimit = 5;
 
 class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
   late PostEditorData _data = PostEditorData.initial();
-  final PostRepository _repository;
-  final FilesRepository _filesRepository;
+  final IPostRepository _repository;
+  final IFilesRepository _filesRepository;
 
   PostEditorBloc({
-    required PostRepository postRepository,
-    required FilesRepository filesRepository,
+    required IPostRepository postRepository,
+    required IFilesRepository filesRepository,
   }) : _repository = postRepository,
        _filesRepository = filesRepository,
        super(PostEditorStateBase.initial()) {
-    on<PostEditorEventSave>(_onSave);
-    on<PostEditorEventEditText>(_onEditText);
-    on<PostEditorEventAddPhotos>(_onAddPhotos);
-    on<PostEditorEventRemovePhoto>(_onRemovePhoto);
-    on<PostEditorEventSwapPhotos>(_onSwapPhotos);
-    on<PostEditorEventLoad>(_onLoad);
+    on<PostEditorEvent>(
+      (event, emit) => switch (event) {
+        PostEditorEventInit event => _onInit(event, emit),
+        PostEditorEventSave event => _onSave(event, emit),
+        PostEditorEventEditText event => _onEditText(event, emit),
+        PostEditorEventAddPhotos event => _onAddPhotos(event, emit),
+        PostEditorEventRemovePhoto event => _onRemovePhoto(event, emit),
+        PostEditorEventSwapPhotos event => _onSwapPhotos(event, emit),
+        _ => () {},
+      },
+      transformer: sequential(),
+    );
   }
 
-  void _onLoad(PostEditorEventLoad event, Emitter<PostEditorState> emit) async {
+  void _onInit(PostEditorEventInit event, Emitter<PostEditorState> emit) async {
     if (event.post == null) return;
 
     _data = PostEditorData.fromPost(event.post!);
@@ -59,9 +67,13 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
 
       bool refreshPostsList = true;
       if (_data.originalPost == null) {
-        await _repository.createNewPost(content: _data.text.trim(), images: imagesList);
+        await _repository.createNewPost(
+          content: _data.text.trim(),
+          images: imagesList,
+        );
       } else {
-        final isSomethingChanged = _data.text != _data.originalPost!.content ||
+        final isSomethingChanged =
+            _data.text != _data.originalPost!.content ||
             !const ListEquality().equals(_data.images, _data.originalPost!.images);
         if (isSomethingChanged) {
           await _repository.updatePost(
@@ -77,7 +89,7 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
       emit(PostEditorStateExit(refreshPostsList: refreshPostsList));
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      emit(PostEditorStateError(message: e.toString()));
+      emit(PostEditorStateError(message: e.userErrorMessage));
       _data = _data.copyWith(isLoading: false);
       emit(PostEditorStateBase(data: _data));
     }
@@ -130,7 +142,7 @@ class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      emit(PostEditorStateError(message: e.toString()));
+      emit(PostEditorStateError(message: e.userErrorMessage));
     } finally {
       emit(PostEditorStateBase(data: _data));
     }
@@ -211,8 +223,8 @@ class PostEditorEventSwapPhotos implements PostEditorEvent {
   PostEditorEventSwapPhotos({required this.indexOne, required this.indexTwo});
 }
 
-class PostEditorEventLoad implements PostEditorEvent {
+class PostEditorEventInit implements PostEditorEvent {
   final Post? post;
 
-  PostEditorEventLoad({required this.post});
+  PostEditorEventInit({required this.post});
 }

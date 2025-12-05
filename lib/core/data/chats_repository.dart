@@ -5,11 +5,18 @@ import 'package:kepleomax/core/network/common/api_constants.dart';
 import 'package:kepleomax/core/presentation/map_exceptions.dart';
 import 'package:kepleomax/main.dart';
 
-class ChatsRepository {
+abstract class IChatsRepository {
+  Future<List<Chat>> getChats();
+  Future<Chat?> getChatWithUser(int otherUserId);
+  Future<Chat?> getChatWithId(int chatId);
+}
+
+class ChatsRepository implements IChatsRepository {
   final ChatsApi _chatsApi;
 
   ChatsRepository({required ChatsApi chatsApi}) : _chatsApi = chatsApi;
 
+  @override
   Future<List<Chat>> getChats() async {
     try {
       final res = await _chatsApi.getChats().timeout(ApiConstants.timeout);
@@ -27,6 +34,7 @@ class ChatsRepository {
     }
   }
 
+  @override
   Future<Chat?> getChatWithUser(int otherUserId) async {
     try {
       final res = await _chatsApi
@@ -49,6 +57,7 @@ class ChatsRepository {
     }
   }
 
+  @override
   Future<Chat?> getChatWithId(int chatId) async {
     try {
       final res = await _chatsApi

@@ -21,6 +21,7 @@ import '../../core/presentation/colors.dart';
 import '../../core/presentation/photos_preview/photos_preview_screen.dart';
 
 part 'widgets/primary_button.dart';
+
 part 'widgets/user_scroll_listeners.dart';
 
 const int _appBarUsernameFullShownOffset = 130;
@@ -56,48 +57,22 @@ class _UserScreenState extends State<UserScreen> {
         userRepository: Dependencies.of(context).userRepository,
         userId: widget.userId,
       )..add(const UserEventLoad()),
-      child: BlocConsumer<UserBloc, UserState>(
-        listener: (context, state) {
-          if (state is UserStateError) {
-            context.showSnackBar(text: state.message, color: KlmColors.errorRed);
-          }
-
-          if (state is UserStateMessage) {
-            context.showSnackBar(
-              text: state.message,
-              color: Colors.green,
-              duration: const Duration(seconds: 2),
-            );
-          }
-
-          if (state is UserStateUpdateUser) {
-            AuthScope.updateUser(context, state.user);
-            context.read<PostListBloc>().add(const PostListEventLoad());
-          }
-        },
-        builder: (context, state) {
-          if (state is! UserStateBase) {
-            return Scaffold(appBar: AppBar(leading: const BackButton()));
-          }
-
-          return Scaffold(
-            extendBodyBehindAppBar: true,
-            appBar: _AppBar(
-              scrollController: _scrollController,
-              userId: widget.userId,
-              key: const Key('user_app_bar'),
-            ),
-            body: _ScrollControllerListeners(
-              controller: _scrollController,
-              userId: widget.userId,
-              child: _Body(
-                scrollController: _scrollController,
-                scrollPadding: MediaQuery.of(context).viewPadding.top,
-                key: const Key('user_screen_body'),
-              ),
-            ),
-          );
-        },
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: _AppBar(
+          scrollController: _scrollController,
+          userId: widget.userId,
+          key: const Key('user_app_bar'),
+        ),
+        body: _ScrollControllerListeners(
+          controller: _scrollController,
+          userId: widget.userId,
+          child: _Body(
+            scrollController: _scrollController,
+            scrollPadding: MediaQuery.of(context).viewPadding.top,
+            key: const Key('user_screen_body'),
+          ),
+        ),
       ),
     );
   }
@@ -118,18 +93,31 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<UserBloc, UserState>(
+    return BlocConsumer<UserBloc, UserState>(
       buildWhen: (oldState, newState) {
         if (newState is! UserStateBase) return false;
 
         if (oldState is! UserStateBase) return true;
 
-        return oldState.userData != newState.userData;
+        return oldState.data != newState.data;
+      },
+      listener: (context, state) {
+        if (state is UserStateMessage) {
+          context.showSnackBar(
+            text: state.message,
+            color: state.isError ? KlmColors.errorRed : Colors.green,
+          );
+        }
+
+        if (state is UserStateUpdateUser) {
+          AuthScope.updateUser(context, state.user);
+          context.read<PostListBloc>().add(const PostListEventLoad());
+        }
       },
       builder: (context, state) {
         if (state is! UserStateBase) return const SizedBox();
 
-        final data = state.userData;
+        final data = state.data;
         return RefreshIndicator(
           onRefresh: () async {
             context.read<UserBloc>().add(const UserEventLoad());
@@ -315,8 +303,8 @@ class _AppBarState extends State<_AppBar> {
 
         if (oldState is! UserStateBase) return true;
 
-        final oldData = oldState.userData;
-        final newData = newState.userData;
+        final oldData = oldState.data;
+        final newData = newState.data;
 
         return oldData.isLoading != newData.isLoading ||
             oldData.profile?.user.isCurrent != newData.profile?.user.isCurrent ||
@@ -326,7 +314,7 @@ class _AppBarState extends State<_AppBar> {
         if (state is! UserStateBase) return const SizedBox();
 
         /// main content
-        final data = state.userData;
+        final data = state.data;
         return AppBar(
           backgroundColor: Colors.white.withAlpha(
             !widget.scrollController.hasClients
@@ -382,20 +370,21 @@ class _AppBarState extends State<_AppBar> {
                   ),
                 ],
               )
-            else if (!data.isLoading && widget.userId == AuthScope.userOf(context).id)
+            else if (!data.isLoading &&
+                widget.userId == AuthScope.userOf(context).id)
               TextButton(
                 onPressed: () {
                   AuthScope.logout(context);
                 },
                 style: TextButton.styleFrom(
                   surfaceTintColor: Colors.transparent,
-                  overlayColor: KlmColors.errorRed
+                  overlayColor: KlmColors.errorRed,
                 ),
                 child: Text(
                   'Logout',
                   style: context.textTheme.bodySmall?.copyWith(
                     color: KlmColors.errorRed,
-                    fontWeight: FontWeight.w500
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),

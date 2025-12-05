@@ -36,6 +36,7 @@ class _Body extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChatsBloc, ChatsState>(
+      /// don't need buildWhen
       builder: (context, state) {
         if (state is ChatsStateError) {
           return Center(
@@ -70,6 +71,8 @@ class _Body extends StatelessWidget {
           return Skeletonizer(
             child: Column(
               children: [
+                _ChatWidget(chat: Chat.loading(), isLoading: true),
+                _ChatWidget(chat: Chat.loading(), isLoading: true),
                 _ChatWidget(chat: Chat.loading(), isLoading: true),
                 _ChatWidget(chat: Chat.loading(), isLoading: true),
                 _ChatWidget(chat: Chat.loading(), isLoading: true),

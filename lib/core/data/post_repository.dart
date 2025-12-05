@@ -7,11 +7,40 @@ import 'package:kepleomax/core/presentation/map_exceptions.dart';
 
 import '../../main.dart';
 
-class PostRepository {
+abstract class IPostRepository {
+  Future<Post> updatePost({
+    required int postId,
+    required String content,
+    required List<String> images,
+  });
+
+  Future<Post> deletePost({required int postId});
+
+  Future<Post> createNewPost({
+    required String content,
+    required List<String> images,
+  });
+
+  Future<List<Post>> getPostsByUserId({
+    required int userId,
+    required int limit,
+    required int offset,
+    required int beforeTime,
+  });
+
+  Future<List<Post>> getPosts({
+    required int limit,
+    required int offset,
+    required int beforeTime,
+  });
+}
+
+class PostRepository implements IPostRepository {
   final PostApi _postApi;
 
   PostRepository({required PostApi postApi}) : _postApi = postApi;
 
+  @override
   Future<Post> updatePost({
     required int postId,
     required String content,
@@ -37,6 +66,7 @@ class PostRepository {
     }
   }
 
+  @override
   Future<Post> deletePost({required int postId}) async {
     try {
       final res = await _postApi.deletePost(postId: postId).timeout(ApiConstants.timeout);
@@ -78,6 +108,7 @@ class PostRepository {
     }
   }
 
+  @override
   Future<List<Post>> getPostsByUserId({
     required int userId,
     required int limit,
@@ -105,6 +136,7 @@ class PostRepository {
     }
   }
 
+  @override
   Future<List<Post>> getPosts({
     required int limit,
     required int offset,

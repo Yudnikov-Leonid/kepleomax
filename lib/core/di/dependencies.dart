@@ -21,28 +21,28 @@ import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Dependencies {
-  late AuthController authController;
-  late TokenProvider tokenProvider;
-  late SharedPreferences sharedPreferences;
-  late FlutterSecureStorage secureStorage;
+  late final AuthController authController;
+  late final TokenProvider tokenProvider;
+  late final SharedPreferences sharedPreferences;
+  late final FlutterSecureStorage secureStorage;
+  late final PrettyDioLogger prettyDioLogger;
 
-  late Dio dio;
-  late AuthApi authApi;
-  late UserApi userApi;
-  late ProfileApi profileApi;
-  late FilesApi filesApi;
-  late PostApi postApi;
-  late MessagesApi messagesApi;
-  late ChatsApi chatsApi;
-  late MessagesWebSocket messagesWebSocket;
+  late final Dio dio;
+  late final AuthApi authApi;
+  late final UserApi userApi;
+  late final ProfileApi profileApi;
+  late final FilesApi filesApi;
+  late final PostApi postApi;
+  late final MessagesApi messagesApi;
+  late final ChatsApi chatsApi;
+  late final MessagesWebSocket messagesWebSocket;
 
-  late AuthRepository authRepository;
-  late UserRepository userRepository;
-  late PostRepository postRepository;
-  late FilesRepository filesRepository;
-  late MessagesRepository messagesRepository;
-  late ChatsRepository chatsRepository;
-  late PrettyDioLogger prettyDioLogger;
+  late final IAuthRepository authRepository;
+  late final IUserRepository userRepository;
+  late final IPostRepository postRepository;
+  late final IFilesRepository filesRepository;
+  late final IMessagesRepository messagesRepository;
+  late final IChatsRepository chatsRepository;
 
   Widget inject({required Widget child}) =>
       InheritedDependencies(dependencies: this, child: child);

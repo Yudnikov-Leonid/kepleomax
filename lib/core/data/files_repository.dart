@@ -7,11 +7,16 @@ import 'package:kepleomax/core/presentation/map_exceptions.dart';
 
 import '../../main.dart';
 
-class FilesRepository {
+abstract class IFilesRepository {
+  Future<String> uploadFile(String path);
+}
+
+class FilesRepository implements IFilesRepository {
   final FilesApi _filesApi;
 
   FilesRepository({required FilesApi filesApi}) : _filesApi = filesApi;
 
+  @override
   Future<String> uploadFile(String path) async {
     try {
       final res = await _filesApi

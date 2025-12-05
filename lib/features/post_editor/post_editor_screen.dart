@@ -34,7 +34,7 @@ class PostEditorScreen extends StatelessWidget {
       create: (context) => PostEditorBloc(
         filesRepository: Dependencies.of(context).filesRepository,
         postRepository: Dependencies.of(context).postRepository,
-      )..add(PostEditorEventLoad(post: _post)),
+      )..add(PostEditorEventInit(post: _post)),
       child: BlocListener<PostEditorBloc, PostEditorState>(
         listener: (context, state) {
           if (state is PostEditorStateError) {
@@ -87,11 +87,6 @@ class _BodyState extends State<_Body> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<PostEditorBloc, PostEditorState>(
-      listener: (context, state) {
-        if (state is PostEditorStateBase && state.updateControllers) {
-          _updateControllers(state.data);
-        }
-      },
       buildWhen: (oldState, newState) {
         if (newState is! PostEditorStateBase) return false;
 
@@ -99,6 +94,11 @@ class _BodyState extends State<_Body> {
 
         return !listEquals(oldState.data.images, newState.data.images) ||
             oldState.data.isLoading != newState.data.isLoading;
+      },
+      listener: (context, state) {
+        if (state is PostEditorStateBase && state.updateControllers) {
+          _updateControllers(state.data);
+        }
       },
       builder: (context, state) {
         if (state is! PostEditorStateBase) return const SizedBox();

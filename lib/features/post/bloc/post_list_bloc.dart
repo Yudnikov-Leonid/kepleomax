@@ -1,26 +1,36 @@
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/models/post.dart';
+import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/post/bloc/post_list_state.dart';
 import 'package:kepleomax/main.dart';
 import 'package:ntp/ntp.dart';
 
+import '../../../core/network/common/api_constants.dart';
+
 const int _pagingLimit = 5;
 
 class PostListBloc extends Bloc<PostListEvent, PostListState> {
-  final PostRepository _postRepository;
+  final IPostRepository _postRepository;
 
   late PostListData _data = PostListData.initial();
   final int? _userId;
   int _loadTime = 0;
 
-  PostListBloc({required PostRepository postRepository, required int? userId})
+  PostListBloc({required IPostRepository postRepository, required int? userId})
     : _postRepository = postRepository,
       _userId = userId,
       super(PostListStateBase.initial()) {
-    on<PostListEventLoad>(_onLoad);
-    on<PostListEventLoadMore>(_onLoadMorePosts);
-    on<PostListEventDeletePost>(_onDeletePost);
+    on<PostListEvent>(
+      (event, emit) => switch (event) {
+        PostListEventLoad event => _onLoad(event, emit),
+        PostListEventLoadMore event => _onLoadMorePosts(event, emit),
+        PostListEventDeletePost event => _onDeletePost(event, emit),
+        _ => () {},
+      },
+      transformer: sequential(),
+    );
   }
 
   void _onLoad(PostListEventLoad event, Emitter<PostListState> emit) async {
@@ -29,7 +39,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     emit(const PostListStateLoading());
 
     try {
-      _loadTime = (await NTP.now()).millisecondsSinceEpoch;
+      _loadTime = (await NTP.now(timeout: ApiConstants.timeout)).millisecondsSinceEpoch;
       final posts = await _getPosts(offset: 0, beforeTime: _loadTime);
 
       _data = _data.copyWith(
@@ -38,7 +48,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      emit(PostListStateError(message: e.toString()));
+      emit(PostListStateError(message: e.userErrorMessage));
     } finally {
       _data = _data.copyWith(isNewPostsLoading: false);
       emit(PostListStateBase(data: _data));
@@ -56,7 +66,10 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
 
     final oldPosts = _data.posts;
     try {
-      final newPosts = await _getPosts(offset: oldPosts.length, beforeTime: _loadTime);
+      final newPosts = await _getPosts(
+        offset: oldPosts.length,
+        beforeTime: _loadTime,
+      );
 
       _data = _data.copyWith(
         isAllPostsLoaded: newPosts.length < _pagingLimit,
@@ -67,7 +80,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     } catch (e, st) {
       logger.e(e, stackTrace: st);
       _data = _data.copyWith(isAllPostsLoaded: true);
-      emit(PostListStateMessage(message: e.toString(), isError: true));
+      emit(PostListStateMessage(message: e.userErrorMessage, isError: true));
     } finally {
       _data = _data.copyWith(isNewPostsLoading: false);
       emit(PostListStateBase(data: _data));
@@ -75,9 +88,9 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
   }
 
   void _onDeletePost(
-      PostListEventDeletePost event,
-      Emitter<PostListState> emit,
-      ) async {
+    PostListEventDeletePost event,
+    Emitter<PostListState> emit,
+  ) async {
     final oldPosts = [..._data.posts];
     final newPosts = _data.posts.toList();
     _data = _data.copyWith(
@@ -93,7 +106,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     } catch (e, st) {
       logger.e(e, stackTrace: st);
       _data = _data.copyWith(posts: oldPosts);
-      emit(PostListStateMessage(message: e.toString(), isError: true));
+      emit(PostListStateMessage(message: e.userErrorMessage, isError: true));
     } finally {
       emit(PostListStateBase(data: _data));
     }
@@ -114,7 +127,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
         userId: _userId,
         limit: _pagingLimit,
         offset: offset,
-        beforeTime: beforeTime
+        beforeTime: beforeTime,
       );
     }
   }

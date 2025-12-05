@@ -12,6 +12,8 @@ import 'package:kepleomax/main.dart';
 import '../../core/presentation/caching_image.dart';
 import '../../core/presentation/user_image.dart';
 
+final String? Function(String) _usernameValidator = UiValidator.emptyValidator;
+
 class EditProfileBottomSheet extends StatefulWidget {
   const EditProfileBottomSheet({
     required this.profile,
@@ -132,8 +134,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
                             _isButtonPressed = true;
                           });
 
-                          /// TODO fix dry with validators (also used below in KlmTextField)
-                          if (UiValidator.emptyValidator(_nameController.text) !=
+                          if (_usernameValidator(_nameController.text) !=
                               null) {
                             return;
                           }
@@ -165,7 +166,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
               readOnly: _isClosing,
               maxLength: 20,
               showErrors: _isButtonPressed,
-              validators: [UiValidator.emptyValidator],
+              validators: [_usernameValidator],
             ),
             const SizedBox(height: 20),
             KlmTextField(

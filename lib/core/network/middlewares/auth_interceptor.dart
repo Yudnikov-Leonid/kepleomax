@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
+import 'package:kepleomax/core/network/common/api_constants.dart';
 import 'package:kepleomax/core/network/common/refresh_token.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
@@ -46,7 +47,7 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
       return;
     }
 
-    final now = await NTP.now(timeout: const Duration(seconds: 4));
+    final now = await NTP.now(timeout: ApiConstants.timeout);
     final accessTokenHasExpired = now.isAfter(
       JwtDecoder.getExpirationDate(accessToken),
     );

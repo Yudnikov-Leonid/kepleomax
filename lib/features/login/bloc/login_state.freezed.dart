@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$LoginStateBase {
 
- LoginData get loginData; bool get updateControllers;
+ LoginData get data; bool get updateControllers;
 /// Create a copy of LoginStateBase
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $LoginStateBaseCopyWith<LoginStateBase> get copyWith => _$LoginStateBaseCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoginStateBase&&(identical(other.loginData, loginData) || other.loginData == loginData)&&(identical(other.updateControllers, updateControllers) || other.updateControllers == updateControllers));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoginStateBase&&(identical(other.data, data) || other.data == data)&&(identical(other.updateControllers, updateControllers) || other.updateControllers == updateControllers));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,loginData,updateControllers);
+int get hashCode => Object.hash(runtimeType,data,updateControllers);
 
 @override
 String toString() {
-  return 'LoginStateBase(loginData: $loginData, updateControllers: $updateControllers)';
+  return 'LoginStateBase(data: $data, updateControllers: $updateControllers)';
 }
 
 
@@ -45,11 +45,11 @@ abstract mixin class $LoginStateBaseCopyWith<$Res>  {
   factory $LoginStateBaseCopyWith(LoginStateBase value, $Res Function(LoginStateBase) _then) = _$LoginStateBaseCopyWithImpl;
 @useResult
 $Res call({
- LoginData loginData, bool updateControllers
+ LoginData data, bool updateControllers
 });
 
 
-$LoginDataCopyWith<$Res> get loginData;
+$LoginDataCopyWith<$Res> get data;
 
 }
 /// @nodoc
@@ -62,9 +62,9 @@ class _$LoginStateBaseCopyWithImpl<$Res>
 
 /// Create a copy of LoginStateBase
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? loginData = null,Object? updateControllers = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? data = null,Object? updateControllers = null,}) {
   return _then(_self.copyWith(
-loginData: null == loginData ? _self.loginData : loginData // ignore: cast_nullable_to_non_nullable
+data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
 as LoginData,updateControllers: null == updateControllers ? _self.updateControllers : updateControllers // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
@@ -73,10 +73,10 @@ as bool,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$LoginDataCopyWith<$Res> get loginData {
+$LoginDataCopyWith<$Res> get data {
   
-  return $LoginDataCopyWith<$Res>(_self.loginData, (value) {
-    return _then(_self.copyWith(loginData: value));
+  return $LoginDataCopyWith<$Res>(_self.data, (value) {
+    return _then(_self.copyWith(data: value));
   });
 }
 }
@@ -160,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( LoginData loginData,  bool updateControllers)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( LoginData data,  bool updateControllers)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LoginStateBase() when $default != null:
-return $default(_that.loginData,_that.updateControllers);case _:
+return $default(_that.data,_that.updateControllers);case _:
   return orElse();
 
 }
@@ -181,10 +181,10 @@ return $default(_that.loginData,_that.updateControllers);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( LoginData loginData,  bool updateControllers)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( LoginData data,  bool updateControllers)  $default,) {final _that = this;
 switch (_that) {
 case _LoginStateBase():
-return $default(_that.loginData,_that.updateControllers);case _:
+return $default(_that.data,_that.updateControllers);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +201,10 @@ return $default(_that.loginData,_that.updateControllers);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( LoginData loginData,  bool updateControllers)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( LoginData data,  bool updateControllers)?  $default,) {final _that = this;
 switch (_that) {
 case _LoginStateBase() when $default != null:
-return $default(_that.loginData,_that.updateControllers);case _:
+return $default(_that.data,_that.updateControllers);case _:
   return null;
 
 }
@@ -216,10 +216,10 @@ return $default(_that.loginData,_that.updateControllers);case _:
 
 
 class _LoginStateBase implements LoginStateBase {
-  const _LoginStateBase({required this.loginData, this.updateControllers = false});
+  const _LoginStateBase({required this.data, this.updateControllers = false});
   
 
-@override final  LoginData loginData;
+@override final  LoginData data;
 @override@JsonKey() final  bool updateControllers;
 
 /// Create a copy of LoginStateBase
@@ -232,16 +232,16 @@ _$LoginStateBaseCopyWith<_LoginStateBase> get copyWith => __$LoginStateBaseCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoginStateBase&&(identical(other.loginData, loginData) || other.loginData == loginData)&&(identical(other.updateControllers, updateControllers) || other.updateControllers == updateControllers));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoginStateBase&&(identical(other.data, data) || other.data == data)&&(identical(other.updateControllers, updateControllers) || other.updateControllers == updateControllers));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,loginData,updateControllers);
+int get hashCode => Object.hash(runtimeType,data,updateControllers);
 
 @override
 String toString() {
-  return 'LoginStateBase(loginData: $loginData, updateControllers: $updateControllers)';
+  return 'LoginStateBase(data: $data, updateControllers: $updateControllers)';
 }
 
 
@@ -252,11 +252,11 @@ abstract mixin class _$LoginStateBaseCopyWith<$Res> implements $LoginStateBaseCo
   factory _$LoginStateBaseCopyWith(_LoginStateBase value, $Res Function(_LoginStateBase) _then) = __$LoginStateBaseCopyWithImpl;
 @override @useResult
 $Res call({
- LoginData loginData, bool updateControllers
+ LoginData data, bool updateControllers
 });
 
 
-@override $LoginDataCopyWith<$Res> get loginData;
+@override $LoginDataCopyWith<$Res> get data;
 
 }
 /// @nodoc
@@ -269,9 +269,9 @@ class __$LoginStateBaseCopyWithImpl<$Res>
 
 /// Create a copy of LoginStateBase
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? loginData = null,Object? updateControllers = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? data = null,Object? updateControllers = null,}) {
   return _then(_LoginStateBase(
-loginData: null == loginData ? _self.loginData : loginData // ignore: cast_nullable_to_non_nullable
+data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
 as LoginData,updateControllers: null == updateControllers ? _self.updateControllers : updateControllers // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
@@ -281,10 +281,10 @@ as bool,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$LoginDataCopyWith<$Res> get loginData {
+$LoginDataCopyWith<$Res> get data {
   
-  return $LoginDataCopyWith<$Res>(_self.loginData, (value) {
-    return _then(_self.copyWith(loginData: value));
+  return $LoginDataCopyWith<$Res>(_self.data, (value) {
+    return _then(_self.copyWith(data: value));
   });
 }
 }

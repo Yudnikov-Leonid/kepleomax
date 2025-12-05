@@ -1,25 +1,33 @@
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/models/user_profile.dart';
+import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/user/bloc/user_states.dart';
 import 'package:kepleomax/main.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
-  final UserRepository _userRepository;
+  final IUserRepository _userRepository;
   final int _userId;
   late UserData _userData = UserData.initial();
 
-  UserBloc({required UserRepository userRepository, required int userId})
+  UserBloc({required IUserRepository userRepository, required int userId})
     : _userRepository = userRepository,
       _userId = userId,
       super(UserStateBase.initial()) {
-    on<UserEventLoad>(_onLoad);
-    on<UserEventUpdateProfile>(_onUpdateProfile);
+    on<UserEvent>(
+      (event, emit) => switch (event) {
+        UserEventLoad event => _onLoad(event, emit),
+        UserEventUpdateProfile event => _onUpdateProfile(event, emit),
+        _ => () {},
+      },
+      transformer: sequential(),
+    );
   }
 
   void _onLoad(UserEventLoad event, Emitter<UserState> emit) async {
     _userData = _userData.copyWith(isLoading: true, profile: null);
-    emit(UserStateBase(userData: _userData));
+    emit(UserStateBase(data: _userData));
 
     UserProfile? profile;
 
@@ -29,10 +37,10 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       logger.e(e, stackTrace: st);
 
       /// TODO restore data that was before load? cause after refresh all data can disappear
-      emit(UserStateError(message: e.toString()));
+      emit(UserStateMessage(message: e.userErrorMessage, isError: true));
     } finally {
       _userData = _userData.copyWith(profile: profile, isLoading: false);
-      emit(UserStateBase(userData: _userData));
+      emit(UserStateBase(data: _userData));
     }
   }
 
@@ -45,7 +53,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
 
     _userData = _userData.copyWith(isLoading: true);
-    emit(UserStateBase(userData: _userData));
+    emit(UserStateBase(data: _userData));
 
     try {
       final newProfile = await _userRepository.updateProfile(
@@ -60,10 +68,10 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       emit(const UserStateMessage(message: 'Changes saved'));
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      emit(UserStateError(message: e.toString()));
+      emit(UserStateMessage(message: e.userErrorMessage, isError: true));
     } finally {
       _userData = _userData.copyWith(isLoading: false);
-      emit(UserStateBase(userData: _userData));
+      emit(UserStateBase(data: _userData));
     }
   }
 }

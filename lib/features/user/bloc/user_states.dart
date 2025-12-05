@@ -8,19 +8,14 @@ abstract class UserState {}
 
 @freezed
 abstract class UserStateBase with _$UserStateBase implements UserState {
-  const factory UserStateBase({required UserData userData}) = _UserStateBase;
+  const factory UserStateBase({required UserData data}) = _UserStateBase;
 
-  factory UserStateBase.initial() => UserStateBase(userData: UserData.initial());
-}
-
-@freezed
-abstract class UserStateError with _$UserStateError implements UserState {
-  const factory UserStateError({required String message}) = _UserStateError;
+  factory UserStateBase.initial() => UserStateBase(data: UserData.initial());
 }
 
 @freezed
 abstract class UserStateMessage with _$UserStateMessage implements UserState {
-  const factory UserStateMessage({required String message}) = _UserStateMessage;
+  const factory UserStateMessage({required String message, @Default(false) bool isError}) = _UserStateMessage;
 }
 
 @freezed

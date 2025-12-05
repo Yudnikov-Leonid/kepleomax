@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UserStateBase {
 
- UserData get userData;
+ UserData get data;
 /// Create a copy of UserStateBase
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $UserStateBaseCopyWith<UserStateBase> get copyWith => _$UserStateBaseCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserStateBase&&(identical(other.userData, userData) || other.userData == userData));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserStateBase&&(identical(other.data, data) || other.data == data));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,userData);
+int get hashCode => Object.hash(runtimeType,data);
 
 @override
 String toString() {
-  return 'UserStateBase(userData: $userData)';
+  return 'UserStateBase(data: $data)';
 }
 
 
@@ -45,11 +45,11 @@ abstract mixin class $UserStateBaseCopyWith<$Res>  {
   factory $UserStateBaseCopyWith(UserStateBase value, $Res Function(UserStateBase) _then) = _$UserStateBaseCopyWithImpl;
 @useResult
 $Res call({
- UserData userData
+ UserData data
 });
 
 
-$UserDataCopyWith<$Res> get userData;
+$UserDataCopyWith<$Res> get data;
 
 }
 /// @nodoc
@@ -62,9 +62,9 @@ class _$UserStateBaseCopyWithImpl<$Res>
 
 /// Create a copy of UserStateBase
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? userData = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? data = null,}) {
   return _then(_self.copyWith(
-userData: null == userData ? _self.userData : userData // ignore: cast_nullable_to_non_nullable
+data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
 as UserData,
   ));
 }
@@ -72,10 +72,10 @@ as UserData,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$UserDataCopyWith<$Res> get userData {
+$UserDataCopyWith<$Res> get data {
   
-  return $UserDataCopyWith<$Res>(_self.userData, (value) {
-    return _then(_self.copyWith(userData: value));
+  return $UserDataCopyWith<$Res>(_self.data, (value) {
+    return _then(_self.copyWith(data: value));
   });
 }
 }
@@ -159,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( UserData userData)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( UserData data)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserStateBase() when $default != null:
-return $default(_that.userData);case _:
+return $default(_that.data);case _:
   return orElse();
 
 }
@@ -180,10 +180,10 @@ return $default(_that.userData);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( UserData userData)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( UserData data)  $default,) {final _that = this;
 switch (_that) {
 case _UserStateBase():
-return $default(_that.userData);case _:
+return $default(_that.data);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +200,10 @@ return $default(_that.userData);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( UserData userData)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( UserData data)?  $default,) {final _that = this;
 switch (_that) {
 case _UserStateBase() when $default != null:
-return $default(_that.userData);case _:
+return $default(_that.data);case _:
   return null;
 
 }
@@ -215,10 +215,10 @@ return $default(_that.userData);case _:
 
 
 class _UserStateBase implements UserStateBase {
-  const _UserStateBase({required this.userData});
+  const _UserStateBase({required this.data});
   
 
-@override final  UserData userData;
+@override final  UserData data;
 
 /// Create a copy of UserStateBase
 /// with the given fields replaced by the non-null parameter values.
@@ -230,16 +230,16 @@ _$UserStateBaseCopyWith<_UserStateBase> get copyWith => __$UserStateBaseCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserStateBase&&(identical(other.userData, userData) || other.userData == userData));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserStateBase&&(identical(other.data, data) || other.data == data));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,userData);
+int get hashCode => Object.hash(runtimeType,data);
 
 @override
 String toString() {
-  return 'UserStateBase(userData: $userData)';
+  return 'UserStateBase(data: $data)';
 }
 
 
@@ -250,11 +250,11 @@ abstract mixin class _$UserStateBaseCopyWith<$Res> implements $UserStateBaseCopy
   factory _$UserStateBaseCopyWith(_UserStateBase value, $Res Function(_UserStateBase) _then) = __$UserStateBaseCopyWithImpl;
 @override @useResult
 $Res call({
- UserData userData
+ UserData data
 });
 
 
-@override $UserDataCopyWith<$Res> get userData;
+@override $UserDataCopyWith<$Res> get data;
 
 }
 /// @nodoc
@@ -267,9 +267,9 @@ class __$UserStateBaseCopyWithImpl<$Res>
 
 /// Create a copy of UserStateBase
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? userData = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? data = null,}) {
   return _then(_UserStateBase(
-userData: null == userData ? _self.userData : userData // ignore: cast_nullable_to_non_nullable
+data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
 as UserData,
   ));
 }
@@ -278,275 +278,18 @@ as UserData,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$UserDataCopyWith<$Res> get userData {
+$UserDataCopyWith<$Res> get data {
   
-  return $UserDataCopyWith<$Res>(_self.userData, (value) {
-    return _then(_self.copyWith(userData: value));
+  return $UserDataCopyWith<$Res>(_self.data, (value) {
+    return _then(_self.copyWith(data: value));
   });
 }
 }
 
 /// @nodoc
-mixin _$UserStateError {
-
- String get message;
-/// Create a copy of UserStateError
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$UserStateErrorCopyWith<UserStateError> get copyWith => _$UserStateErrorCopyWithImpl<UserStateError>(this as UserStateError, _$identity);
-
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserStateError&&(identical(other.message, message) || other.message == message));
-}
-
-
-@override
-int get hashCode => Object.hash(runtimeType,message);
-
-@override
-String toString() {
-  return 'UserStateError(message: $message)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class $UserStateErrorCopyWith<$Res>  {
-  factory $UserStateErrorCopyWith(UserStateError value, $Res Function(UserStateError) _then) = _$UserStateErrorCopyWithImpl;
-@useResult
-$Res call({
- String message
-});
-
-
-
-
-}
-/// @nodoc
-class _$UserStateErrorCopyWithImpl<$Res>
-    implements $UserStateErrorCopyWith<$Res> {
-  _$UserStateErrorCopyWithImpl(this._self, this._then);
-
-  final UserStateError _self;
-  final $Res Function(UserStateError) _then;
-
-/// Create a copy of UserStateError
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? message = null,}) {
-  return _then(_self.copyWith(
-message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
-as String,
-  ));
-}
-
-}
-
-
-/// Adds pattern-matching-related methods to [UserStateError].
-extension UserStateErrorPatterns on UserStateError {
-/// A variant of `map` that fallback to returning `orElse`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _UserStateError value)?  $default,{required TResult orElse(),}){
-final _that = this;
-switch (_that) {
-case _UserStateError() when $default != null:
-return $default(_that);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// Callbacks receives the raw object, upcasted.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case final Subclass2 value:
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _UserStateError value)  $default,){
-final _that = this;
-switch (_that) {
-case _UserStateError():
-return $default(_that);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `map` that fallback to returning `null`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _UserStateError value)?  $default,){
-final _that = this;
-switch (_that) {
-case _UserStateError() when $default != null:
-return $default(_that);case _:
-  return null;
-
-}
-}
-/// A variant of `when` that fallback to an `orElse` callback.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String message)?  $default,{required TResult orElse(),}) {final _that = this;
-switch (_that) {
-case _UserStateError() when $default != null:
-return $default(_that.message);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// As opposed to `map`, this offers destructuring.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case Subclass2(:final field2):
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String message)  $default,) {final _that = this;
-switch (_that) {
-case _UserStateError():
-return $default(_that.message);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `when` that fallback to returning `null`
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String message)?  $default,) {final _that = this;
-switch (_that) {
-case _UserStateError() when $default != null:
-return $default(_that.message);case _:
-  return null;
-
-}
-}
-
-}
-
-/// @nodoc
-
-
-class _UserStateError implements UserStateError {
-  const _UserStateError({required this.message});
-  
-
-@override final  String message;
-
-/// Create a copy of UserStateError
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$UserStateErrorCopyWith<_UserStateError> get copyWith => __$UserStateErrorCopyWithImpl<_UserStateError>(this, _$identity);
-
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserStateError&&(identical(other.message, message) || other.message == message));
-}
-
-
-@override
-int get hashCode => Object.hash(runtimeType,message);
-
-@override
-String toString() {
-  return 'UserStateError(message: $message)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class _$UserStateErrorCopyWith<$Res> implements $UserStateErrorCopyWith<$Res> {
-  factory _$UserStateErrorCopyWith(_UserStateError value, $Res Function(_UserStateError) _then) = __$UserStateErrorCopyWithImpl;
-@override @useResult
-$Res call({
- String message
-});
-
-
-
-
-}
-/// @nodoc
-class __$UserStateErrorCopyWithImpl<$Res>
-    implements _$UserStateErrorCopyWith<$Res> {
-  __$UserStateErrorCopyWithImpl(this._self, this._then);
-
-  final _UserStateError _self;
-  final $Res Function(_UserStateError) _then;
-
-/// Create a copy of UserStateError
-/// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
-  return _then(_UserStateError(
-message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
-as String,
-  ));
-}
-
-
-}
-
-/// @nodoc
 mixin _$UserStateMessage {
 
- String get message;
+ String get message; bool get isError;
 /// Create a copy of UserStateMessage
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -557,16 +300,16 @@ $UserStateMessageCopyWith<UserStateMessage> get copyWith => _$UserStateMessageCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserStateMessage&&(identical(other.message, message) || other.message == message));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserStateMessage&&(identical(other.message, message) || other.message == message)&&(identical(other.isError, isError) || other.isError == isError));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,message);
+int get hashCode => Object.hash(runtimeType,message,isError);
 
 @override
 String toString() {
-  return 'UserStateMessage(message: $message)';
+  return 'UserStateMessage(message: $message, isError: $isError)';
 }
 
 
@@ -577,7 +320,7 @@ abstract mixin class $UserStateMessageCopyWith<$Res>  {
   factory $UserStateMessageCopyWith(UserStateMessage value, $Res Function(UserStateMessage) _then) = _$UserStateMessageCopyWithImpl;
 @useResult
 $Res call({
- String message
+ String message, bool isError
 });
 
 
@@ -594,10 +337,11 @@ class _$UserStateMessageCopyWithImpl<$Res>
 
 /// Create a copy of UserStateMessage
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? message = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? message = null,Object? isError = null,}) {
   return _then(_self.copyWith(
 message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
-as String,
+as String,isError: null == isError ? _self.isError : isError // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -682,10 +426,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String message)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String message,  bool isError)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserStateMessage() when $default != null:
-return $default(_that.message);case _:
+return $default(_that.message,_that.isError);case _:
   return orElse();
 
 }
@@ -703,10 +447,10 @@ return $default(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String message)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String message,  bool isError)  $default,) {final _that = this;
 switch (_that) {
 case _UserStateMessage():
-return $default(_that.message);case _:
+return $default(_that.message,_that.isError);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -723,10 +467,10 @@ return $default(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String message)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String message,  bool isError)?  $default,) {final _that = this;
 switch (_that) {
 case _UserStateMessage() when $default != null:
-return $default(_that.message);case _:
+return $default(_that.message,_that.isError);case _:
   return null;
 
 }
@@ -738,10 +482,11 @@ return $default(_that.message);case _:
 
 
 class _UserStateMessage implements UserStateMessage {
-  const _UserStateMessage({required this.message});
+  const _UserStateMessage({required this.message, this.isError = false});
   
 
 @override final  String message;
+@override@JsonKey() final  bool isError;
 
 /// Create a copy of UserStateMessage
 /// with the given fields replaced by the non-null parameter values.
@@ -753,16 +498,16 @@ _$UserStateMessageCopyWith<_UserStateMessage> get copyWith => __$UserStateMessag
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserStateMessage&&(identical(other.message, message) || other.message == message));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserStateMessage&&(identical(other.message, message) || other.message == message)&&(identical(other.isError, isError) || other.isError == isError));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,message);
+int get hashCode => Object.hash(runtimeType,message,isError);
 
 @override
 String toString() {
-  return 'UserStateMessage(message: $message)';
+  return 'UserStateMessage(message: $message, isError: $isError)';
 }
 
 
@@ -773,7 +518,7 @@ abstract mixin class _$UserStateMessageCopyWith<$Res> implements $UserStateMessa
   factory _$UserStateMessageCopyWith(_UserStateMessage value, $Res Function(_UserStateMessage) _then) = __$UserStateMessageCopyWithImpl;
 @override @useResult
 $Res call({
- String message
+ String message, bool isError
 });
 
 
@@ -790,10 +535,11 @@ class __$UserStateMessageCopyWithImpl<$Res>
 
 /// Create a copy of UserStateMessage
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? message = null,Object? isError = null,}) {
   return _then(_UserStateMessage(
 message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
-as String,
+as String,isError: null == isError ? _self.isError : isError // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

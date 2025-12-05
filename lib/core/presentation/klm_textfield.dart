@@ -108,12 +108,7 @@ class _KlmTextFieldState extends State<KlmTextField> {
                     )
                   : null,
               counter: const SizedBox(),
-              contentPadding: const EdgeInsets.only(
-                bottom: 15,
-                left: 15,
-                right: 15,
-                top: 15,
-              ),
+              contentPadding: const EdgeInsets.all(15),
               isDense: true,
               focusedBorder: _getFocusedBorder(),
               focusedErrorBorder: _getBorder(_error() != null),

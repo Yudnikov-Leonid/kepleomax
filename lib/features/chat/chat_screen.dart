@@ -132,6 +132,7 @@ class _BodyState extends State<_Body> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChatBloc, ChatState>(
+      /// don't need buildWhen
       builder: (context, state) {
         if (state is ChatStateError) {
           return Center(child: Text('error: ${state.message}'));

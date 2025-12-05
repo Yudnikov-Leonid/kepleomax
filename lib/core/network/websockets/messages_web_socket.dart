@@ -9,6 +9,8 @@ import 'package:kepleomax/main.dart';
 import 'package:ntp/ntp.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 
+import '../common/api_constants.dart';
+
 class MessagesWebSocket {
   final String baseUrl;
   final TokenProvider tokenProvider;
@@ -90,25 +92,6 @@ class MessagesWebSocket {
         _socket!.connect();
       }
     });
-    _socket!.onPing((data) {
-      logger.d('WebSocketLog ping');
-    });
-    _socket!.onPong((data) {
-      logger.d('WebSocketLog pong');
-    });
-
-    _socket!.onAny((name, data) {
-      logger.d('WebSocketLog event $name');
-    });
-    _socket!.onReconnectAttempt((data) async {
-      logger.d('WebSocketLog reconnectAttempt $data');
-    });
-    _socket!.onReconnectFailed((data) {
-      logger.d('WebSocketLog reconnectFailed $data');
-    });
-    _socket!.onReconnectError((data) {
-      logger.d('WebSocketLog reconnectError $data');
-    });
   }
 
   void reconnect() {
@@ -143,7 +126,7 @@ class MessagesWebSocket {
       return null;
     }
 
-    final now = await NTP.now();
+    final now = await NTP.now(timeout: ApiConstants.timeout);
     final accessTokenHasExpired = now.isAfter(
       JwtDecoder.getExpirationDate(accessToken),
     );
@@ -184,7 +167,7 @@ class ReadMessagesUpdate {
         chatId: json['chat_id'],
         senderId: json['sender_id'],
         messagesIds: json['messages_ids']
-            .map<int>((e) => int.parse(e.toString()))
+            .map<int>((e) => int.parse(e.userErrorMessage()))
             .toList(),
       );
 }
