@@ -15,6 +15,8 @@ import 'chat_state.dart';
 
 const _pagingCount = 25;
 
+/// don't need to clear method, it may cause some bugs (if you navigate from chats to
+/// chat, from it to user page and click "message" button)
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final IMessagesRepository _messagesRepository;
   final IChatsRepository _chatsRepository;
@@ -57,7 +59,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         ChatEventReadMessagesUpdate event => _onReadMessagesUpdate(event, emit),
         ChatEventLoading event => _onLoading(event, emit),
         ChatEventLoadMore event => _onLoadMore(event, emit),
-        ChatEventClear event => _onClear(event, emit),
         _ => () {},
       },
       transformer: sequential(),
@@ -195,9 +196,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onNewMessage(ChatEventNewMessage event, Emitter<ChatState> emit) {
-    print(
-      'onNewMessage: ${event.newMessage}, chatId: ${_data.chatId}, otherUserId: ${_data.otherUser?.id}',
-    );
     if (_data.chatId == -1 && event.newMessage.user.id == _data.otherUser?.id) {
       _data = _data.copyWith(chatId: event.newMessage.chatId);
     }
@@ -248,11 +246,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(ChatStateBase(data: _data));
   }
 
-  void _onClear(ChatEventClear event, Emitter<ChatState> emit) {
-    _data = _data.copyWith(chatId: -1, otherUser: null, messages: []);
-    emit(ChatStateBase(data: _data));
-  }
-
   @override
   Future<void> close() {
     _subMessages.cancel();
@@ -275,10 +268,6 @@ class ChatEventLoad implements ChatEvent {
 
 class ChatEventLoadMore implements ChatEvent {
   const ChatEventLoadMore();
-}
-
-class ChatEventClear implements ChatEvent {
-  const ChatEventClear();
 }
 
 class ChatEventLoading implements ChatEvent {

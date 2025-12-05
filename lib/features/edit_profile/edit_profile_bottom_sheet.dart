@@ -231,6 +231,7 @@ class _Button extends StatelessWidget {
           color: KlmColors.primaryColor.shade800,
           fontWeight: fontWeight,
         ),
+        textScaler: const TextScaler.linear(1),
       ),
     );
   }

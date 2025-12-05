@@ -41,16 +41,18 @@ class _MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      splashColor: Colors.transparent,
-      highlightColor: Colors.transparent,
-      child: Column(
-        children: [
-          Container(color: Colors.grey, height: 65, width: 65),
-          const SizedBox(height: 6),
-          Text(title, style: context.textTheme.bodyLarge?.copyWith(fontSize: 14)),
-        ],
+    return FittedBox(
+      child: InkWell(
+        onTap: onTap,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        child: Column(
+          children: [
+            Container(color: Colors.grey, height: 65, width: 65),
+            const SizedBox(height: 6),
+            Text(title, style: context.textTheme.bodyLarge?.copyWith(fontSize: 14)),
+          ],
+        ),
       ),
     );
   }

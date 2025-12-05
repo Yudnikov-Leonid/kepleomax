@@ -169,7 +169,7 @@ class ReadMessagesUpdate {
         chatId: json['chat_id'],
         senderId: json['sender_id'],
         messagesIds: json['messages_ids']
-            .map<int>((e) => int.parse(e.userErrorMessage()))
+            .map<int>((e) => int.parse(e.toString()))
             .toList(),
       );
 }

@@ -36,53 +36,49 @@ class _ChatWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            chat.otherUser!.username,
-                            overflow: TextOverflow.ellipsis,
-                            style: context.textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 20,
-                            ),
-                          ),
-                        ),
-                      ],
+                    Text(
+                      chat.otherUser!.username,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
+                      ),
                     ),
                     if (chat.lastMessage != null) ...[
                       const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          if (chat.lastMessage!.user.isCurrent)
+                      FittedBox(
+                        child: Row(
+                          children: [
+                            if (chat.lastMessage!.user.isCurrent)
+                              Text(
+                                'You: ',
+                                style: context.textTheme.bodyLarge?.copyWith(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth: context.screenSize.width * 0.3,
+                              ),
+                              child: Text(
+                                chat.lastMessage!.message,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: context.textTheme.bodyLarge?.copyWith(
+                                  fontSize: 15,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
                             Text(
-                              'You: ',
+                              ' • ${ParseTime.unixTimeToPassTimeSlim(chat.lastMessage!.createdAt)}',
                               style: context.textTheme.bodyLarge?.copyWith(
                                 color: Colors.grey,
                               ),
                             ),
-                          ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxWidth: context.screenSize.width * 0.3,
-                            ),
-                            child: Text(
-                              chat.lastMessage!.message,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: context.textTheme.bodyLarge?.copyWith(
-                                fontSize: 15,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            ' • ${ParseTime.unixTimeToPassTimeSlim(chat.lastMessage!.createdAt)}',
-                            style: context.textTheme.bodyLarge?.copyWith(
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ],

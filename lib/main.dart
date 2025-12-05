@@ -8,11 +8,11 @@ import 'core/app.dart';
 import 'core/di/initialize_dependencies.dart';
 import 'core/flavor/flavor.dart';
 
+/// flutter build apk -t lib/core/flavor/main_develop.dart
+
 late Logger logger;
 
 late Flavor _flavor;
-
-void _setFlavor(Flavor flavor) => _flavor = flavor;
 
 Flavor get flavor => _flavor;
 
@@ -25,7 +25,7 @@ void main({Flavor? flavor}) {
 
       logger = Logger();
 
-      _setFlavor(flavor!);
+      _flavor = flavor!;
 
       final dependencies = await initializeDependencies();
 

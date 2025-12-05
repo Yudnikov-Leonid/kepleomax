@@ -34,7 +34,7 @@ class _UserCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         user.username,
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: context.textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w500,

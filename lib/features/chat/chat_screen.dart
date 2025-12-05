@@ -50,7 +50,6 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
-    _chatBloc.add(const ChatEventClear());
     super.dispose();
   }
 
