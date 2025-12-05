@@ -60,16 +60,17 @@ class _MessageWidget extends StatelessWidget {
             ),
             child: Stack(
               children: [
-                Text(
-                  message.message,
-                  style: context.textTheme.bodyMedium?.copyWith(fontSize: 15),
-                ),
+                /// text for time TODO fix, not working 100% correctly
                 Text(
                   '${message.message}${_isCurrent ? '    ' : '  '}${ParseTime.unixTimeToTime(message.createdAt)}',
                   style: context.textTheme.bodyMedium?.copyWith(
                     fontSize: 15,
                     color: Colors.transparent,
                   ),
+                ),
+                SelectableText(
+                  message.message,
+                  style: context.textTheme.bodyMedium?.copyWith(fontSize: 15),
                 ),
                 Positioned(
                   right: 0,

@@ -105,6 +105,8 @@ class MessagesWebSocket {
     }
   }
 
+  bool get isConnected => _socket?.connected ?? false;
+
   /// events
   void sendMessage({required String message, required int recipientId}) {
     _socket!.emit('message', {'recipient_id': recipientId, 'message': message});

@@ -12,6 +12,7 @@ abstract class IMessagesRepository {
   /// callbacks
   void initSocket();
   void dispose();
+  void reconnect();
 
   /// api calls
   Future<List<Message>> getMessages({
@@ -30,6 +31,7 @@ abstract class IMessagesRepository {
   Stream<Message> get messagesStream;
   Stream<ReadMessagesUpdate> get readMessagesStream;
   Stream<bool> get connectionStateStream;
+  bool get isConnected;
 }
 
 class MessagesRepository implements IMessagesRepository {
@@ -48,6 +50,12 @@ class MessagesRepository implements IMessagesRepository {
 
   @override
   void dispose() => _webSocket.disconnect();
+
+  @override
+  void reconnect() => _webSocket.reconnect();
+
+  @override
+  bool get isConnected => _webSocket.isConnected;
 
   /// api calls
   @override

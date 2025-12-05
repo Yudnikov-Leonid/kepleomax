@@ -19,7 +19,7 @@ import 'package:kepleomax/features/chat/bloc/chat_bloc.dart';
 import 'package:kepleomax/features/chat/bloc/chat_state.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-part 'widgets/bottom.dart';
+part 'widgets/chat_bottom.dart';
 part 'widgets/message_widget.dart';
 part 'widgets/read_button.dart';
 part 'widgets/tech_message.dart';

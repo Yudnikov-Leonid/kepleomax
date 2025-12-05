@@ -54,6 +54,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
       },
       transformer: sequential(),
     );
+    on<ChatsEventReconnect>(_onReconnect);
   }
 
   int _lastTimeLoadWasCalled = 0;
@@ -81,6 +82,10 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
       logger.e(e, stackTrace: st);
       emit(ChatsStateError(message: e.userErrorMessage));
     }
+  }
+
+  void _onReconnect(ChatsEventReconnect event, Emitter<ChatsState> emit) {
+    _messagesRepository.reconnect();
   }
 
   void _onLoading(ChatsEventLoading event, Emitter<ChatsState> emit) {
@@ -176,6 +181,10 @@ abstract class ChatsEvent {}
 
 class ChatsEventLoad implements ChatsEvent {
   const ChatsEventLoad();
+}
+
+class ChatsEventReconnect implements ChatsEvent {
+  const ChatsEventReconnect();
 }
 
 class ChatsEventLoading implements ChatsEvent {

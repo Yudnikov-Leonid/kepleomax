@@ -68,15 +68,23 @@ class _Body extends StatelessWidget {
         final data = state.data;
 
         if (data.isLoading) {
-          return Skeletonizer(
-            child: Column(
-              children: [
-                _ChatWidget(chat: Chat.loading(), isLoading: true),
-                _ChatWidget(chat: Chat.loading(), isLoading: true),
-                _ChatWidget(chat: Chat.loading(), isLoading: true),
-                _ChatWidget(chat: Chat.loading(), isLoading: true),
-                _ChatWidget(chat: Chat.loading(), isLoading: true),
-              ],
+          return RefreshIndicator(
+            onRefresh: () async {
+              context.read<ChatsBloc>().add(const ChatsEventReconnect());
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Skeletonizer(
+                child: Column(
+                  children: [
+                    _ChatWidget(chat: Chat.loading(), isLoading: true),
+                    _ChatWidget(chat: Chat.loading(), isLoading: true),
+                    _ChatWidget(chat: Chat.loading(), isLoading: true),
+                    _ChatWidget(chat: Chat.loading(), isLoading: true),
+                    _ChatWidget(chat: Chat.loading(), isLoading: true),
+                  ],
+                ),
+              ),
             ),
           );
         }

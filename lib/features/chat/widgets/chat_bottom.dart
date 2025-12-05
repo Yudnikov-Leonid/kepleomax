@@ -22,6 +22,9 @@ class _BottomState extends State<_Bottom> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      top: false,
+      left: false,
+      right: false,
       child: Container(
         width: context.screenSize.width,
         color: Colors.white,

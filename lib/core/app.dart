@@ -30,12 +30,12 @@ class _AppState extends State<App> {
           scaffoldBackgroundColor: Colors.white,
           colorScheme: ColorScheme.fromSeed(seedColor: KlmColors.primaryColor),
         ),
-        darkTheme: ThemeData(
-          brightness: Brightness.dark,
-          scaffoldBackgroundColor: Colors.black,
-          appBarTheme: const AppBarTheme(backgroundColor: Colors.black),
-        ),
-        themeMode: ThemeMode.system,
+        // darkTheme: ThemeData(
+        //   brightness: Brightness.dark,
+        //   scaffoldBackgroundColor: Colors.black,
+        //   appBarTheme: const AppBarTheme(backgroundColor: Colors.black),
+        // ),
+        themeMode: ThemeMode.light,
         debugShowCheckedModeBanner: false,
         builder: (context, _) {
           return AuthScope(
