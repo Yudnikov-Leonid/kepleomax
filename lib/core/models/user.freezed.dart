@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$User {
 
- int get id; String get email; String get username; String get profileImage; bool get isCurrent; List<String>? get fcmTokens;
+ int get id; String get username; String get profileImage; bool get isCurrent;
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $UserCopyWith<User> get copyWith => _$UserCopyWithImpl<User>(this as User, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is User&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.username, username) || other.username == username)&&(identical(other.profileImage, profileImage) || other.profileImage == profileImage)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&const DeepCollectionEquality().equals(other.fcmTokens, fcmTokens));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is User&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.profileImage, profileImage) || other.profileImage == profileImage)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,username,profileImage,isCurrent,const DeepCollectionEquality().hash(fcmTokens));
+int get hashCode => Object.hash(runtimeType,id,username,profileImage,isCurrent);
 
 @override
 String toString() {
-  return 'User(id: $id, email: $email, username: $username, profileImage: $profileImage, isCurrent: $isCurrent, fcmTokens: $fcmTokens)';
+  return 'User(id: $id, username: $username, profileImage: $profileImage, isCurrent: $isCurrent)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $UserCopyWith<$Res>  {
   factory $UserCopyWith(User value, $Res Function(User) _then) = _$UserCopyWithImpl;
 @useResult
 $Res call({
- int id, String email, String username, String profileImage, bool isCurrent, List<String>? fcmTokens
+ int id, String username, String profileImage, bool isCurrent
 });
 
 
@@ -65,15 +65,13 @@ class _$UserCopyWithImpl<$Res>
 
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? email = null,Object? username = null,Object? profileImage = null,Object? isCurrent = null,Object? fcmTokens = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? username = null,Object? profileImage = null,Object? isCurrent = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
-as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
+as int,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,profileImage: null == profileImage ? _self.profileImage : profileImage // ignore: cast_nullable_to_non_nullable
 as String,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
-as bool,fcmTokens: freezed == fcmTokens ? _self.fcmTokens : fcmTokens // ignore: cast_nullable_to_non_nullable
-as List<String>?,
+as bool,
   ));
 }
 
@@ -158,10 +156,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String email,  String username,  String profileImage,  bool isCurrent,  List<String>? fcmTokens)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String username,  String profileImage,  bool isCurrent)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _User() when $default != null:
-return $default(_that.id,_that.email,_that.username,_that.profileImage,_that.isCurrent,_that.fcmTokens);case _:
+return $default(_that.id,_that.username,_that.profileImage,_that.isCurrent);case _:
   return orElse();
 
 }
@@ -179,10 +177,10 @@ return $default(_that.id,_that.email,_that.username,_that.profileImage,_that.isC
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String email,  String username,  String profileImage,  bool isCurrent,  List<String>? fcmTokens)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String username,  String profileImage,  bool isCurrent)  $default,) {final _that = this;
 switch (_that) {
 case _User():
-return $default(_that.id,_that.email,_that.username,_that.profileImage,_that.isCurrent,_that.fcmTokens);case _:
+return $default(_that.id,_that.username,_that.profileImage,_that.isCurrent);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +197,10 @@ return $default(_that.id,_that.email,_that.username,_that.profileImage,_that.isC
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String email,  String username,  String profileImage,  bool isCurrent,  List<String>? fcmTokens)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String username,  String profileImage,  bool isCurrent)?  $default,) {final _that = this;
 switch (_that) {
 case _User() when $default != null:
-return $default(_that.id,_that.email,_that.username,_that.profileImage,_that.isCurrent,_that.fcmTokens);case _:
+return $default(_that.id,_that.username,_that.profileImage,_that.isCurrent);case _:
   return null;
 
 }
@@ -214,23 +212,13 @@ return $default(_that.id,_that.email,_that.username,_that.profileImage,_that.isC
 @JsonSerializable()
 
 class _User implements User {
-  const _User({required this.id, required this.email, required this.username, required this.profileImage, required this.isCurrent, required final  List<String>? fcmTokens}): _fcmTokens = fcmTokens;
+  const _User({required this.id, required this.username, required this.profileImage, required this.isCurrent});
   factory _User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
 @override final  int id;
-@override final  String email;
 @override final  String username;
 @override final  String profileImage;
 @override final  bool isCurrent;
- final  List<String>? _fcmTokens;
-@override List<String>? get fcmTokens {
-  final value = _fcmTokens;
-  if (value == null) return null;
-  if (_fcmTokens is EqualUnmodifiableListView) return _fcmTokens;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(value);
-}
-
 
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
@@ -245,16 +233,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _User&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.username, username) || other.username == username)&&(identical(other.profileImage, profileImage) || other.profileImage == profileImage)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&const DeepCollectionEquality().equals(other._fcmTokens, _fcmTokens));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _User&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.profileImage, profileImage) || other.profileImage == profileImage)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,username,profileImage,isCurrent,const DeepCollectionEquality().hash(_fcmTokens));
+int get hashCode => Object.hash(runtimeType,id,username,profileImage,isCurrent);
 
 @override
 String toString() {
-  return 'User(id: $id, email: $email, username: $username, profileImage: $profileImage, isCurrent: $isCurrent, fcmTokens: $fcmTokens)';
+  return 'User(id: $id, username: $username, profileImage: $profileImage, isCurrent: $isCurrent)';
 }
 
 
@@ -265,7 +253,7 @@ abstract mixin class _$UserCopyWith<$Res> implements $UserCopyWith<$Res> {
   factory _$UserCopyWith(_User value, $Res Function(_User) _then) = __$UserCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String email, String username, String profileImage, bool isCurrent, List<String>? fcmTokens
+ int id, String username, String profileImage, bool isCurrent
 });
 
 
@@ -282,15 +270,13 @@ class __$UserCopyWithImpl<$Res>
 
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? email = null,Object? username = null,Object? profileImage = null,Object? isCurrent = null,Object? fcmTokens = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? username = null,Object? profileImage = null,Object? isCurrent = null,}) {
   return _then(_User(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
-as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
+as int,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,profileImage: null == profileImage ? _self.profileImage : profileImage // ignore: cast_nullable_to_non_nullable
 as String,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
-as bool,fcmTokens: freezed == fcmTokens ? _self._fcmTokens : fcmTokens // ignore: cast_nullable_to_non_nullable
-as List<String>?,
+as bool,
   ));
 }
 

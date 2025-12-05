@@ -10,18 +10,15 @@ import 'package:ntp/ntp.dart';
 class AuthInterceptor extends QueuedInterceptorsWrapper {
   final TokenProvider _tokenProvider;
   final AuthController _authController;
-  final Function() _onRefresh;
   final Dio _refreshTokenDio;
 
   AuthInterceptor({
     required TokenProvider tokenProvider,
     required AuthController authController,
-    required Function() onRefresh,
     required Dio refreshTokenDio,
   }) : _refreshTokenDio = refreshTokenDio,
        _authController = authController,
-       _tokenProvider = tokenProvider,
-       _onRefresh = onRefresh;
+       _tokenProvider = tokenProvider;
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
@@ -88,7 +85,6 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
         logger.i('access token has expired, success to refresh');
         await _tokenProvider.saveAccessToken(newAccessToken);
         accessToken = newAccessToken;
-        _onRefresh();
       }
     }
 

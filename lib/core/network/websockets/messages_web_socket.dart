@@ -41,12 +41,17 @@ class MessagesWebSocket {
   Socket? _socket;
 
   void init() async {
+    if (_socket != null) {
+      _socket!.disconnect();
+      _socket = null;
+    }
+
     /// you can't pass auth data in OptionBuilder cause on reconnect it won't update
     /// for some reason (idk why)
     final token = await _getAccessToken();
     if (token == null) {
       logger.e('try to connect to ws, but no accessToken');
-      _socket!.disconnect();
+      _socket?.disconnect();
       return;
     }
 
@@ -97,6 +102,12 @@ class MessagesWebSocket {
   void reconnect() {
     disconnect();
     init();
+  }
+
+  void connectIfNot() {
+    if (_socket != null && _socket!.disconnected) {
+      _socket!.connect();
+    }
   }
 
   void disconnect() {

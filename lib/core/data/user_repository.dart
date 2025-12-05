@@ -26,7 +26,7 @@ abstract class IUserRepository {
 
   Future<UserProfile> updateProfile(UserProfile profile, {updateImage = false});
 
-  Future<void> addFCMToken({required String token});
+  Future<bool> addFCMToken({required String token});
 
   Future<void> deleteFCMToken({required String token});
 }
@@ -162,9 +162,10 @@ class UserRepository implements IUserRepository {
   }
 
   @override
-  Future<void> addFCMToken({required String token}) async {
+  Future<bool> addFCMToken({required String token}) async {
     try {
-      await _userApi.addFCMToken(body: FCMTokenRequestDto(token: token));
+      final result = await _userApi.addFCMToken(body: FCMTokenRequestDto(token: token));
+      return result.response.statusCode == 200;
     } on DioException catch (e, st) {
       logger.e(e, stackTrace: st);
       throw Exception(MapExceptions.dioExceptionToString(e));

@@ -98,9 +98,6 @@ List<_InitializationStep> _steps = [
             ..interceptors.add(dependencies.prettyDioLogger),
           tokenProvider: dependencies.tokenProvider,
           authController: dependencies.authController,
-          onRefresh: () {
-            dependencies.messagesWebSocket.reconnect();
-          },
         ),
       ]);
 

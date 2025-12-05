@@ -92,11 +92,17 @@ class AuthController {
     final token = await FirebaseMessaging.instance.getToken();
     if (token == null) return;
 
-    if (_user?.fcmTokens == null || !_user!.fcmTokens!.contains(token)) {
-      await _userRepository.addFCMToken(token: token).onError((e, st) {
-        logger.e('failed to set fcm token: $e', stackTrace: st);
-      });
-    }
+    // TODO not always do this
+    await _userRepository
+        .addFCMToken(token: token)
+        .then((result) {
+          if (result) {
+            /// token successfully stored on the server
+          }
+        })
+        .onError((e, st) {
+          logger.e('failed to set fcm token: $e', stackTrace: st);
+        });
   }
 
   Future<void> _deleteToken() async {

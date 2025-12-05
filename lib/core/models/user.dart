@@ -9,30 +9,24 @@ part 'user.g.dart';
 abstract class User with _$User {
   const factory User({
     required int id,
-    required String email,
     required String username,
     required String profileImage,
     required bool isCurrent,
-    required List<String>? fcmTokens,
   }) = _User;
 
   factory User.fromDto(UserDto dto) => User(
     id: dto.id,
-    email: dto.email,
     username: dto.username,
     profileImage: dto.profileImage,
     isCurrent: dto.isCurrent,
-    fcmTokens: dto.fcmTokens,
   );
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
   factory User.loading() => const User(
     id: -1,
-    email: '',
     username: '-------------',
     profileImage: '',
     isCurrent: false,
-    fcmTokens: []
   );
 }

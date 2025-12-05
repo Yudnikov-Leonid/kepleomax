@@ -20,12 +20,12 @@ abstract class UserApi {
   });
 
   @POST('/fcmToken')
-  Future<HttpResponse<GetUserDto>> addFCMToken({
+  Future<HttpResponse<void>> addFCMToken({
     @Body() required FCMTokenRequestDto body,
   });
 
   @DELETE('/fcmToken')
-  Future<HttpResponse<GetUserDto>> deleteFCMToken({
+  Future<HttpResponse<void>> deleteFCMToken({
     @Body() required FCMTokenRequestDto body,
   });
 }

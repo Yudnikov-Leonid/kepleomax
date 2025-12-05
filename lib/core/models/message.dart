@@ -31,12 +31,10 @@ abstract class Message with _$Message {
             ? User.fromDto(dto.user!)
             : User(
           id: dto.isCurrentUser! ? (dto.otherUserId ?? dto.senderId) : dto.senderId,
-          email: '',
           username: '',
           profileImage: '',
           /// need only this field
           isCurrent: dto.isCurrentUser!,
-          fcmTokens: [],
         ),
         id: dto.id,
         message: dto.message,

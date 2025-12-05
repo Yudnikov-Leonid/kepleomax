@@ -113,9 +113,9 @@ class NotificationService {
         payload: chatId,
       );
     } else if (type == 'cancel') {
-      messageIds.forEach((id) {
+      for (final id in messageIds) {
         _localNotifications.cancel(id);
-      });
+      }
     }
   }
 }

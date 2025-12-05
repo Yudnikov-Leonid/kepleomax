@@ -84,7 +84,7 @@ class _UserApi implements UserApi {
   }
 
   @override
-  Future<HttpResponse<GetUserDto>> addFCMToken({
+  Future<HttpResponse<void>> addFCMToken({
     required FCMTokenRequestDto body,
   }) async {
     final _extra = <String, dynamic>{};
@@ -92,7 +92,7 @@ class _UserApi implements UserApi {
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body.toJson());
-    final _options = _setStreamType<HttpResponse<GetUserDto>>(
+    final _options = _setStreamType<HttpResponse<void>>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -102,20 +102,13 @@ class _UserApi implements UserApi {
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late GetUserDto _value;
-    try {
-      _value = GetUserDto.fromJson(_result.data!);
-    } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
-      rethrow;
-    }
-    final httpResponse = HttpResponse(_value, _result);
+    final _result = await _dio.fetch<void>(_options);
+    final httpResponse = HttpResponse(null, _result);
     return httpResponse;
   }
 
   @override
-  Future<HttpResponse<GetUserDto>> deleteFCMToken({
+  Future<HttpResponse<void>> deleteFCMToken({
     required FCMTokenRequestDto body,
   }) async {
     final _extra = <String, dynamic>{};
@@ -123,7 +116,7 @@ class _UserApi implements UserApi {
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body.toJson());
-    final _options = _setStreamType<HttpResponse<GetUserDto>>(
+    final _options = _setStreamType<HttpResponse<void>>(
       Options(method: 'DELETE', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -133,15 +126,8 @@ class _UserApi implements UserApi {
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late GetUserDto _value;
-    try {
-      _value = GetUserDto.fromJson(_result.data!);
-    } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
-      rethrow;
-    }
-    final httpResponse = HttpResponse(_value, _result);
+    final _result = await _dio.fetch<void>(_options);
+    final httpResponse = HttpResponse(null, _result);
     return httpResponse;
   }
 
