@@ -28,9 +28,9 @@ class _MainScreenState extends State<MainScreen> {
   ];
 
   final _pages = [
-    FeedNavigator(key: UniqueKey()),
-    ChatsNavigator(key: UniqueKey()),
-    MenuNavigator(key: UniqueKey()),
+    const FeedNavigator(key: Key('feed_navigator')),
+    const ChatsNavigator(key: Key('chats_navigator')),
+    const MenuNavigator(key: Key('menu_navigator')),
   ];
 
   @override

@@ -24,7 +24,7 @@ class KlmAppBar extends AppBar {
         ),
         titleSpacing: 5,
         backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
+        surfaceTintColor: Colors.white,
         title: Text(
           title,
           style: context.textTheme.labelLarge?.copyWith(fontSize: 24),

@@ -12,6 +12,11 @@ extension GetScreenSize on BuildContext {
   Size get screenSize => MediaQuery.sizeOf(this);
 }
 
+extension GetImageWidgth on BuildContext {
+  int get imageMaxWidth => (screenSize.width * MediaQuery.devicePixelRatioOf(this)).toInt();
+}
+
+
 extension ShowSnackBar on BuildContext {
   void showSnackBar({required String text, Color? color, Duration duration = const Duration(seconds: 3)}) => ScaffoldMessenger.of(this).showSnackBar(
     SnackBar(

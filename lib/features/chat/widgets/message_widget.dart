@@ -28,8 +28,8 @@ class _MessageWidget extends StatelessWidget {
       );
     }
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -54,7 +54,7 @@ class _MessageWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: _isCurrent
-                  ? const Color.fromARGB(255, 213, 255, 255)
+                  ? KlmColors.currentUserBg
                   : Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
@@ -78,12 +78,12 @@ class _MessageWidget extends StatelessWidget {
                   child: Row(
                     children: [
                       Tooltip(
-                        message:
-                        ParseTime.unixTimeToPreciseDate(message.createdAt),
+                        message: ParseTime.unixTimeToPreciseDate(message.createdAt),
                         triggerMode: TooltipTriggerMode.tap,
                         preferBelow: false,
                         showDuration: const Duration(seconds: 5),
                         child: Text(
+                          //(DateTime.now().millisecondsSinceEpoch % 1000).toString(),
                           ParseTime.unixTimeToTime(message.createdAt),
                           style: context.textTheme.bodyMedium?.copyWith(
                             color: _isCurrent ? KlmColors.readMessage : Colors.grey,

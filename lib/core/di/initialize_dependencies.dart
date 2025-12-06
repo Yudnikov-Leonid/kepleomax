@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -53,6 +54,7 @@ List<_InitializationStep> _steps = [
         prefs: dependencies.sharedPreferences,
         secureStorage: dependencies.secureStorage,
       );
+      CachedNetworkImage.logLevel = CacheManagerLogLevel.debug;
     },
   ),
 

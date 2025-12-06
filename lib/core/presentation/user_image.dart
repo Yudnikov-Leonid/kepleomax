@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:kepleomax/core/presentation/caching_image.dart';
+import 'package:kepleomax/core/presentation/klm_cached_image.dart';
 import 'package:kepleomax/generated/images_keys.images_keys.dart';
 import 'package:kepleomax/main.dart';
 
@@ -21,7 +21,11 @@ class UserImage extends StatelessWidget {
             ? const ColoredBox(color: Colors.grey)
             : url == null || url!.isEmpty
             ? const DefaultUserIcon()
-            : KlmCachedImage(imageUrl: flavor.imageUrl + url!, fit: BoxFit.cover),
+            : KlmCachedImage(
+                imageUrl: flavor.imageUrl + url!,
+                width: 200,
+                fit: BoxFit.cover,
+              ),
       ),
     );
   }

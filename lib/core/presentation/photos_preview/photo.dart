@@ -14,16 +14,13 @@ class _Photo extends StatefulWidget {
   State<_Photo> createState() => _PhotoState();
 }
 
+/// TODO refactor
 class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
   /// zoom controller
   late AnimationController _zoomAnimationController;
   Animation<Matrix4>? _zoomAnimation;
 
   TransformationController get _controller => widget.transformationController;
-
-  void _setState() {
-    setState(() {});
-  }
 
   @override
   void initState() {
@@ -61,6 +58,10 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
       ? false
       : (_childSize!.aspectRatio * 100).round() / 100 <
             context.screenSize.aspectRatio;
+
+  void _setState() {
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +105,9 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
                 child: ColoredBox(
                   color: Colors.green,
                   child: KlmCachedImage(
-                    imageUrl:  flavor.imageUrl + widget.url,
+                    imageUrl: flavor.imageUrl + widget.url,
+                    errorColor: Colors.white,
+                    width: context.imageMaxWidth,
                     key: _childKey,
                   ),
                 ),
@@ -161,7 +164,11 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
 
       final Matrix4 matrix = Matrix4.identity()
         ..translate(newX, newY)
-        ..scale(_isOnlyYAxes ? _scaleFactorOnDoubleTapWhenOnlyYAxes : _scaleFactorOnDoubleTap)
+        ..scale(
+          _isOnlyYAxes
+              ? _scaleFactorOnDoubleTapWhenOnlyYAxes
+              : _scaleFactorOnDoubleTap,
+        )
         ..translate(-newX, -newY);
 
       endMatrix = matrix;

@@ -75,6 +75,7 @@ class _Body extends StatelessWidget {
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Skeletonizer(
+                key: const Key('chats_loading'),
                 child: Column(
                   children: [
                     _ChatWidget(chat: Chat.loading(), isLoading: true),

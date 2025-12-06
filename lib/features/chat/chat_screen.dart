@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:focus_detector/focus_detector.dart';
@@ -20,8 +20,11 @@ import 'package:kepleomax/features/chat/bloc/chat_state.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 part 'widgets/chat_bottom.dart';
+
 part 'widgets/message_widget.dart';
+
 part 'widgets/read_button.dart';
+
 part 'widgets/tech_message.dart';
 
 /// screen
@@ -56,27 +59,17 @@ class _ChatScreenState extends State<ChatScreen> {
   /// build
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ChatBloc, ChatState>(
-      listener: (context, state) {
-        if (state is ChatStateMessage) {
-          context.showSnackBar(
-            text: state.message,
-            color: state.isError ? KlmColors.errorRed : Colors.green,
-          );
-        }
-      },
-      child: Scaffold(
-        resizeToAvoidBottomInset: true,
-        floatingActionButton: _ReadButton(
-          scrollController: _scrollController,
-          key: const Key('chat_read_button'),
-        ),
-        appBar: const _AppBar(key: Key('chat_appbar')),
-        body: _Body(
-          bloc: _chatBloc,
-          scrollController: _scrollController,
-          key: const Key('chat_body'),
-        ),
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      floatingActionButton: _ReadButton(
+        scrollController: _scrollController,
+        key: const Key('chat_read_button'),
+      ),
+      appBar: const _AppBar(key: Key('chat_appbar')),
+      body: _Body(
+        bloc: _chatBloc,
+        scrollController: _scrollController,
+        key: const Key('chat_body'),
       ),
     );
   }
@@ -99,7 +92,8 @@ class _Body extends StatefulWidget {
 }
 
 class _BodyState extends State<_Body> {
-  final List<(GlobalKey, Message)> _keys = [];
+  /// int - messageId
+  final Map<int, (GlobalKey, Message)> _keys = {};
   final Set<Message> _visibleMessages = {};
   bool _isScreenActive = false;
 
@@ -130,8 +124,29 @@ class _BodyState extends State<_Body> {
   /// build
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ChatBloc, ChatState>(
-      /// don't need buildWhen
+    return BlocConsumer<ChatBloc, ChatState>(
+      buildWhen: (oldState, newState) {
+        if (newState is ChatStateMessage || oldState is ChatStateMessage)
+          return false;
+
+        if (oldState is ChatStateBase && newState is ChatStateBase) {
+          final oldData = oldState.data;
+          final newData = newState.data;
+          return oldData.isLoading != newData.isLoading ||
+              !listEquals(oldData.messages, newData.messages) ||
+              oldData.isAllMessagesLoaded != newData.isAllMessagesLoaded;
+        }
+
+        return true;
+      },
+      listener: (context, state) {
+        if (state is ChatStateMessage) {
+          context.showSnackBar(
+            text: state.message,
+            color: state.isError ? KlmColors.errorRed : Colors.green,
+          );
+        }
+      },
       builder: (context, state) {
         if (state is ChatStateError) {
           return Center(child: Text('error: ${state.message}'));
@@ -144,18 +159,21 @@ class _BodyState extends State<_Body> {
         /// not != but +1 cause it prevents scrolling on paging
         /// TODO almost, except case when there's one new message
         if (_keys.isNotEmpty && _keys.length + 1 == data.messages.length) {
-          /// if length of messages changes, need to maintain scroll
-          _maintainScroll();
+          /// if length of messages changes, need to maintain scrollPosition
+          _maintainScrollPos();
         }
-        _keys.clear();
-        _keys.addAll(data.messages.map((e) => (GlobalKey(), e)));
+        for (final message in data.messages) {
+          if (_keys[message.id] != null) {
+            _keys[message.id] = (_keys[message.id]!.$1, message);
+          }
+          _keys[message.id] = (GlobalKey(), message);
+        }
         if (data.messages.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             /// to read new messages
             _onScrollListener();
           });
         }
-        final keysReversed = _keys.reversed.toList();
         return FocusDetector(
           key: Key('focus_detector_${data.chatId}'),
           onForegroundGained: () => _onResume(data.chatId),
@@ -165,41 +183,31 @@ class _BodyState extends State<_Body> {
           child: Column(
             children: [
               Expanded(
-                child: Container(
+                child: ColoredBox(
                   color: Colors.blue.shade100,
                   child: data.isLoading
                       ? const Center(child: CircularProgressIndicator())
-                      : SingleChildScrollView(
+                      : data.messages.isEmpty
+                      ? const Center(
+                          child: _TechMessage(
+                            key: Key('no_messages_widget'),
+                            text: '\nNo messages here yet...\n\nWrite something\n',
+                          ),
+                        )
+                      : ListView.builder(
                           key: Key('chat_scroll_view_${data.chatId}'),
                           controller: widget._scrollController,
-                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          padding: EdgeInsets.only(
+                            bottom: 4,
+                            top: data.isAllMessagesLoaded ? 4 : 20,
+                          ),
                           reverse: true,
-                          child: data.messages.isEmpty
-                              ? const Center(
-                                  child: _TechMessage(
-                                    key: Key('no_messages_widget'),
-                                    text:
-                                        '\nNo messages here yet...\n\nWrite something\n',
-                                  ),
-                                )
-                              : Column(
-                                  children: [
-                                    const SizedBox(width: double.infinity),
-                                    if (!data.isAllMessagesLoaded)
-                                      const SizedBox(height: 20),
-
-                                    /// TODO is it good to call reverse here?
-                                    ...data.messages.reversed.mapIndexed(
-                                      (i, message) => _MessageWidget(
-                                        key: keysReversed[i].$1,
-                                        message: message,
-
-                                        /// todo why user from data but not from message?
-                                        user: data.otherUser!,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                          itemCount: data.messages.length,
+                          itemBuilder: (context, i) => _MessageWidget(
+                            key: _keys[data.messages[i].id]!.$1,
+                            message: data.messages[i],
+                            user: data.otherUser!,
+                          ),
                         ),
                 ),
               ),
@@ -228,6 +236,8 @@ class _BodyState extends State<_Body> {
 
   /// listeners
   void _onScrollListener() {
+    // print('scrollListener: ${widget._scrollController.hasClients}, ${widget._scrollController.offset}, ${widget._scrollController.position.maxScrollExtent}',);
+
     if (!widget._scrollController.hasClients || !_isScreenActive) return;
 
     if (widget._scrollController.offset >
@@ -239,10 +249,11 @@ class _BodyState extends State<_Body> {
 
     List<Message> newVisibleMessages = [];
     double heightOffset = 0;
-    for (int i = 0; i < _keys.length; i++) {
-      if (_keys[i].$2.user.isCurrent || _keys[i].$2.isRead) break;
+    for (int i = _keys.length - 1; i >= 0; i--) {
+      final el = _keys.values.elementAt(i); // $1 - globalKey, $2 - message
+      if (el.$2.user.isCurrent || el.$2.isRead) break;
 
-      final renderBox = _keys[i].$1.currentContext!.findRenderObject() as RenderBox;
+      final renderBox = el.$1.currentContext!.findRenderObject() as RenderBox;
       double widgetTop = renderBox.size.height;
 
       double viewportTop = widget._scrollController.position.pixels;
@@ -251,13 +262,13 @@ class _BodyState extends State<_Body> {
       heightOffset += renderBox.size.height;
 
       if (widgetTop >= viewportTop + 20) {
-        final isAdded = _visibleMessages.add(_keys[i].$2);
+        final isAdded = _visibleMessages.add(el.$2);
         if (isAdded) {
-          newVisibleMessages.add(_keys[i].$2);
+          newVisibleMessages.add(el.$2);
           //print('newVisibleMessage: ${_keys[i].$2.message}');
         }
       } else {
-        final isRemoved = _visibleMessages.remove(_keys[i].$2);
+        final isRemoved = _visibleMessages.remove(el.$2);
         if (isRemoved) {
           // print('deletedVisibleMessage: ${_keys[i].$2}');
         }
@@ -272,16 +283,19 @@ class _BodyState extends State<_Body> {
     }
   }
 
-  void _maintainScroll() {
-    if (!widget._scrollController.hasClients) return;
-    if (widget._scrollController.offset == 0 || _keys.isEmpty) return;
+  void _maintainScrollPos() {
+    if (!widget._scrollController.hasClients ||
+        widget._scrollController.offset == 0 ||
+        _keys.isEmpty)
+      return;
+
     double currentOffset = widget._scrollController.offset;
     widget._scrollController.jumpTo(currentOffset + 45);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       /// here new keys is already added
       if (_keys.isEmpty) return;
       final newMessageHeight =
-          (_keys.first.$1.currentContext!.findRenderObject() as RenderBox)
+          (_keys.values.last.$1.currentContext!.findRenderObject() as RenderBox)
               .size
               .height;
       if (newMessageHeight != 45) {

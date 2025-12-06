@@ -9,7 +9,7 @@ import 'package:kepleomax/core/presentation/klm_textfield.dart';
 import 'package:kepleomax/core/presentation/validators.dart';
 import 'package:kepleomax/main.dart';
 
-import '../../core/presentation/caching_image.dart';
+import '../../core/presentation/klm_cached_image.dart';
 import '../../core/presentation/user_image.dart';
 
 final String? Function(String) _usernameValidator = UiValidator.emptyValidator;
@@ -90,6 +90,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
                             ? Image.file(File(_imageUrl!), fit: BoxFit.cover)
                             : KlmCachedImage(
                                 imageUrl: flavor.imageUrl + _imageUrl!,
+                                width: context.imageMaxWidth,
                                 fit: BoxFit.cover,
                               ),
                       ),

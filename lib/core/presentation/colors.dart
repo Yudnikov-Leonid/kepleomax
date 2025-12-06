@@ -8,4 +8,5 @@ class KlmColors {
   static const errorRed = Colors.red;
   static const success = Colors.green;
   static const readMessage = Colors.indigoAccent;
+  static const currentUserBg = Color.fromARGB(255, 213, 255, 255);
 }

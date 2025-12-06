@@ -27,6 +27,7 @@ class _PhotoWidget extends StatelessWidget {
         height: height,
         child: KlmCachedImage(
           imageUrl: flavor.imageUrl + imagesToOpen[index],
+          width: context.imageMaxWidth,
           showProgress: true,
           fit: BoxFit.cover,
         ),

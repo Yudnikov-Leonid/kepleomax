@@ -70,6 +70,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   /// cause can be called on init and on connect at the same time
   int _lastTimeLoadWasCalled = 0;
+
   void _onLoad(ChatEventLoad event, Emitter<ChatState> emit) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     if (now - 300 < _lastTimeLoadWasCalled) {
@@ -145,7 +146,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         newList.add(Message.unreadMessages());
       }
 
-      _data = _data.copyWith(messages: newList, isLoading: false);
+      _data = _data.copyWith(messages: newList.reversed.toList(), isLoading: false);
       emit(ChatStateBase(data: _data));
     } catch (e, st) {
       logger.e(e, stackTrace: st);
@@ -202,15 +203,22 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     if (event.newMessage.chatId == _data.chatId) {
       _data = _data.copyWith(
         chatId: event.newMessage.chatId,
-        messages: [event.newMessage, ..._data.messages],
+        messages: [..._data.messages, event.newMessage],
       );
     }
     emit(ChatStateBase(data: _data));
   }
 
   bool _isLoadingMore = false;
+  int _lastTimeLoadMoreCalled = 0;
 
   void _onLoadMore(ChatEventLoadMore event, Emitter<ChatState> emit) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (_lastTimeLoadMoreCalled + 500 > now) {
+      return;
+    }
+    _lastTimeLoadMoreCalled = now;
+
     if (_data.isAllMessagesLoaded || _data.isLoading || _isLoadingMore) return;
     _isLoadingMore = true;
 

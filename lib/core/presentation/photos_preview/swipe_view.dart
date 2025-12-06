@@ -27,14 +27,14 @@ class _SwipeViewState extends State<_SwipeView> {
 
   double get _defaultOffset => (_swipeViewHeight - context.screenSize.height) / 2;
 
-  get controller => widget.scrollController;
+  ScrollController get _controller => widget.scrollController;
 
   /// scroll to the edge or default position, depends on current scrollPosition
   void _performScroll() {
     if (_isScrollingToPosition) return;
     _isScrollingToPosition = true;
 
-    final offset = controller.offset;
+    final offset = _controller.offset;
     final topBound = _defaultOffset - _distanceToClose;
     final bottomBound = _defaultOffset + _distanceToClose;
 
@@ -42,7 +42,7 @@ class _SwipeViewState extends State<_SwipeView> {
     Future.delayed(const Duration(milliseconds: 10), () {
       if (offset < bottomBound && offset > topBound) {
         /// scroll back to default
-        controller!
+        _controller
             .animateTo(
           _defaultOffset,
           duration: const Duration(milliseconds: 120),
@@ -53,8 +53,8 @@ class _SwipeViewState extends State<_SwipeView> {
         });
       } else {
         /// closing dialog
-        final maxScrollPosition = controller.position.maxScrollExtent;
-        controller.animateTo(
+        final maxScrollPosition = _controller.position.maxScrollExtent;
+        _controller.animateTo(
           offset < topBound ? 0.0 : maxScrollPosition.toDouble(),
           duration: const Duration(milliseconds: 100),
           curve: Curves.easeOut,
@@ -99,7 +99,7 @@ class _SwipeViewState extends State<_SwipeView> {
     return NotificationListener(
       onNotification: _onScrollNotification,
       child: SingleChildScrollView(
-        controller: controller,
+        controller: _controller,
         physics: widget.canScroll()
             ? _scrollPhysics
             : const NeverScrollableScrollPhysics(),

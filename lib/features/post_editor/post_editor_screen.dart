@@ -10,7 +10,7 @@ import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/image_url_or_file.dart';
 import 'package:kepleomax/main.dart';
 
-import '../../core/presentation/caching_image.dart';
+import '../../core/presentation/klm_cached_image.dart';
 import 'bloc/post_editor_bloc.dart';
 import 'bloc/post_editor_state.dart';
 

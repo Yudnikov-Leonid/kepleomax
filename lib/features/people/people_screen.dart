@@ -77,15 +77,12 @@ class _BodyState extends State<_Body> {
           if (state is! PeopleStateBase) return const SizedBox();
 
           final data = state.data;
-          return SingleChildScrollView(
-            key: const Key('users_scroll_view'),
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Column(
-              key: const Key('users_column'),
-              children: [
-                KlmTextField(
+          final showSkeletonLoading = !data.isAllUsersLoaded && !data.isLoading;
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: KlmTextField(
                   controller: _controller,
                   onChanged: (search) {
                     context.read<PeopleBloc>().add(
@@ -94,27 +91,42 @@ class _BodyState extends State<_Body> {
                   },
                   hint: 'Search',
                 ),
-                const SizedBox(height: 20),
-                if (data.isLoading)
-                  const SizedBox(
-                    height: 40,
-                    width: 40,
-                    child: CircularProgressIndicator(),
+              ),
+              if (!data.isLoading && data.users.isEmpty) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'No one found',
+                  style: context.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
                   ),
-                ...data.users.map(
-                  (user) => _UserCard(key: Key('user_card_${user.id}'), user: user),
                 ),
-                if (!data.isAllUsersLoaded && !data.isLoading)
-                  _UserCard(user: User.loading(), isLoading: true),
-                if (!data.isLoading && data.users.isEmpty)
-                  Text(
-                    'No one found',
-                    style: context.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+              ] else if (data.users.isEmpty) ...[
+                const SizedBox(height: 16),
+                const SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(),
+                ),
               ],
-            ),
+              Expanded(
+                child: ListView.builder(
+                  key: const Key('users_scroll_view'),
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  itemCount: data.users.length + (showSkeletonLoading ? 1 : 0),
+                  itemBuilder: (context, i) {
+                    if (showSkeletonLoading && i == data.users.length) {
+                      return _UserCard(user: User.loading(), isLoading: true);
+                    }
+                    return _UserCard(
+                      key: Key('user_card_${data.users[i].id}'),
+                      user: data.users[i],
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),
