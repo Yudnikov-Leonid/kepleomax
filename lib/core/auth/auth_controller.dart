@@ -5,6 +5,7 @@ import 'package:kepleomax/core/data/auth_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user.dart';
 
@@ -13,21 +14,27 @@ class AuthController {
   final IUserRepository _userRepository;
   final TokenProvider _tokenProvider;
   final UserProvider _userProvider;
+  final SharedPreferences _prefs;
+
   User? _user;
 
   User? get user => _user;
 
   final List<VoidCallback> _listeners = [];
 
+  static const _fcmKey = 'fcm_key';
+
   AuthController({
     required IAuthRepository authRepository,
     required IUserRepository userRepository,
     required TokenProvider tokenProvider,
     required UserProvider userProvider,
+    required SharedPreferences prefs,
   }) : _authRepository = authRepository,
        _userRepository = userRepository,
        _tokenProvider = tokenProvider,
-       _userProvider = userProvider;
+       _userProvider = userProvider,
+       _prefs = prefs;
 
   Future<void> registerUser({required String email, required String password}) =>
       _authRepository.register(email: email, password: password);
@@ -91,23 +98,30 @@ class AuthController {
   Future<void> _checkToken() async {
     final token = await FirebaseMessaging.instance.getToken();
     if (token == null) return;
+    final savedToken = _prefs.getString(_fcmKey);
+    if (token == savedToken) return;
 
     // TODO not always do this
     await _userRepository
         .addFCMToken(token: token)
         .then((result) {
           if (result) {
+            _prefs.setString(_fcmKey, token);
+
             /// token successfully stored on the server
           }
         })
         .onError((e, st) {
+          _prefs.remove(_fcmKey);
           logger.e('failed to set fcm token: $e', stackTrace: st);
         });
   }
 
+  /// I'm not sure it works
   Future<void> _deleteToken() async {
     final token = await FirebaseMessaging.instance.getToken();
     if (token == null) return;
+    _prefs.remove(_fcmKey);
     FirebaseMessaging.instance.deleteToken();
 
     await _userRepository.deleteFCMToken(token: token).onError((e, st) {

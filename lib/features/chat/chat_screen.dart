@@ -162,11 +162,10 @@ class _BodyState extends State<_Body> {
           /// if length of messages changes, need to maintain scrollPosition
           _maintainScrollPos();
         }
+        final oldKeys = Map.of(_keys);
+        _keys.clear();
         for (final message in data.messages) {
-          if (_keys[message.id] != null) {
-            _keys[message.id] = (_keys[message.id]!.$1, message);
-          }
-          _keys[message.id] = (GlobalKey(), message);
+          _keys[message.id] = (oldKeys[message.id]?.$1 ?? GlobalKey(), message);
         }
         if (data.messages.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -249,7 +248,7 @@ class _BodyState extends State<_Body> {
 
     List<Message> newVisibleMessages = [];
     double heightOffset = 0;
-    for (int i = _keys.length - 1; i >= 0; i--) {
+    for (int i = 0; i < _keys.length; i++) {
       final el = _keys.values.elementAt(i); // $1 - globalKey, $2 - message
       if (el.$2.user.isCurrent || el.$2.isRead) break;
 
@@ -275,8 +274,6 @@ class _BodyState extends State<_Body> {
       }
     }
     if (newVisibleMessages.isNotEmpty) {
-      print('read message: ${newVisibleMessages[0].message}');
-
       context.read<ChatBloc>().add(
         ChatEventReadMessagesBeforeTime(time: newVisibleMessages[0].createdAt),
       );
@@ -295,7 +292,7 @@ class _BodyState extends State<_Body> {
       /// here new keys is already added
       if (_keys.isEmpty) return;
       final newMessageHeight =
-          (_keys.values.last.$1.currentContext!.findRenderObject() as RenderBox)
+          (_keys.values.first.$1.currentContext!.findRenderObject() as RenderBox)
               .size
               .height;
       if (newMessageHeight != 45) {

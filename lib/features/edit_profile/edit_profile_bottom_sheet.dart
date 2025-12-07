@@ -42,7 +42,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
   @override
   void initState() {
     final user = widget.profile.user;
-    _imageUrl = user.profileImage.isEmpty ? null : user.profileImage;
+    _imageUrl = user.profileImage;
     _nameController.text = user.username;
     _descriptionController.text = widget.profile.description;
     super.initState();
@@ -149,7 +149,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
                             user: oldProfile.user.copyWith(
                               username: _nameController.text.trim(),
                               profileImage: _isImageEdited
-                                  ? _imageUrl ?? ''
+                                  ? _imageUrl
                                   : oldProfile.user.profileImage,
                             ),
                           );

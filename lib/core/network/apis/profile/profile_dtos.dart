@@ -20,12 +20,16 @@ class GetProfileResponseDto {
 class EditProfileRequestDto {
   final String username;
   final String description;
-  final String profileImage;
+  @JsonKey(name: 'profile_image')
+  final String? profileImage;
+  @JsonKey(name: 'update_image')
+  final bool updateImage;
 
   EditProfileRequestDto({
     required this.username,
     required this.description,
     required this.profileImage,
+    required this.updateImage
   });
 
   factory EditProfileRequestDto.fromJson(Map<String, dynamic> json) =>

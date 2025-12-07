@@ -9,7 +9,7 @@ part of 'user.dart';
 _User _$UserFromJson(Map<String, dynamic> json) => _User(
   id: (json['id'] as num).toInt(),
   username: json['username'] as String,
-  profileImage: json['profileImage'] as String,
+  profileImage: json['profileImage'] as String?,
   isCurrent: json['isCurrent'] as bool,
 );
 

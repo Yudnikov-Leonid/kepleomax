@@ -93,6 +93,7 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
   @override
   void dispose() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
     _scrollController.dispose();
     _pageController.dispose();
     for (final controller in _transformControllers) {

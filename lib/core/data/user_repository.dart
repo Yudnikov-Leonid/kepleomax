@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/models/user_profile.dart';
 import 'package:kepleomax/core/network/apis/files/files_api.dart';
@@ -9,9 +8,6 @@ import 'package:kepleomax/core/network/apis/profile/profile_dtos.dart';
 import 'package:kepleomax/core/network/apis/user/get_user_dtos.dart';
 import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/common/api_constants.dart';
-import 'package:kepleomax/core/presentation/map_exceptions.dart';
-
-import '../../main.dart';
 
 abstract class IUserRepository {
   Future<User> getUser({required int userId});
@@ -46,22 +42,15 @@ class UserRepository implements IUserRepository {
 
   @override
   Future<User> getUser({required int userId}) async {
-    try {
-      final res = await _userApi
-          .getUser(userId: userId)
-          .timeout(ApiConstants.timeout);
+    final res = await _userApi.getUser(userId: userId).timeout(ApiConstants.timeout);
 
-      if (res.response.statusCode != 200) {
-        throw Exception(
-          res.data.message ?? 'Failed to get user: ${res.response.statusCode}',
-        );
-      }
-
-      return User.fromDto(res.data.data!);
-    } on DioException catch (e, st) {
-      logger.e(e, stackTrace: st);
-      throw Exception(MapExceptions.dioExceptionToString(e));
+    if (res.response.statusCode != 200) {
+      throw Exception(
+        res.data.message ?? 'Failed to get user: ${res.response.statusCode}',
+      );
     }
+
+    return User.fromDto(res.data.data!);
   }
 
   @override
@@ -70,46 +59,36 @@ class UserRepository implements IUserRepository {
     required int limit,
     required int offset,
   }) async {
-    try {
-      final res = await _userApi
-          .searchUsers(search: search, limit: limit, offset: offset)
-          .timeout(ApiConstants.timeout);
+    final res = await _userApi
+        .searchUsers(search: search, limit: limit, offset: offset)
+        .timeout(ApiConstants.timeout);
 
-      if (res.response.statusCode != 200) {
-        throw Exception(
-          res.data.message ?? "Failed to get users: ${res.response.statusCode}",
-        );
-      }
-
-      return res.data.data.map(User.fromDto).toList();
-    } on DioException catch (e, st) {
-      logger.e(e, stackTrace: st);
-      throw Exception(MapExceptions.dioExceptionToString(e));
+    if (res.response.statusCode != 200) {
+      throw Exception(
+        res.data.message ?? "Failed to get users: ${res.response.statusCode}",
+      );
     }
+
+    return res.data.data.map(User.fromDto).toList();
   }
 
   @override
   Future<UserProfile> getUserProfile(int userId) async {
-    try {
-      final res = await _profileApi
-          .getProfile(userId.toString())
-          .timeout(ApiConstants.timeout);
+    final res = await _profileApi
+        .getProfile(userId.toString())
+        .timeout(ApiConstants.timeout);
 
-      if (res.response.statusCode != 200) {
-        throw Exception(
-          res.data.message ??
-              "Failed to get user's profile: ${res.response.statusCode}",
-        );
-      }
-
-      return UserProfile(
-        user: User.fromDto(res.data.data!.user),
-        description: res.data.data!.description,
+    if (res.response.statusCode != 200) {
+      throw Exception(
+        res.data.message ??
+            "Failed to get user's profile: ${res.response.statusCode}",
       );
-    } on DioException catch (e, st) {
-      logger.e(e, stackTrace: st);
-      throw Exception(MapExceptions.dioExceptionToString(e));
     }
+
+    return UserProfile(
+      user: User.fromDto(res.data.data!.user),
+      description: res.data.data!.description,
+    );
   }
 
   @override
@@ -117,13 +96,16 @@ class UserRepository implements IUserRepository {
     UserProfile profile, {
     updateImage = false,
   }) async {
-    try {
-      String? newImagePath;
-      if (updateImage && profile.user.profileImage.isEmpty) {
-        newImagePath = '';
-      } else if (updateImage) {
+    String? newImagePath;
+    if (!updateImage) {
+      newImagePath = null;
+    } else {
+      /// set newImagePath
+      if (profile.user.profileImage == null || profile.user.profileImage!.isEmpty) {
+        newImagePath = null;
+      } else {
         final imageRes = await _filesApi
-            .uploadFile(File(profile.user.profileImage))
+            .uploadFile(File(profile.user.profileImage!))
             .timeout(ApiConstants.timeout);
 
         if (imageRes.response.statusCode != 201) {
@@ -135,50 +117,40 @@ class UserRepository implements IUserRepository {
 
         newImagePath = imageRes.data.data!.path;
       }
-
-      final res = await _profileApi.editProfile(
-        EditProfileRequestDto(
-          username: profile.user.username.trim(),
-          description: profile.description.trim(),
-          profileImage: newImagePath ?? profile.user.profileImage,
-        ),
-      );
-
-      if (res.response.statusCode != 200) {
-        throw Exception(
-          res.data.message ?? "Failed to update profile: ${res.response.statusCode}",
-        );
-      }
-
-      return profile.copyWith(
-        user: profile.user.copyWith(
-          profileImage: newImagePath ?? profile.user.profileImage,
-        ),
-      );
-    } on DioException catch (e, st) {
-      logger.e(e, stackTrace: st);
-      throw Exception(MapExceptions.dioExceptionToString(e));
     }
+
+    final res = await _profileApi.editProfile(
+      EditProfileRequestDto(
+        username: profile.user.username.trim(),
+        description: profile.description.trim(),
+        profileImage: newImagePath,
+        updateImage: updateImage,
+      ),
+    );
+
+    if (res.response.statusCode != 200) {
+      throw Exception(
+        res.data.message ?? "Failed to update profile: ${res.response.statusCode}",
+      );
+    }
+
+    return profile.copyWith(
+      user: profile.user.copyWith(
+        profileImage: newImagePath ?? profile.user.profileImage,
+      ),
+    );
   }
 
   @override
   Future<bool> addFCMToken({required String token}) async {
-    try {
-      final result = await _userApi.addFCMToken(body: FCMTokenRequestDto(token: token));
-      return result.response.statusCode == 200;
-    } on DioException catch (e, st) {
-      logger.e(e, stackTrace: st);
-      throw Exception(MapExceptions.dioExceptionToString(e));
-    }
+    final result = await _userApi.addFCMToken(
+      body: FCMTokenRequestDto(token: token),
+    );
+    return result.response.statusCode == 200;
   }
 
   @override
   Future<void> deleteFCMToken({required String token}) async {
-    try {
-      await _userApi.deleteFCMToken(body: FCMTokenRequestDto(token: token));
-    } on DioException catch (e, st) {
-      logger.e(e, stackTrace: st);
-      throw Exception(MapExceptions.dioExceptionToString(e));
-    }
+    await _userApi.deleteFCMToken(body: FCMTokenRequestDto(token: token));
   }
 }

@@ -7,7 +7,7 @@ class UserDto {
   final int id;
   final String username;
   @JsonKey(name: 'profile_image')
-  final String profileImage;
+  final String? profileImage;
   @JsonKey(name: 'is_current')
   final bool isCurrent;
 

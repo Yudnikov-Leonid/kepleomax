@@ -33,7 +33,14 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     );
   }
 
+  int _lastTimeLoadCalled = 0;
   void _onLoad(PostListEventLoad event, Emitter<PostListState> emit) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (_lastTimeLoadCalled + 1000 > now) {
+      return;
+    }
+    _lastTimeLoadCalled = now;
+
     /// to prevent paging
     _data = _data.copyWith(isNewPostsLoading: true);
     emit(const PostListStateLoading());

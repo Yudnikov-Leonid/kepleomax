@@ -145,13 +145,13 @@ class _Body extends StatelessWidget {
                         highlightColor: Colors.transparent,
                         onTap:
                             data.profile == null ||
-                                (data.profile?.user.profileImage.isEmpty ?? true)
+                                data.profile?.user.profileImage == null
                             ? null
                             : () {
                                 AppNavigator.showGeneralDialog(
                                   context,
                                   PhotosPreviewScreen(
-                                    urls: [data.profile!.user.profileImage],
+                                    urls: [data.profile!.user.profileImage!],
                                     initialIndex: 0,
                                     isOnePictureMode: true,
                                   ),

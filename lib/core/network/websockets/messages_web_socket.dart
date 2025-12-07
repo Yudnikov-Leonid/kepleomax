@@ -30,7 +30,7 @@ class MessagesWebSocket {
   final StreamController<bool> _connectionController =
       StreamController<bool>.broadcast();
 
-  Stream<Message> get messagesStream => _messageController.stream;
+  Stream<Message> get newMessageStream => _messageController.stream;
 
   Stream<ReadMessagesUpdate> get readMessagesStream =>
       _readMessagesController.stream;

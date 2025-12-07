@@ -24,7 +24,8 @@ EditProfileRequestDto _$EditProfileRequestDtoFromJson(
 ) => EditProfileRequestDto(
   username: json['username'] as String,
   description: json['description'] as String,
-  profileImage: json['profileImage'] as String,
+  profileImage: json['profile_image'] as String?,
+  updateImage: json['update_image'] as bool,
 );
 
 Map<String, dynamic> _$EditProfileRequestDtoToJson(
@@ -32,7 +33,8 @@ Map<String, dynamic> _$EditProfileRequestDtoToJson(
 ) => <String, dynamic>{
   'username': instance.username,
   'description': instance.description,
-  'profileImage': instance.profileImage,
+  'profile_image': instance.profileImage,
+  'update_image': instance.updateImage,
 };
 
 GetProfileDataDto _$GetProfileDataDtoFromJson(Map<String, dynamic> json) =>

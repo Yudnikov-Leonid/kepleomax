@@ -134,10 +134,6 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
         return;
       }
 
-      print(
-        'child: ${_childSize!.width}, screen: ${context.screenSize.width}, aspect: ${_childSize!.aspectRatio}, screenAspect: ${context.screenSize.aspectRatio}',
-      );
-
       final double newY;
       if (_childSize == null) {
         newY = center.dy;

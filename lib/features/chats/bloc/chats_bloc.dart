@@ -28,7 +28,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
        _messagesRepository = messagesRepository,
        _userId = userId,
        super(ChatsStateBase.initial()) {
-    _subMessages = _messagesRepository.messagesStream.listen((newMessage) {
+    _subMessages = _messagesRepository.newMessageStream.listen((newMessage) {
       add(ChatsEventNewMessage(message: newMessage));
     }, cancelOnError: false);
     _subReadMessages = _messagesRepository.readMessagesStream.listen((data) {
@@ -168,7 +168,6 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
 
   @override
   Future<void> close() {
-    print('chatBlocClose');
     _subMessages.cancel();
     _subReadMessages.cancel();
     _subConnectionState.cancel();

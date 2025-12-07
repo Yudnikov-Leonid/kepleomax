@@ -58,6 +58,7 @@ class _FeedScreenState extends State<FeedScreen> {
             },
             child: SingleChildScrollView(
               controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 children: [
                   KlmAppBar(context, 'Feed'),

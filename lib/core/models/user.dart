@@ -10,7 +10,7 @@ abstract class User with _$User {
   const factory User({
     required int id,
     required String username,
-    required String profileImage,
+    required String? profileImage,
     required bool isCurrent,
   }) = _User;
 
@@ -26,7 +26,7 @@ abstract class User with _$User {
   factory User.loading() => const User(
     id: -1,
     username: '-------------',
-    profileImage: '',
+    profileImage: null,
     isCurrent: false,
   );
 }

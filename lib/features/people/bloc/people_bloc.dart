@@ -31,7 +31,6 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
   }
 
   void _onLoad(PeopleEventLoad event, Emitter<PeopleState> emit) async {
-    print('MyLog Load with ${_data.searchText}');
     _data = _data.copyWith(isLoading: true);
     emit(PeopleStateBase(data: _data));
 

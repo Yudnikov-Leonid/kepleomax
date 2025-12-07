@@ -58,7 +58,6 @@ class NotificationService {
   }
 
   void _handleAppOpened(NotificationResponse response) {
-    print('NotificationService OPEN APP with: ${response.payload}');
     if (response.payload == null) return;
     final chatId = int.parse(response.payload!);
 
@@ -122,7 +121,6 @@ class NotificationService {
 
 @pragma('vm:entry-point')
 Future<void> onBackgroundMessage(RemoteMessage message) async {
-  print('FCM message: ${message.data}');
   await Firebase.initializeApp();
   await NotificationService.instance.setupFlutterNotifications();
   await NotificationService.instance.showNotification(message);

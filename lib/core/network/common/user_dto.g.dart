@@ -9,7 +9,7 @@ part of 'user_dto.dart';
 UserDto _$UserDtoFromJson(Map<String, dynamic> json) => UserDto(
   id: (json['id'] as num).toInt(),
   username: json['username'] as String,
-  profileImage: json['profile_image'] as String,
+  profileImage: json['profile_image'] as String?,
   isCurrent: json['is_current'] as bool,
 );
 

@@ -1,17 +1,16 @@
 import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/messages_api.dart';
 import 'package:kepleomax/core/network/common/api_constants.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
-import 'package:kepleomax/core/presentation/map_exceptions.dart';
-import 'package:kepleomax/main.dart';
 
 abstract class IMessagesRepository {
   /// callbacks
   void initSocket();
+
   void dispose();
+
   void reconnect();
 
   /// api calls
@@ -24,13 +23,18 @@ abstract class IMessagesRepository {
 
   /// ws sends
   void sendMessage({required String message, required int recipientId});
+
   void readAllMessages({required int chatId});
+
   void readMessageBeforeTime({required int chatId, required int time});
 
   /// ws streams
-  Stream<Message> get messagesStream;
+  Stream<Message> get newMessageStream;
+
   Stream<ReadMessagesUpdate> get readMessagesStream;
+
   Stream<bool> get connectionStateStream;
+
   bool get isConnected;
 }
 
@@ -65,22 +69,17 @@ class MessagesRepository implements IMessagesRepository {
     required int limit,
     required int offset,
   }) async {
-    try {
-      final res = await _messagesApi
-          .getMessages(chatId: chatId, limit: limit, offset: offset)
-          .timeout(ApiConstants.timeout);
+    final res = await _messagesApi
+        .getMessages(chatId: chatId, limit: limit, offset: offset)
+        .timeout(ApiConstants.timeout);
 
-      if (res.response.statusCode != 200) {
-        throw Exception(
-          res.data.message ?? "Failed to get messages: ${res.response.statusCode}",
-        );
-      }
-
-      return res.data.data!.map((e) => Message.fromDto(e)).toList();
-    } on DioException catch (e, st) {
-      logger.e(e, stackTrace: st);
-      throw Exception(MapExceptions.dioExceptionToString(e));
+    if (res.response.statusCode != 200) {
+      throw Exception(
+        res.data.message ?? "Failed to get messages: ${res.response.statusCode}",
+      );
     }
+
+    return res.data.data!.map((e) => Message.fromDto(e)).toList();
   }
 
   /// ws sends
@@ -98,7 +97,7 @@ class MessagesRepository implements IMessagesRepository {
 
   /// ws streams
   @override
-  Stream<Message> get messagesStream => _webSocket.messagesStream;
+  Stream<Message> get newMessageStream => _webSocket.newMessageStream;
 
   @override
   Stream<ReadMessagesUpdate> get readMessagesStream => _webSocket.readMessagesStream;

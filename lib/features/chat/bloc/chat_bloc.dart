@@ -22,9 +22,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final IChatsRepository _chatsRepository;
   final int _userId;
   late ChatData _data = ChatData.initial();
-  late StreamSubscription _subMessages;
-  late StreamSubscription _subReadMessages;
-  late StreamSubscription _subConnectionState;
+  late StreamSubscription _newMessageSub;
+  late StreamSubscription _readMessagesSub;
+  late StreamSubscription _connectionStateSub;
 
   ChatBloc({
     required int userId,
@@ -35,13 +35,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
        _userId = userId,
        super(ChatStateBase.initial()) {
     _messagesRepository.initSocket();
-    _subMessages = _messagesRepository.messagesStream.listen((message) {
+    _newMessageSub = _messagesRepository.newMessageStream.listen((message) {
       add(ChatEventNewMessage(newMessage: message));
     }, cancelOnError: false);
-    _subReadMessages = _messagesRepository.readMessagesStream.listen((data) {
+    _readMessagesSub = _messagesRepository.readMessagesStream.listen((data) {
       add(ChatEventReadMessagesUpdate(updates: data));
     }, cancelOnError: false);
-    _subConnectionState = _messagesRepository.connectionStateStream.listen((
+    _connectionStateSub = _messagesRepository.connectionStateStream.listen((
       isConnected,
     ) {
       if (_data.chatId == -1 || _data.otherUser == null) return;
@@ -146,7 +146,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         newList.add(Message.unreadMessages());
       }
 
-      _data = _data.copyWith(messages: newList.reversed.toList(), isLoading: false);
+      _data = _data.copyWith(messages: newList, isLoading: false);
       emit(ChatStateBase(data: _data));
     } catch (e, st) {
       logger.e(e, stackTrace: st);
@@ -203,7 +203,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     if (event.newMessage.chatId == _data.chatId) {
       _data = _data.copyWith(
         chatId: event.newMessage.chatId,
-        messages: [..._data.messages, event.newMessage],
+        messages: [event.newMessage, ..._data.messages],
       );
     }
     emit(ChatStateBase(data: _data));
@@ -256,9 +256,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   @override
   Future<void> close() {
-    _subMessages.cancel();
-    _subReadMessages.cancel();
-    _subConnectionState.cancel();
+    _newMessageSub.cancel();
+    _readMessagesSub.cancel();
+    _connectionStateSub.cancel();
     _messagesRepository.dispose();
     return super.close();
   }

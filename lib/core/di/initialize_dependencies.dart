@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
@@ -89,6 +88,7 @@ List<_InitializationStep> _steps = [
         userRepository: dependencies.userRepository,
         tokenProvider: dependencies.tokenProvider,
         userProvider: UserProvider(prefs: dependencies.sharedPreferences),
+        prefs: dependencies.sharedPreferences,
       );
       await authController.init();
       dependencies.authController = authController;
@@ -137,9 +137,6 @@ List<_InitializationStep> _steps = [
     name: ('firebase'),
     call: (dependencies) async {
       await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-      final fcmToken = await FirebaseMessaging.instance.getToken();
-      print('fcmToken: $fcmToken');
 
       NotificationService.instance.init();
     },

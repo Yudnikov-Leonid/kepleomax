@@ -12,13 +12,13 @@ class UserProvider {
 
   Future<void> setNewUser(User? user) async {
     if (user == null) {
-      print('setNewUser: null');
+      //print('setNewUser: null');
       await deleteUser();
       return;
     }
 
     final userInfo = jsonEncode(user.toJson());
-    print('setNewUser: $userInfo');
+    //print('setNewUser: $userInfo');
 
     await prefs.setString(_key, userInfo);
   }
@@ -29,7 +29,7 @@ class UserProvider {
 
   Future<User?> getSavedUser() async {
     final userInfo = prefs.getString(_key);
-    print('getSavedUser: $userInfo');
+    //print('getSavedUser: $userInfo');
 
     if (userInfo == null) return null;
 

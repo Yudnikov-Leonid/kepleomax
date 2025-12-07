@@ -119,21 +119,16 @@ class _Body extends StatelessWidget {
           onRefresh: () async {
             context.read<ChatsBloc>().add(const ChatsEventLoad());
           },
-          child: SizedBox(
-            height: context.screenSize.height,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Column(
-                children: data.chats
-                    .map(
-                      (chat) => chat.otherUser == null
-                          ? const SizedBox()
-                          : _ChatWidget(key: Key('chat-${chat.id}'), chat: chat),
-                    )
-                    .toList(),
-              ),
-            ),
+          child: ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            itemCount: data.chats.length,
+            itemBuilder: (context, i) => data.chats[i].otherUser == null
+                ? const SizedBox()
+                : _ChatWidget(
+                    key: Key('chat-${data.chats[i].id}'),
+                    chat: data.chats[i],
+                  ),
           ),
         );
       },
