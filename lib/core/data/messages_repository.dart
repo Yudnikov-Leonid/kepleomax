@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:kepleomax/core/data/local_database.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/messages_api.dart';
 import 'package:kepleomax/core/network/common/api_constants.dart';
@@ -16,10 +17,11 @@ abstract class IMessagesRepository {
   /// api calls
   Future<List<Message>> getMessages({
     required int chatId,
-    required int userId,
     required int limit,
     required int offset,
   });
+
+  Future<List<Message>> getMessagesFromCache({required int chatId});
 
   /// ws sends
   void sendMessage({required String message, required int recipientId});
@@ -41,12 +43,15 @@ abstract class IMessagesRepository {
 class MessagesRepository implements IMessagesRepository {
   final MessagesApi _messagesApi;
   final MessagesWebSocket _webSocket;
+  final LocalDatabase _localStorage;
 
   MessagesRepository({
     required MessagesApi messagesApi,
     required MessagesWebSocket messagesWebSocket,
+    required LocalDatabase localDatabase,
   }) : _messagesApi = messagesApi,
-       _webSocket = messagesWebSocket;
+       _webSocket = messagesWebSocket,
+       _localStorage = localDatabase;
 
   /// callbacks
   @override
@@ -65,7 +70,6 @@ class MessagesRepository implements IMessagesRepository {
   @override
   Future<List<Message>> getMessages({
     required int chatId,
-    required int userId,
     required int limit,
     required int offset,
   }) async {
@@ -79,7 +83,18 @@ class MessagesRepository implements IMessagesRepository {
       );
     }
 
-    return res.data.data!.map((e) => Message.fromDto(e)).toList();
+    final dtos = res.data.data!;
+    for (final dto in dtos) {
+      /// TODO is it good? or with one query
+      _localStorage.insertMessage(dto);
+    }
+    return dtos.map((e) => Message.fromDto(e)).toList();
+  }
+
+  @override
+  Future<List<Message>> getMessagesFromCache({required int chatId}) async {
+    final cache = await _localStorage.getMessagesByChatId(chatId);
+    return cache.map(Message.fromDto).toList();
   }
 
   /// ws sends

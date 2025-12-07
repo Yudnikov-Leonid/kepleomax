@@ -8,6 +8,7 @@ import 'package:kepleomax/core/auth/user_provider.dart';
 import 'package:kepleomax/core/data/auth_repository.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/files_repository.dart';
+import 'package:kepleomax/core/data/local_database.dart';
 import 'package:kepleomax/core/data/messages_repository.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
@@ -54,6 +55,15 @@ List<_InitializationStep> _steps = [
         secureStorage: dependencies.secureStorage,
       );
       CachedNetworkImage.logLevel = CacheManagerLogLevel.debug;
+    },
+  ),
+
+  _InitializationStep(
+    name: 'local_db',
+    call: (dependencies) async {
+      final db = LocalDatabase();
+      await db.init();
+      dependencies.localDatabase = db;
     },
   ),
 
@@ -117,6 +127,7 @@ List<_InitializationStep> _steps = [
         dio: dependencies.dio,
         baseUrl: flavor.baseUrl,
         tokenProvider: dependencies.tokenProvider,
+        localDatabase: dependencies.localDatabase
       );
 
       dependencies.filesRepository = FilesRepository(
@@ -126,6 +137,7 @@ List<_InitializationStep> _steps = [
       dependencies.messagesRepository = MessagesRepository(
         messagesApi: dependencies.messagesApi,
         messagesWebSocket: dependencies.messagesWebSocket,
+        localDatabase: dependencies.localDatabase,
       );
       dependencies.chatsRepository = ChatsRepository(
         chatsApi: dependencies.chatsApi,

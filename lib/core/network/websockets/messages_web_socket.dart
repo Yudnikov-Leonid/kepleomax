@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:kepleomax/core/data/local_database.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/common/refresh_token.dart';
@@ -12,15 +13,20 @@ import 'package:socket_io_client/socket_io_client.dart';
 import '../common/api_constants.dart';
 
 class MessagesWebSocket {
-  final String baseUrl;
-  final TokenProvider tokenProvider;
-  final Dio dio;
+  final String _baseUrl;
+  final TokenProvider _tokenProvider;
+  final Dio _dio;
+  final LocalDatabase _localDatabase;
 
   MessagesWebSocket({
-    required this.baseUrl,
-    required this.tokenProvider,
-    required this.dio,
-  });
+    required String baseUrl,
+    required TokenProvider tokenProvider,
+    required Dio dio,
+    required LocalDatabase localDatabase,
+  }) : _localDatabase = localDatabase,
+       _dio = dio,
+       _tokenProvider = tokenProvider,
+       _baseUrl = baseUrl;
 
   /// streams
   final StreamController<Message> _messageController =
@@ -56,7 +62,7 @@ class MessagesWebSocket {
     }
 
     /// socket
-    _socket = io(baseUrl, OptionBuilder().setTransports(['websocket']).build());
+    _socket = io(_baseUrl, OptionBuilder().setTransports(['websocket']).build());
     _socket!.auth = {'token': 'Bearer $token'};
     _socket!.connect();
 
@@ -75,11 +81,14 @@ class MessagesWebSocket {
     _socket!.on('new_message', (data) {
       logger.d('WebSocketLog new_message: $data');
       final messageDto = MessageDto.fromJson(data);
+      _localDatabase.insertMessage(messageDto).ignore();
       _messageController.add(Message.fromDto(messageDto));
     });
     _socket!.on('read_messages', (data) {
       logger.d('WebSocketLog read_messages: $data');
-      _readMessagesController.add(ReadMessagesUpdate.fromJson(data));
+      final updates = ReadMessagesUpdate.fromJson(data);
+      _localDatabase.readMessages(updates.messagesIds);
+      _readMessagesController.add(updates);
     });
     _socket!.onError((error) {
       logger.e('WebSocketLog error: $error');
@@ -133,8 +142,8 @@ class MessagesWebSocket {
 
   /// handle auth
   Future<String?> _getAccessToken() async {
-    final accessToken = tokenProvider.getAccessToken();
-    final refreshToken = await tokenProvider.getRefreshToken();
+    final accessToken = _tokenProvider.getAccessToken();
+    final refreshToken = await _tokenProvider.getRefreshToken();
     if (accessToken == null || refreshToken == null) {
       return null;
     }
@@ -150,12 +159,12 @@ class MessagesWebSocket {
     if (refreshTokenHasExpired) {
       return null;
     } else if (accessTokenHasExpired) {
-      final newToken = await RefreshToken(dio: dio).refreshToken(refreshToken);
+      final newToken = await RefreshToken(dio: _dio).refreshToken(refreshToken);
       if (newToken == null) {
         logger.e('WebSocketLog try to connect to ws, failed to update accessToken');
         return null;
       } else {
-        await tokenProvider.saveAccessToken(newToken);
+        await _tokenProvider.saveAccessToken(newToken);
         return newToken;
       }
     } else {

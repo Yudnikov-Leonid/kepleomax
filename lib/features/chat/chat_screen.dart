@@ -67,8 +67,13 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       appBar: const _AppBar(key: Key('chat_appbar')),
       body: _Body(
-        bloc: _chatBloc,
+        chatBloc: _chatBloc,
         scrollController: _scrollController,
+        onRetry: () {
+          _chatBloc.add(
+            ChatEventLoad(chatId: widget.chatId, otherUser: widget.otherUser),
+          );
+        },
         key: const Key('chat_body'),
       ),
     );
@@ -78,14 +83,15 @@ class _ChatScreenState extends State<ChatScreen> {
 /// body
 class _Body extends StatefulWidget {
   const _Body({
-    required ScrollController scrollController,
-    required ChatBloc bloc,
+    required this.scrollController,
+    required this.chatBloc,
+    required this.onRetry,
     super.key,
-  }) : _chatBloc = bloc,
-       _scrollController = scrollController;
+  });
 
-  final ScrollController _scrollController;
-  final ChatBloc _chatBloc;
+  final ScrollController scrollController;
+  final ChatBloc chatBloc;
+  final VoidCallback onRetry;
 
   @override
   State<_Body> createState() => _BodyState();
@@ -100,13 +106,13 @@ class _BodyState extends State<_Body> {
   /// callbacks
   @override
   void initState() {
-    widget._scrollController.addListener(_onScrollListener);
+    widget.scrollController.addListener(_onScrollListener);
     super.initState();
   }
 
   @override
   void dispose() {
-    widget._scrollController.removeListener(_onScrollListener);
+    widget.scrollController.removeListener(_onScrollListener);
     super.dispose();
   }
 
@@ -149,7 +155,19 @@ class _BodyState extends State<_Body> {
       },
       builder: (context, state) {
         if (state is ChatStateError) {
-          return Center(child: Text('error: ${state.message}'));
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('error: ${state.message}', textAlign: TextAlign.center),
+                  const SizedBox(height: 10),
+                  TextButton(onPressed: widget.onRetry, child: const Text('Retry')),
+                ],
+              ),
+            ),
+          );
         }
 
         if (state is! ChatStateBase) return const SizedBox();
@@ -184,7 +202,7 @@ class _BodyState extends State<_Body> {
               Expanded(
                 child: ColoredBox(
                   color: Colors.blue.shade100,
-                  child: data.isLoading
+                  child: data.isLoading && data.messages.isEmpty
                       ? const Center(child: CircularProgressIndicator())
                       : data.messages.isEmpty
                       ? const Center(
@@ -195,7 +213,7 @@ class _BodyState extends State<_Body> {
                         )
                       : ListView.builder(
                           key: Key('chat_scroll_view_${data.chatId}'),
-                          controller: widget._scrollController,
+                          controller: widget.scrollController,
                           padding: EdgeInsets.only(
                             bottom: 4,
                             top: data.isAllMessagesLoaded ? 4 : 20,
@@ -212,7 +230,7 @@ class _BodyState extends State<_Body> {
               ),
               _Bottom(
                 onSend: (message) {
-                  widget._scrollController.animateTo(
+                  widget.scrollController.animateTo(
                     0,
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeOut,
@@ -224,6 +242,7 @@ class _BodyState extends State<_Body> {
                     ),
                   );
                 },
+                isLoading: data.isLoading,
                 key: const Key('chat_bottom'),
               ),
             ],
@@ -237,11 +256,11 @@ class _BodyState extends State<_Body> {
   void _onScrollListener() {
     // print('scrollListener: ${widget._scrollController.hasClients}, ${widget._scrollController.offset}, ${widget._scrollController.position.maxScrollExtent}',);
 
-    if (!widget._scrollController.hasClients || !_isScreenActive) return;
+    if (!widget.scrollController.hasClients || !_isScreenActive) return;
 
-    if (widget._scrollController.offset >
-        widget._scrollController.position.maxScrollExtent - 100) {
-      widget._chatBloc.add(const ChatEventLoadMore());
+    if (widget.scrollController.offset >
+        widget.scrollController.position.maxScrollExtent - 100) {
+      widget.chatBloc.add(const ChatEventLoadMore());
     }
 
     if (_keys.isEmpty) return;
@@ -255,7 +274,7 @@ class _BodyState extends State<_Body> {
       final renderBox = el.$1.currentContext!.findRenderObject() as RenderBox;
       double widgetTop = renderBox.size.height;
 
-      double viewportTop = widget._scrollController.position.pixels;
+      double viewportTop = widget.scrollController.position.pixels;
 
       widgetTop += heightOffset;
       heightOffset += renderBox.size.height;
@@ -281,13 +300,13 @@ class _BodyState extends State<_Body> {
   }
 
   void _maintainScrollPos() {
-    if (!widget._scrollController.hasClients ||
-        widget._scrollController.offset == 0 ||
+    if (!widget.scrollController.hasClients ||
+        widget.scrollController.offset == 0 ||
         _keys.isEmpty)
       return;
 
-    double currentOffset = widget._scrollController.offset;
-    widget._scrollController.jumpTo(currentOffset + 45);
+    double currentOffset = widget.scrollController.offset;
+    widget.scrollController.jumpTo(currentOffset + 45);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       /// here new keys is already added
       if (_keys.isEmpty) return;
@@ -296,7 +315,7 @@ class _BodyState extends State<_Body> {
               .size
               .height;
       if (newMessageHeight != 45) {
-        widget._scrollController.jumpTo(currentOffset + newMessageHeight);
+        widget.scrollController.jumpTo(currentOffset + newMessageHeight);
       }
     });
   }
@@ -323,6 +342,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
         final isLoading = data.isLoading || data.otherUser == null;
 
         return AppBar(
+          key: Key('chat_app_bar_${data.otherUser?.id}'),
           leading: const KlmBackButton(),
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.transparent,
@@ -337,7 +357,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                     )!.push(UserPage(userId: data.otherUser!.id));
                   },
             child: Skeletonizer(
-              enabled: isLoading,
+              enabled: data.otherUser == null,
               child: Row(
                 children: [
                   UserImage(size: 40, url: data.otherUser?.profileImage),

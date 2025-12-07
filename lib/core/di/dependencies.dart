@@ -20,6 +20,8 @@ import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../data/local_database.dart';
+
 class Dependencies {
   late final AuthController authController;
   late final TokenProvider tokenProvider;
@@ -43,6 +45,7 @@ class Dependencies {
   late final IFilesRepository filesRepository;
   late final IMessagesRepository messagesRepository;
   late final IChatsRepository chatsRepository;
+  late final LocalDatabase localDatabase;
 
   Widget inject({required Widget child}) =>
       InheritedDependencies(dependencies: this, child: child);

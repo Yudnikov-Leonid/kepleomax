@@ -1,10 +1,14 @@
 part of '../chat_screen.dart';
 
 class _Bottom extends StatefulWidget {
-  const _Bottom({required ValueChanged<String>? onSend, super.key})
-      : _onSend = onSend;
+  const _Bottom({
+    required ValueChanged<String>? onSend,
+    required this.isLoading,
+    super.key,
+  }) : _onSend = onSend;
 
   final ValueChanged<String>? _onSend;
+  final bool isLoading;
 
   @override
   State<_Bottom> createState() => _BottomState();
@@ -41,6 +45,7 @@ class _BottomState extends State<_Bottom> {
                   onChanged: (newText) {},
                   multiline: true,
                   maxLength: 4000,
+                  readOnly: widget.isLoading,
                   textCapitalization: TextCapitalization.sentences,
                 ),
               ),
@@ -49,13 +54,22 @@ class _BottomState extends State<_Bottom> {
                 onPressed: widget._onSend == null
                     ? null
                     : () {
-                  if (_controller.text.isEmpty) return;
-                  widget._onSend!(_controller.text.trim());
-                  _controller.clear();
-                  setState(() {});
-                },
+                        if (_controller.text.isEmpty || widget.isLoading) return;
+                        widget._onSend!(_controller.text.trim());
+                        _controller.clear();
+                        setState(() {});
+                      },
                 style: IconButton.styleFrom(backgroundColor: KlmColors.primaryColor),
-                icon: const Icon(Icons.arrow_upward, color: Colors.white),
+                icon: widget.isLoading
+                    ? const SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.arrow_upward, color: Colors.white),
               ),
             ],
           ),

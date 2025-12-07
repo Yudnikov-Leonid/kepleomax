@@ -20,19 +20,16 @@ const _pagingCount = 25;
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final IMessagesRepository _messagesRepository;
   final IChatsRepository _chatsRepository;
-  final int _userId;
   late ChatData _data = ChatData.initial();
   late StreamSubscription _newMessageSub;
   late StreamSubscription _readMessagesSub;
   late StreamSubscription _connectionStateSub;
 
   ChatBloc({
-    required int userId,
     required IMessagesRepository messagesRepository,
     required IChatsRepository chatsRepository,
   }) : _messagesRepository = messagesRepository,
        _chatsRepository = chatsRepository,
-       _userId = userId,
        super(ChatStateBase.initial()) {
     _messagesRepository.initSocket();
     _newMessageSub = _messagesRepository.newMessageStream.listen((message) {
@@ -88,6 +85,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     int chatId = event.chatId;
     try {
+      /// show cached messages
+      final cache = await _messagesRepository.getMessagesFromCache(chatId: chatId);
+      _data = _data.copyWith(messages: _withUnreadMessages(cache));
+      emit(ChatStateBase(data: _data));
+
       /// either chatId == -1 and we have otherUser, or otherUser == null and we have chatId
       if (event.chatId == -1) {
         final chat = await _chatsRepository.getChatWithUser(event.otherUser!.id);
@@ -109,7 +111,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
       final messages = await _messagesRepository.getMessages(
         chatId: chatId,
-        userId: _userId,
         limit: _pagingCount,
         offset: 0,
       );
@@ -118,33 +119,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       }
 
       /// add unread messages line
-      var newList = <Message>[];
-      bool isStopMessageFound = false;
-      for (int i = 0; i < messages.length; i++) {
-        if (messages[i].user.isCurrent) {
-          /// message of current user, unreadMessagesLine can't be above, so end the loop
-          newList.addAll(messages.sublist(i));
-          isStopMessageFound = true;
-          break;
-        }
-        if (messages[i].isRead) {
-          /// message of not current user is read. If it's first message, then
-          /// don't need the line. If it's not the first one, then add the line
-          if (i != 0) {
-            newList.add(Message.unreadMessages());
-          }
-          newList.addAll(messages.sublist(i));
-          isStopMessageFound = true;
-          break;
-        }
-
-        /// message of not current user that unread, go to the next one
-        newList.add(messages[i]);
-      }
-      if (!isStopMessageFound) {
-        /// means this is new chat with unread messages from other user
-        newList.add(Message.unreadMessages());
-      }
+      final newList = _withUnreadMessages(messages);
 
       _data = _data.copyWith(messages: newList, isLoading: false);
       emit(ChatStateBase(data: _data));
@@ -152,6 +127,38 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       logger.e(e, stackTrace: st);
       emit(ChatStateError(message: e.userErrorMessage));
     }
+  }
+
+  List<Message> _withUnreadMessages(List<Message> messages) {
+    var newList = <Message>[];
+    bool isStopMessageFound = false;
+    for (int i = 0; i < messages.length; i++) {
+      if (messages[i].user.isCurrent) {
+        /// message of current user, unreadMessagesLine can't be above, so end the loop
+        newList.addAll(messages.sublist(i));
+        isStopMessageFound = true;
+        break;
+      }
+      if (messages[i].isRead) {
+        /// message of not current user is read. If it's first message, then
+        /// don't need the line. If it's not the first one, then add the line
+        if (i != 0) {
+          newList.add(Message.unreadMessages());
+        }
+        newList.addAll(messages.sublist(i));
+        isStopMessageFound = true;
+        break;
+      }
+
+      /// message of not current user that unread, go to the next one
+      newList.add(messages[i]);
+    }
+    if (!isStopMessageFound) {
+      /// means this is new chat with unread messages from other user
+      newList.add(Message.unreadMessages());
+    }
+
+    return newList;
   }
 
   void _onReadMessagesBeforeTime(
@@ -225,7 +232,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     try {
       final newMessages = await _messagesRepository.getMessages(
         chatId: _data.chatId,
-        userId: _userId,
         limit: _pagingCount,
         offset: _data.messages.where((e) => e.id >= 0).length,
       );

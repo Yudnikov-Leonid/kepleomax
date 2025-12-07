@@ -23,7 +23,6 @@ class ChatScope extends StatelessWidget {
         ),
         BlocProvider<ChatBloc>(
           create: (context) => ChatBloc(
-            userId: AuthScope.userOf(context).id,
             chatsRepository: Dependencies.of(context).chatsRepository,
             messagesRepository: Dependencies.of(context).messagesRepository,
           ),
