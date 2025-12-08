@@ -103,7 +103,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     final newChats = _data.chats.toList();
 
     if (event.updates.senderId == _userId) {
-      /// my message have was read
+      /// current user message was read
       if (event.updates.messagesIds.contains(
         _data.chats[chatIndex].lastMessage!.id,
       )) {
@@ -149,6 +149,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
       } catch (e, st) {
         emit(ChatsStateError(message: e.userErrorMessage));
         logger.e(e, stackTrace: st);
+        return;
       }
     } else {
       final newList = _data.chats.toList();

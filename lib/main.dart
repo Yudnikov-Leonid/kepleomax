@@ -12,9 +12,7 @@ import 'core/flavor/flavor.dart';
 
 late Logger logger;
 
-late Flavor _flavor;
-
-Flavor get flavor => _flavor;
+late Flavor flavor;
 
 void main({Flavor? flavor}) {
   bool isAppRunning = false;
@@ -25,7 +23,7 @@ void main({Flavor? flavor}) {
 
       logger = Logger();
 
-      _flavor = flavor!;
+      flavor = flavor!;
 
       final dependencies = await initializeDependencies();
 

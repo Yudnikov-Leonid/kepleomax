@@ -8,7 +8,7 @@ extension UserErrorMessage on Object {
     } else if (flavor.isDevelop) {
       return toString();
     } else {
-      return 'Что-то пошло не так';
+      return 'Something went wrong';
     }
   }
 }
