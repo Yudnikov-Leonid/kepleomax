@@ -1,8 +1,6 @@
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:sqflite/sqflite.dart';
 
-/// TODO improve it. Now it can store hundreds of messages of one
-/// chat that will never be used, cause limit always 25
 class LocalDatabase {
   late Database _db;
 
@@ -19,7 +17,7 @@ class LocalDatabase {
           other_user_id INT, 
           message VARCHAR(4000) NOT NULL, 
           is_read BIT DEFAULT FALSE NOT NULL, 
-          created_at STRING NOT NULL, 
+          created_at BIGINT NOT NULL, 
           edited_at BIGINT,
           row_updated_at BIGINT NOT NULL
           )''');
@@ -32,7 +30,7 @@ class LocalDatabase {
       'messages',
       where: r'row_updated_at < $1',
       whereArgs: [
-        DateTime.now().add(const Duration(days: -3)).millisecondsSinceEpoch,
+        DateTime.now().add(const Duration(days: -2)).millisecondsSinceEpoch,
       ],
     ).ignore();
   }
@@ -50,23 +48,15 @@ class LocalDatabase {
       limit: limit,
       offset: offset,
     );
-    return query.map<MessageDto>((dto) {
-      final json = Map.of(dto);
-      if (json['is_current_user'] != null) {
-        json['is_current_user'] = json['is_current_user'] == 1;
-      }
-      if (json['is_read'] != null) {
-        json['is_read'] = json['is_read'] == 1;
-      }
-      json['created_at'] = json['created_at'].toString();
-      return MessageDto.fromJson(json);
-    }).toList();
+    final mapped = query.map(MessageDto.fromJson);
+    return mapped.toList();
   }
 
   Future<void> insertMessage(MessageDto message) async {
     final json = Map.of(message.toJson());
     json.remove('user');
     json['is_read'] = json['is_read'] == true ? 1 : 0;
+    json['is_current_user'] = json['is_current_user'] == true ? 1 : 0;
     json['row_updated_at'] = DateTime.now().millisecondsSinceEpoch;
     await _db.insert('messages', json, conflictAlgorithm: ConflictAlgorithm.replace);
   }

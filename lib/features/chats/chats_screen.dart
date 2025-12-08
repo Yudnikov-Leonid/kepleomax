@@ -7,6 +7,7 @@ import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
 import 'package:kepleomax/core/presentation/klm_button.dart';
+import 'package:kepleomax/core/presentation/klm_error_widget.dart';
 import 'package:kepleomax/core/presentation/parse_time.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/features/chats/bloc/chats_bloc.dart';
@@ -39,27 +40,11 @@ class _Body extends StatelessWidget {
       /// don't need buildWhen
       builder: (context, state) {
         if (state is ChatsStateError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  state.message,
-                  textAlign: TextAlign.center,
-                  style: context.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                KlmButton(
-                  onPressed: () {
-                    context.read<ChatsBloc>().add(const ChatsEventLoad());
-                  },
-                  width: 100,
-                  text: 'Retry',
-                ),
-              ],
-            ),
+          return KlmErrorWidget(
+            errorMessage: state.message,
+            onRetry: () {
+              context.read<ChatsBloc>().add(const ChatsEventLoad());
+            },
           );
         }
 

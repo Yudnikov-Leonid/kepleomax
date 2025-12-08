@@ -7,6 +7,7 @@ import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_button.dart';
+import 'package:kepleomax/core/presentation/klm_error_widget.dart';
 import 'package:kepleomax/features/post/bloc/post_list_state.dart';
 import 'package:kepleomax/features/post/post_widget.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -46,26 +47,11 @@ class PostListWidget extends StatelessWidget {
           );
         } else if (state is PostListStateError) {
           /// error
-          return Center(
-            child: Column(
-              children: [
-                Text(
-                  state.message,
-                  style: context.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 20,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                KlmButton(
-                  onPressed: () {
-                    context.read<PostListBloc>().add(const PostListEventLoad());
-                  },
-                  text: 'Retry',
-                  width: 120,
-                ),
-              ],
-            ),
+          return KlmErrorWidget(
+            errorMessage: state.message,
+            onRetry: () {
+              context.read<PostListBloc>().add(const PostListEventLoad());
+            },
           );
         } else if (state is PostListStateBase) {
           /// base
@@ -76,26 +62,34 @@ class PostListWidget extends StatelessWidget {
                 (i, post) => PostWidget(
                   key: Key('post_widget_${post.id}'),
                   post: post,
-                  onDelete: !isUserPage ? null : () {
-                    context.read<PostListBloc>().add(
-                      PostListEventDeletePost(index: i, postId: post.id),
-                    );
-                  },
-                  onEdit: !isUserPage ? null : () {
-                    AppNavigator.withKeyOf(context, mainNavigatorKey)!.push(
-                      PostEditorPage(
-                        post: post,
-                        onPostSaved: () {
+                  onDelete: !isUserPage
+                      ? null
+                      : () {
                           context.read<PostListBloc>().add(
-                            const PostListEventLoad(),
+                            PostListEventDeletePost(index: i, postId: post.id),
                           );
                         },
-                      ),
-                    );
-                  },
-                  onUserTap: isUserPage ? null : () {
-                    AppNavigator.of(context)?.push(UserPage(userId: post.user.id));
-                  },
+                  onEdit: !isUserPage
+                      ? null
+                      : () {
+                          AppNavigator.withKeyOf(context, mainNavigatorKey)!.push(
+                            PostEditorPage(
+                              post: post,
+                              onPostSaved: () {
+                                context.read<PostListBloc>().add(
+                                  const PostListEventLoad(),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                  onUserTap: isUserPage
+                      ? null
+                      : () {
+                          AppNavigator.of(
+                            context,
+                          )?.push(UserPage(userId: post.user.id));
+                        },
                 ),
               ),
 

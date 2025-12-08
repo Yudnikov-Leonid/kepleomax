@@ -40,8 +40,8 @@ abstract class Message with _$Message {
         message: dto.message,
         chatId: dto.chatId,
         isRead: dto.isRead,
-        createdAt: int.parse(dto.createdAt),
-        editedAt: dto.editedAt == null ? null : int.parse(dto.editedAt!),
+        createdAt: dto.createdAt,
+        editedAt: dto.editedAt,
       );
 
   /// ui line

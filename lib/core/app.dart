@@ -39,7 +39,8 @@ class _AppState extends State<App> {
         debugShowCheckedModeBanner: false,
         builder: (context, _) {
           return AuthScope(
-            child: ChatScope(
+            builder: (context, userId) => ChatScope(
+              key: Key('chat_scope_$userId'),
               child: AppNavigator(
                 initialState: [const MainPage()],
                 navigatorKey: mainNavigatorKey,

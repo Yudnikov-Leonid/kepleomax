@@ -19,7 +19,7 @@ class NotificationService {
   Future<void> setupFlutterNotifications() async {
     const androidChannel = AndroidNotificationChannel(
       'high_importance_channel',
-      'High importance notifications',
+      'Base notifications channel',
       importance: Importance.high,
     );
     await _localNotifications
@@ -103,7 +103,7 @@ class NotificationService {
         const NotificationDetails(
           android: AndroidNotificationDetails(
             'high_importance_channel',
-            'High importance notifications',
+            'Base notifications channel',
             importance: Importance.high,
             priority: Priority.high,
             icon: '@mipmap/ic_launcher',

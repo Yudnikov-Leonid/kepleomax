@@ -47,8 +47,8 @@ PostDto _$PostDtoFromJson(Map<String, dynamic> json) => PostDto(
   usersWhoLikedIds: (json['users_who_liked_ids'] as List<dynamic>)
       .map((e) => e as String)
       .toList(),
-  createdAt: json['created_at'] as String,
-  editedAt: json['edited_at'] as String?,
+  createdAt: (json['created_at'] as num).toInt(),
+  editedAt: (json['edited_at'] as num?)?.toInt(),
   user: UserDto.fromJson(json['user'] as Map<String, dynamic>),
 );
 

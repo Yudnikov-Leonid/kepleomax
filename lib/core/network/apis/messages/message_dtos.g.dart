@@ -28,8 +28,8 @@ MessageDto _$MessageDtoFromJson(Map<String, dynamic> json) => MessageDto(
   otherUserId: (json['other_user_id'] as num?)?.toInt(),
   message: json['message'] as String,
   isRead: json['is_read'] as bool,
-  createdAt: json['created_at'] as String,
-  editedAt: json['edited_at'] as String?,
+  createdAt: (json['created_at'] as num).toInt(),
+  editedAt: (json['edited_at'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$MessageDtoToJson(MessageDto instance) =>

@@ -9,18 +9,18 @@ import '../navigation/pages.dart';
 final loginNavigatorKey = 'LoginNavigator';
 
 class AuthScope extends StatefulWidget {
-  const AuthScope({required this.child, super.key});
+  const AuthScope({required this.builder, super.key});
 
-  final Widget child;
+  final Widget Function(BuildContext, int) builder;
 
   static AuthController controllerOf(BuildContext context) =>
       _InheritedAuth.maybeOf(context)!.controller;
 
   static User? userOr(BuildContext context) => controllerOf(context).user;
+
   static User userOf(BuildContext context) => controllerOf(context).user!;
 
-  static Future<void> logout(BuildContext context) =>
-      controllerOf(context).logout();
+  static Future<void> logout(BuildContext context) => controllerOf(context).logout();
 
   static void updateUser(BuildContext context, User newUser) =>
       controllerOf(context).updateUser(newUser);
@@ -58,17 +58,18 @@ class _AuthScopeState extends State<AuthScope> {
     return _InheritedAuth(
       key: ValueKey(_controller.user?.id ?? -1),
       controller: _controller,
-      child: _controller.user == null ? AppNavigator(initialState: [const LoginPage()], navigatorKey: loginNavigatorKey) : widget.child,
+      child: _controller.user == null
+          ? AppNavigator(
+              initialState: [const LoginPage()],
+              navigatorKey: loginNavigatorKey,
+            )
+          : widget.builder(context, _controller.user!.id),
     );
   }
 }
 
 class _InheritedAuth extends InheritedWidget {
-  const _InheritedAuth({
-    required super.child,
-    required this.controller,
-    super.key,
-  });
+  const _InheritedAuth({required super.child, required this.controller, super.key});
 
   final AuthController controller;
 

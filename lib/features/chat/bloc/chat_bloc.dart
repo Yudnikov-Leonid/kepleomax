@@ -76,6 +76,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _lastTimeLoadWasCalled = now;
 
     _data = _data.copyWith(
+      messages: [],
       chatId: event.chatId,
       otherUser: event.otherUser,
       isLoading: true,
@@ -130,6 +131,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   List<Message> _withUnreadMessages(List<Message> messages) {
+    if (messages.isEmpty) return [];
+
     var newList = <Message>[];
     bool isStopMessageFound = false;
     for (int i = 0; i < messages.length; i++) {

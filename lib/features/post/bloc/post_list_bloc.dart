@@ -34,6 +34,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
   }
 
   int _lastTimeLoadCalled = 0;
+
   void _onLoad(PostListEventLoad event, Emitter<PostListState> emit) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     if (_lastTimeLoadCalled + 1000 > now) {
@@ -46,19 +47,20 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     emit(const PostListStateLoading());
 
     try {
-      _loadTime = (await NTP.now(timeout: ApiConstants.timeout)).millisecondsSinceEpoch;
+      _loadTime = (await NTP.now(
+        timeout: ApiConstants.timeout,
+      )).millisecondsSinceEpoch;
       final posts = await _getPosts(offset: 0, beforeTime: _loadTime);
 
       _data = _data.copyWith(
         posts: posts,
         isAllPostsLoaded: posts.length < _pagingLimit,
+        isNewPostsLoading: false,
       );
+      emit(PostListStateBase(data: _data));
     } catch (e, st) {
       logger.e(e, stackTrace: st);
       emit(PostListStateError(message: e.userErrorMessage));
-    } finally {
-      _data = _data.copyWith(isNewPostsLoading: false);
-      emit(PostListStateBase(data: _data));
     }
   }
 

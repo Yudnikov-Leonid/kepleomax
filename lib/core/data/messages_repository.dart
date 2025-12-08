@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:kepleomax/core/data/local_database.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/messages_api.dart';
@@ -88,7 +89,10 @@ class MessagesRepository implements IMessagesRepository {
       /// TODO is it good? or with one query
       _localStorage.insertMessage(dto);
     }
-    return dtos.map((e) => Message.fromDto(e)).toList();
+
+    final mapped = await compute(dtos.map<Message>, Message.fromDto);
+
+    return mapped.toList();
   }
 
   @override

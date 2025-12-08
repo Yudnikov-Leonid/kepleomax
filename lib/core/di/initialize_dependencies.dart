@@ -23,7 +23,6 @@ import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/middlewares/auth_interceptor.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
-import 'package:kepleomax/core/notifications/notifications_service.dart';
 import 'package:kepleomax/firebase_options.dart';
 import 'package:kepleomax/main.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
@@ -149,8 +148,6 @@ List<_InitializationStep> _steps = [
     name: ('firebase'),
     call: (dependencies) async {
       await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-      NotificationService.instance.init();
     },
   ),
 ];

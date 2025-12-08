@@ -52,9 +52,9 @@ class PostDto {
   @JsonKey(name: 'users_who_liked_ids')
   final List<String> usersWhoLikedIds;
   @JsonKey(name: 'created_at')
-  final String createdAt;
+  final int createdAt;
   @JsonKey(name: 'edited_at')
-  final String? editedAt;
+  final int? editedAt;
   final UserDto user;
 
   PostDto({

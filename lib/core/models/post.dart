@@ -23,8 +23,8 @@ abstract class Post with _$Post {
     content: dto.content,
     images: dto.images,
     likesCount: 0,
-    createdAt: int.parse(dto.createdAt),
-    updatedAt: dto.editedAt == null ? null : int.parse(dto.editedAt!),
+    createdAt: dto.createdAt,
+    updatedAt: dto.editedAt,
   );
 
   factory Post.loading() => Post(
