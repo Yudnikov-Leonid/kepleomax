@@ -1,7 +1,7 @@
 part of '../chat_screen.dart';
 
-class _Bottom extends StatefulWidget {
-  const _Bottom({
+class _ChatBottom extends StatefulWidget {
+  const _ChatBottom({
     required ValueChanged<String>? onSend,
     required this.isLoading,
     super.key,
@@ -11,10 +11,10 @@ class _Bottom extends StatefulWidget {
   final bool isLoading;
 
   @override
-  State<_Bottom> createState() => _BottomState();
+  State<_ChatBottom> createState() => _ChatBottomState();
 }
 
-class _BottomState extends State<_Bottom> {
+class _ChatBottomState extends State<_ChatBottom> {
   final _controller = TextEditingController();
 
   @override
@@ -45,7 +45,6 @@ class _BottomState extends State<_Bottom> {
                   onChanged: (newText) {},
                   multiline: true,
                   maxLength: 4000,
-                  readOnly: widget.isLoading,
                   textCapitalization: TextCapitalization.sentences,
                 ),
               ),
@@ -59,11 +58,7 @@ class _BottomState extends State<_Bottom> {
                         _controller.clear();
                         setState(() {});
                       },
-                style: IconButton.styleFrom(
-                  backgroundColor: widget.isLoading
-                      ? Colors.grey
-                      : KlmColors.primaryColor,
-                ),
+                style: IconButton.styleFrom(backgroundColor: KlmColors.primaryColor),
                 icon: const Icon(Icons.arrow_upward, color: Colors.white),
               ),
             ],

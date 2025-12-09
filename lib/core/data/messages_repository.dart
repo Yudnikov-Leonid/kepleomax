@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:kepleomax/core/data/local_database.dart';
+import 'package:kepleomax/core/data/local/local_database.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/messages_api.dart';
 import 'package:kepleomax/core/network/common/api_constants.dart';
@@ -42,7 +42,7 @@ abstract class IMessagesRepository {
 class MessagesRepository implements IMessagesRepository {
   final MessagesApi _messagesApi;
   final MessagesWebSocket _webSocket;
-  final LocalDatabase _localStorage;
+  final ILocalMessagesDatabase _localStorage;
 
   MessagesRepository({
     required MessagesApi messagesApi,

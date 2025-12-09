@@ -8,7 +8,7 @@ import 'package:kepleomax/core/auth/user_provider.dart';
 import 'package:kepleomax/core/data/auth_repository.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/files_repository.dart';
-import 'package:kepleomax/core/data/local_database.dart';
+import 'package:kepleomax/core/data/local/local_database.dart';
 import 'package:kepleomax/core/data/messages_repository.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
@@ -98,6 +98,7 @@ List<_InitializationStep> _steps = [
         tokenProvider: dependencies.tokenProvider,
         userProvider: UserProvider(prefs: dependencies.sharedPreferences),
         prefs: dependencies.sharedPreferences,
+        localDatabase: dependencies.localDatabase
       );
       await authController.init();
       dependencies.authController = authController;

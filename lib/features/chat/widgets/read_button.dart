@@ -57,7 +57,8 @@ class _ReadButtonState extends State<_ReadButton> {
         final isScrolledUp = widget._scrollController.positions.length == 1
             ? widget._scrollController.offset > _offsetToShow
             : false;
-        if (allMessagesIsRead && !isScrolledUp) return const SizedBox();
+        if ((allMessagesIsRead && !isScrolledUp) || data.isLoading)
+          return const SizedBox();
         return Padding(
           padding: const EdgeInsets.only(bottom: 75),
           child: Stack(

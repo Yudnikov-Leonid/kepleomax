@@ -1,4 +1,4 @@
-import 'package:kepleomax/core/data/local_database.dart';
+import 'package:kepleomax/core/data/local/local_database.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_api.dart';
 import 'package:kepleomax/core/network/common/api_constants.dart';
@@ -17,7 +17,7 @@ abstract class IChatsRepository {
 
 class ChatsRepository implements IChatsRepository {
   final ChatsApi _chatsApi;
-  final LocalDatabase _localDatabase;
+  final ILocalChatsDatabase _localDatabase;
 
   ChatsRepository({required ChatsApi chatsApi, required LocalDatabase localDatabase})
     : _localDatabase = localDatabase,

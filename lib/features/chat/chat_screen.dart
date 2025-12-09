@@ -213,15 +213,17 @@ class _BodyState extends State<_Body> {
                           ),
                           reverse: true,
                           itemCount: data.messages.length,
-                          itemBuilder: (context, i) => _MessageWidget(
-                            key: _keys[data.messages[i].id]!.$1,
-                            message: data.messages[i],
-                            user: data.otherUser!,
-                          ),
+                          itemBuilder: (context, i) => data.otherUser == null
+                              ? const SizedBox()
+                              : _MessageWidget(
+                                  key: _keys[data.messages[i].id]!.$1,
+                                  message: data.messages[i],
+                                  user: data.otherUser!,
+                                ),
                         ),
                 ),
               ),
-              _Bottom(
+              _ChatBottom(
                 onSend: (message) {
                   widget.scrollController.animateTo(
                     0,
@@ -262,7 +264,8 @@ class _BodyState extends State<_Body> {
       final el = _keys.values.elementAt(i); // $1 - globalKey, $2 - message
       if (el.$2.user.isCurrent || el.$2.isRead) break;
 
-      final renderBox = el.$1.currentContext!.findRenderObject() as RenderBox;
+      final renderBox = el.$1.currentContext?.findRenderObject() as RenderBox?;
+      if (renderBox == null) continue;
       double widgetTop = renderBox.size.height;
 
       double viewportTop = widget.scrollController.position.pixels;

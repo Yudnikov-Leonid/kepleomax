@@ -83,7 +83,7 @@ class NotificationService {
   Future<void> showNotification(RemoteMessage message) async {
     List<int> messageIds = json
         .decode(message.data['ids'])
-        .map<int>((e) => int.parse(e.toString()))
+        .map<int>((n) => int.parse(n.toString()))
         .toList();
     if (messageIds.isEmpty) return;
 

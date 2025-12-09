@@ -2,6 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:kepleomax/core/auth/user_provider.dart';
 import 'package:kepleomax/core/data/auth_repository.dart';
+import 'package:kepleomax/core/data/local/local_database.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
@@ -15,6 +16,7 @@ class AuthController {
   final TokenProvider _tokenProvider;
   final UserProvider _userProvider;
   final SharedPreferences _prefs;
+  final LocalDatabase _localDatabase;
 
   User? _user;
 
@@ -30,7 +32,8 @@ class AuthController {
     required TokenProvider tokenProvider,
     required UserProvider userProvider,
     required SharedPreferences prefs,
-  }) : _authRepository = authRepository,
+    required LocalDatabase localDatabase,
+  }) : _localDatabase = localDatabase, _authRepository = authRepository,
        _userRepository = userRepository,
        _tokenProvider = tokenProvider,
        _userProvider = userProvider,
@@ -50,6 +53,7 @@ class AuthController {
   Future<void> logout() async {
     try {
       await updateUser(null);
+      _localDatabase.clear().ignore();
       final refreshToken = await _tokenProvider.getRefreshToken();
       if (refreshToken != null) {
         try {

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:kepleomax/core/data/local_database.dart';
+import 'package:kepleomax/core/data/local/local_database.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/common/refresh_token.dart';
@@ -189,7 +189,7 @@ class ReadMessagesUpdate {
         chatId: json['chat_id'],
         senderId: json['sender_id'],
         messagesIds: json['messages_ids']
-            .map<int>((e) => int.parse(e.toString()))
+            .map<int>((id) => int.parse(id.toString()))
             .toList(),
       );
 }

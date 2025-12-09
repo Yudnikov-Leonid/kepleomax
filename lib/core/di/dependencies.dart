@@ -20,7 +20,7 @@ import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../data/local_database.dart';
+import '../data/local/local_database.dart';
 
 class Dependencies {
   late final AuthController authController;

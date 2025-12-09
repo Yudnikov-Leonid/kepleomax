@@ -3,8 +3,34 @@ import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:sqflite/sqflite.dart';
 
-class LocalDatabase {
-  late Database _db;
+abstract class ILocalMessagesDatabase {
+  Future<List<MessageDto>> getMessagesByChatId(
+    int chatId, {
+    int limit = 25,
+    int offset = 0,
+  });
+
+  Future<void> insertMessage(MessageDto message);
+
+  Future<void> readMessages(List<int> ids);
+
+  Future<void> updateMessage(MessageDto message);
+
+  Future<void> deleteMessage(MessageDto message);
+}
+
+abstract class ILocalChatsDatabase {
+  Future<List<ChatDto>> getChats();
+
+  Future<void> clearAndInsertChats(List<ChatDto> chats);
+
+  Future<void> insertChat(ChatDto chat);
+
+  Future<void> updateChat(ChatDto chat);
+}
+
+class LocalDatabase implements ILocalMessagesDatabase, ILocalChatsDatabase {
+  late final Database _db;
 
   Future<void> init() async {
     _db = await openDatabase(
@@ -42,7 +68,7 @@ class LocalDatabase {
     _db
         .delete(
           'messages',
-          where: r'row_updated_at < $1',
+          where: r'row_updated_at < ?',
           whereArgs: [
             DateTime.now().add(const Duration(days: -2)).millisecondsSinceEpoch,
           ],
@@ -50,6 +76,13 @@ class LocalDatabase {
         .ignore();
   }
 
+  Future<void> clear() async {
+    await _db.delete('messages');
+    await _db.delete('chats');
+  }
+
+  /// chats
+  @override
   Future<List<ChatDto>> getChats() async {
     final query = await _db.query('chats');
     return query
@@ -61,6 +94,7 @@ class LocalDatabase {
         .toList();
   }
 
+  @override
   Future<void> clearAndInsertChats(List<ChatDto> chats) async {
     await _db.delete('chats');
     for (final chat in chats) {
@@ -68,19 +102,27 @@ class LocalDatabase {
     }
   }
 
+  @override
   Future<void> insertChat(ChatDto chat) async {
-    await _db.insert('chats', chat.toLocalJson());
+    await _db.insert(
+      'chats',
+      chat.toLocalJson(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
+  @override
   Future<void> updateChat(ChatDto chat) async {
     await _db.update(
       'chats',
       chat.toLocalJson(),
-      where: r'id = $1',
+      where: 'id = ?',
       whereArgs: [chat.id],
     );
   }
 
+  /// messages
+  @override
   Future<List<MessageDto>> getMessagesByChatId(
     int chatId, {
     int limit = 25,
@@ -88,7 +130,7 @@ class LocalDatabase {
   }) async {
     final query = await _db.query(
       'messages',
-      where: r'chat_id = $1',
+      where: r'chat_id = ?',
       whereArgs: [chatId],
       orderBy: 'created_at DESC',
       limit: limit,
@@ -97,6 +139,7 @@ class LocalDatabase {
     return query.map(MessageDto.fromJson).toList();
   }
 
+  @override
   Future<void> insertMessage(MessageDto message) async {
     final json = Map.of(message.toJson());
     json.remove('user');
@@ -106,22 +149,25 @@ class LocalDatabase {
     await _db.insert('messages', json, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
+  @override
   Future<void> readMessages(List<int> ids) async {
     for (final id in ids) {
       await _db.update(
         'messages',
         {'is_read': 1},
-        where: r'id = $1',
+        where: r'id = ?',
         whereArgs: [id],
       );
     }
   }
 
+  @override
   Future<void> updateMessage(MessageDto message) async {
     await _db.update('messages', message.toJson());
   }
 
+  @override
   Future<void> deleteMessage(MessageDto message) async {
-    await _db.delete('messages', where: r'id = $1', whereArgs: [message.id]);
+    await _db.delete('messages', where: r'id = ?', whereArgs: [message.id]);
   }
 }

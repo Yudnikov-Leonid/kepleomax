@@ -21,7 +21,9 @@ void main({Flavor? fv}) {
     () async {
       WidgetsFlutterBinding.ensureInitialized().deferFirstFrame();
 
-      logger = Logger();
+      logger = Logger(
+        printer: PrettyPrinter(noBoxingByDefault: true, methodCount: 1),
+      );
 
       flavor = fv!;
 
