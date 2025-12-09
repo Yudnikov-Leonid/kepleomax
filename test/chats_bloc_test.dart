@@ -28,6 +28,7 @@ void main() {
       logger = Logger(level: Level.off);
       flavor = Flavor.release();
 
+      /// init bloc
       chatsRepository = FakeChatsRepository();
       messagesRepository = FakeMessagesRepository();
       bloc = ChatsBloc(
@@ -39,11 +40,13 @@ void main() {
     });
 
     test('load_event', () async {
+      /// check init state
       ChatsState actual = bloc.state;
       ChatsState expected = ChatsStateBase.initial();
       expect(actual, equals(expected));
-      bloc.add(const ChatsEventLoad());
 
+      /// add ChatsEventLoad (loadingState is expected)
+      bloc.add(const ChatsEventLoad());
       await statesIterator.moveNext();
       actual = statesIterator.current;
       expected = const ChatsStateBase(
@@ -51,30 +54,55 @@ void main() {
       );
       expect(actual, equals(expected));
 
+      /// chatsRepository returns list of chats (baseState is expected)
       chatsRepository.getChatsReturn(_chatsList1);
-
       await statesIterator.moveNext();
       actual = statesIterator.current;
       expected = const ChatsStateBase(
         data: ChatsData(chats: _chatsList1, totalUnreadCount: 5, isLoading: false),
       );
       expect(actual, equals(expected));
-    });
 
-    test('load_event_failed', () async {
+      /// one more time add Load (chats mustn't be lost)
+      await Future.delayed(
+        const Duration(milliseconds: 400),
+      ); // cause timeout in loadEvent
       bloc.add(const ChatsEventLoad());
-
       await statesIterator.moveNext();
-      chatsRepository.getChatsThrowError();
+      actual = statesIterator.current;
+      expected = const ChatsStateBase(
+        data: ChatsData(chats: _chatsList1, totalUnreadCount: 5, isLoading: true),
+      );
+      expect(actual, equals(expected));
 
+      /// and success
+      final newChats = _chatsList1.reversed.toList();
+      chatsRepository.getChatsReturn(newChats);
       await statesIterator.moveNext();
-      final actual = statesIterator.current;
-      final expected = const ChatsStateError(message: 'Something went wrong');
+      actual = statesIterator.current;
+      expected = ChatsStateBase(
+        data: ChatsData(chats: newChats, totalUnreadCount: 5, isLoading: false),
+      );
       expect(actual, equals(expected));
     });
 
-    test('read_message', () async {
-      /// load data
+    test('load_event_failed', () async {
+      /// add ChatsEventLoad (should be loading state, but don't check it here)
+      bloc.add(const ChatsEventLoad());
+      await statesIterator.moveNext();
+
+      /// chatsRepository throws an error
+      chatsRepository.getChatsThrowError();
+      await statesIterator.moveNext();
+      final actual = statesIterator.current;
+      final expected = const ChatsStateMessage(
+        message: 'Something went wrong',
+        isError: true,
+      );
+      expect(actual, equals(expected));
+    });
+
+    Future<void> _loadData() async {
       bloc.add(const ChatsEventLoad());
       await statesIterator.moveNext();
       chatsRepository.getChatsReturn(_chatsList1);
@@ -84,11 +112,94 @@ void main() {
         data: ChatsData(chats: _chatsList1, totalUnreadCount: 5, isLoading: false),
       );
       expect(actual, equals(expected));
+    }
 
-      messagesRepository.addNewMessage(_message4);
+    test('new_message_from_new_chat', () async {
+      /// load data
+      await _loadData();
+
+      /// add new message (the state doesn't change until the repository returns a new chat)
+      messagesRepository.addNewMessage(_message3);
+
+      /// chatsRepository returns a new chat with _message3.chatId
+      chatsRepository.getChatWithIdReturn(_chat1);
+
+      await statesIterator.moveNext();
+      ChatsState actual = statesIterator.current;
+      ChatsState expected = ChatsStateBase(
+        data: ChatsData(
+          chats: [
+            _chat1.copyWith(id: _message3.chatId),
+            ..._chatsList1,
+          ],
+          totalUnreadCount: 6,
+          isLoading: false,
+        ),
+      );
+      expect(actual, equals(expected));
+    });
+
+    test('new_message', () async {
+      /// load data
+      await _loadData();
+
+      /// new message from the first chat (chat should stay in its position)
+      messagesRepository.addNewMessage(_message1);
+      await statesIterator.moveNext();
+      ChatsState actual = statesIterator.current;
+      ChatsState expected = ChatsStateBase(
+        data: ChatsData(
+          chats: [
+            Chat(
+              id: 0,
+              otherUser: _chatsList1[0].otherUser,
+              lastMessage: _message1,
+              unreadCount: 3,
+            ),
+            _chatsList1[1],
+          ],
+          totalUnreadCount: 6,
+          isLoading: false,
+        ),
+      );
+      expect(actual, equals(expected));
+
+      /// new message from the second chat (chat should move up)
+      messagesRepository.addNewMessage(_message2);
       await statesIterator.moveNext();
       actual = statesIterator.current;
       expected = ChatsStateBase(
+        data: ChatsData(
+          chats: [
+            Chat(
+              id: 1,
+              otherUser: _chatsList1[1].otherUser,
+              lastMessage: _message2,
+              unreadCount: 4,
+            ),
+            Chat(
+              id: 0,
+              otherUser: _chatsList1[0].otherUser,
+              lastMessage: _message1,
+              unreadCount: 3,
+            ),
+          ],
+          totalUnreadCount: 7,
+          isLoading: false,
+        ),
+      );
+      expect(actual, equals(expected));
+    });
+
+    test('read_message', () async {
+      /// load data
+      await _loadData();
+
+      /// add new message
+      messagesRepository.addNewMessage(_message4);
+      await statesIterator.moveNext();
+      ChatsState actual = statesIterator.current;
+      ChatsState expected = ChatsStateBase(
         data: ChatsData(
           chats: [
             Chat(
@@ -99,13 +210,15 @@ void main() {
             ),
             _chatsList1[1],
           ],
-          totalUnreadCount:
-              5, // totalUnreadCount shouldn't change if read message from current user
+
+          /// totalUnreadCount shouldn't change if read message from current user
+          totalUnreadCount: 5,
           isLoading: false,
         ),
       );
       expect(actual, equals(expected));
 
+      /// add read messages event
       messagesRepository.addReadMessages(
         ReadMessagesUpdate(
           chatId: _message4.chatId,
@@ -127,95 +240,6 @@ void main() {
             _chatsList1[1],
           ],
           totalUnreadCount: 5,
-          isLoading: false,
-        ),
-      );
-      expect(actual, equals(expected));
-    });
-
-    test('new_message_from_new_chat', () async {
-      /// load data
-      bloc.add(const ChatsEventLoad());
-      await statesIterator.moveNext();
-      chatsRepository.getChatsReturn(_chatsList1);
-      await statesIterator.moveNext();
-      ChatsState actual = statesIterator.current;
-      ChatsState expected = const ChatsStateBase(
-        data: ChatsData(chats: _chatsList1, totalUnreadCount: 5, isLoading: false),
-      );
-      expect(actual, equals(expected));
-
-      messagesRepository.addNewMessage(_message3);
-      chatsRepository.getChatWithIdReturn(_chat1);
-
-      await statesIterator.moveNext();
-      actual = statesIterator.current;
-      expected = ChatsStateBase(
-        data: ChatsData(
-          chats: [
-            _chat1.copyWith(id: _message3.chatId),
-            ..._chatsList1,
-          ],
-          totalUnreadCount: 6,
-          isLoading: false,
-        ),
-      );
-      expect(actual, equals(expected));
-    });
-
-    test('new_message', () async {
-      /// load data
-      bloc.add(const ChatsEventLoad());
-      await statesIterator.moveNext();
-      chatsRepository.getChatsReturn(_chatsList1);
-      await statesIterator.moveNext();
-      ChatsState actual = statesIterator.current;
-      ChatsState expected = const ChatsStateBase(
-        data: ChatsData(chats: _chatsList1, totalUnreadCount: 5, isLoading: false),
-      );
-      expect(actual, equals(expected));
-
-      messagesRepository.addNewMessage(_message1);
-
-      await statesIterator.moveNext();
-      actual = statesIterator.current;
-      expected = ChatsStateBase(
-        data: ChatsData(
-          chats: [
-            Chat(
-              id: 0,
-              otherUser: _chatsList1[0].otherUser,
-              lastMessage: _message1,
-              unreadCount: 3,
-            ),
-            _chatsList1[1],
-          ],
-          totalUnreadCount: 6,
-          isLoading: false,
-        ),
-      );
-      expect(actual, equals(expected));
-
-      messagesRepository.addNewMessage(_message2);
-      await statesIterator.moveNext();
-      actual = statesIterator.current;
-      expected = ChatsStateBase(
-        data: ChatsData(
-          chats: [
-            Chat(
-              id: 1,
-              otherUser: _chatsList1[1].otherUser,
-              lastMessage: _message2,
-              unreadCount: 4,
-            ),
-            Chat(
-              id: 0,
-              otherUser: _chatsList1[0].otherUser,
-              lastMessage: _message1,
-              unreadCount: 3,
-            ),
-          ],
-          totalUnreadCount: 7,
           isLoading: false,
         ),
       );

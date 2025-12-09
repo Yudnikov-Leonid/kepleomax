@@ -46,8 +46,8 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
 
     on<ChatsEvent>(
       (event, emit) => switch (event) {
-        ChatsEventLoadCache event => _onLoadCache(event, emit),
         ChatsEventLoad event => _onLoad(event, emit),
+        ChatsEventLoadCache event => _onLoadCache(event, emit),
         ChatsEventNewMessage event => _onNewMessage(event, emit),
         ChatsEventReadMessages event => _onReadMessages(event, emit),
         ChatsEventLoading event => _onLoading(event, emit),

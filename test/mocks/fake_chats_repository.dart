@@ -61,9 +61,8 @@ class FakeChatsRepository implements IChatsRepository {
   }
 
   @override
-  Future<void> updateLocalChat(Chat chat) {
+  Future<void> updateLocalChat(Chat chat) async {
     // TODO: implement updateLocalChat
-    throw UnimplementedError();
   }
 }
 
