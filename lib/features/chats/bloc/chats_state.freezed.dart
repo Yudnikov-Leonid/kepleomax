@@ -806,7 +806,7 @@ as String,
 /// @nodoc
 mixin _$ChatsData {
 
- List<Chat> get chats; int get totalUnreadCount; bool get isLoading;
+ List<Chat> get chats; int get totalUnreadCount; bool get isLoading; bool get isConnected;
 /// Create a copy of ChatsData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -817,16 +817,16 @@ $ChatsDataCopyWith<ChatsData> get copyWith => _$ChatsDataCopyWithImpl<ChatsData>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChatsData&&const DeepCollectionEquality().equals(other.chats, chats)&&(identical(other.totalUnreadCount, totalUnreadCount) || other.totalUnreadCount == totalUnreadCount)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChatsData&&const DeepCollectionEquality().equals(other.chats, chats)&&(identical(other.totalUnreadCount, totalUnreadCount) || other.totalUnreadCount == totalUnreadCount)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(chats),totalUnreadCount,isLoading);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(chats),totalUnreadCount,isLoading,isConnected);
 
 @override
 String toString() {
-  return 'ChatsData(chats: $chats, totalUnreadCount: $totalUnreadCount, isLoading: $isLoading)';
+  return 'ChatsData(chats: $chats, totalUnreadCount: $totalUnreadCount, isLoading: $isLoading, isConnected: $isConnected)';
 }
 
 
@@ -837,7 +837,7 @@ abstract mixin class $ChatsDataCopyWith<$Res>  {
   factory $ChatsDataCopyWith(ChatsData value, $Res Function(ChatsData) _then) = _$ChatsDataCopyWithImpl;
 @useResult
 $Res call({
- List<Chat> chats, int totalUnreadCount, bool isLoading
+ List<Chat> chats, int totalUnreadCount, bool isLoading, bool isConnected
 });
 
 
@@ -854,11 +854,12 @@ class _$ChatsDataCopyWithImpl<$Res>
 
 /// Create a copy of ChatsData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? chats = null,Object? totalUnreadCount = null,Object? isLoading = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? chats = null,Object? totalUnreadCount = null,Object? isLoading = null,Object? isConnected = null,}) {
   return _then(_self.copyWith(
 chats: null == chats ? _self.chats : chats // ignore: cast_nullable_to_non_nullable
 as List<Chat>,totalUnreadCount: null == totalUnreadCount ? _self.totalUnreadCount : totalUnreadCount // ignore: cast_nullable_to_non_nullable
 as int,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
+as bool,isConnected: null == isConnected ? _self.isConnected : isConnected // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -944,10 +945,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<Chat> chats,  int totalUnreadCount,  bool isLoading)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<Chat> chats,  int totalUnreadCount,  bool isLoading,  bool isConnected)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ChatsData() when $default != null:
-return $default(_that.chats,_that.totalUnreadCount,_that.isLoading);case _:
+return $default(_that.chats,_that.totalUnreadCount,_that.isLoading,_that.isConnected);case _:
   return orElse();
 
 }
@@ -965,10 +966,10 @@ return $default(_that.chats,_that.totalUnreadCount,_that.isLoading);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<Chat> chats,  int totalUnreadCount,  bool isLoading)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<Chat> chats,  int totalUnreadCount,  bool isLoading,  bool isConnected)  $default,) {final _that = this;
 switch (_that) {
 case _ChatsData():
-return $default(_that.chats,_that.totalUnreadCount,_that.isLoading);case _:
+return $default(_that.chats,_that.totalUnreadCount,_that.isLoading,_that.isConnected);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -985,10 +986,10 @@ return $default(_that.chats,_that.totalUnreadCount,_that.isLoading);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<Chat> chats,  int totalUnreadCount,  bool isLoading)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<Chat> chats,  int totalUnreadCount,  bool isLoading,  bool isConnected)?  $default,) {final _that = this;
 switch (_that) {
 case _ChatsData() when $default != null:
-return $default(_that.chats,_that.totalUnreadCount,_that.isLoading);case _:
+return $default(_that.chats,_that.totalUnreadCount,_that.isLoading,_that.isConnected);case _:
   return null;
 
 }
@@ -1000,7 +1001,7 @@ return $default(_that.chats,_that.totalUnreadCount,_that.isLoading);case _:
 
 
 class _ChatsData implements ChatsData {
-  const _ChatsData({required final  List<Chat> chats, required this.totalUnreadCount, this.isLoading = true}): _chats = chats;
+  const _ChatsData({required final  List<Chat> chats, required this.totalUnreadCount, this.isLoading = true, this.isConnected = false}): _chats = chats;
   
 
  final  List<Chat> _chats;
@@ -1012,6 +1013,7 @@ class _ChatsData implements ChatsData {
 
 @override final  int totalUnreadCount;
 @override@JsonKey() final  bool isLoading;
+@override@JsonKey() final  bool isConnected;
 
 /// Create a copy of ChatsData
 /// with the given fields replaced by the non-null parameter values.
@@ -1023,16 +1025,16 @@ _$ChatsDataCopyWith<_ChatsData> get copyWith => __$ChatsDataCopyWithImpl<_ChatsD
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChatsData&&const DeepCollectionEquality().equals(other._chats, _chats)&&(identical(other.totalUnreadCount, totalUnreadCount) || other.totalUnreadCount == totalUnreadCount)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChatsData&&const DeepCollectionEquality().equals(other._chats, _chats)&&(identical(other.totalUnreadCount, totalUnreadCount) || other.totalUnreadCount == totalUnreadCount)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_chats),totalUnreadCount,isLoading);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_chats),totalUnreadCount,isLoading,isConnected);
 
 @override
 String toString() {
-  return 'ChatsData(chats: $chats, totalUnreadCount: $totalUnreadCount, isLoading: $isLoading)';
+  return 'ChatsData(chats: $chats, totalUnreadCount: $totalUnreadCount, isLoading: $isLoading, isConnected: $isConnected)';
 }
 
 
@@ -1043,7 +1045,7 @@ abstract mixin class _$ChatsDataCopyWith<$Res> implements $ChatsDataCopyWith<$Re
   factory _$ChatsDataCopyWith(_ChatsData value, $Res Function(_ChatsData) _then) = __$ChatsDataCopyWithImpl;
 @override @useResult
 $Res call({
- List<Chat> chats, int totalUnreadCount, bool isLoading
+ List<Chat> chats, int totalUnreadCount, bool isLoading, bool isConnected
 });
 
 
@@ -1060,11 +1062,12 @@ class __$ChatsDataCopyWithImpl<$Res>
 
 /// Create a copy of ChatsData
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? chats = null,Object? totalUnreadCount = null,Object? isLoading = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? chats = null,Object? totalUnreadCount = null,Object? isLoading = null,Object? isConnected = null,}) {
   return _then(_ChatsData(
 chats: null == chats ? _self._chats : chats // ignore: cast_nullable_to_non_nullable
 as List<Chat>,totalUnreadCount: null == totalUnreadCount ? _self.totalUnreadCount : totalUnreadCount // ignore: cast_nullable_to_non_nullable
 as int,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
+as bool,isConnected: null == isConnected ? _self.isConnected : isConnected // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

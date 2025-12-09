@@ -33,6 +33,7 @@ abstract class ChatData with _$ChatData implements ChatState {
     required List<Message> messages,
     required bool isAllMessagesLoaded,
     @Default(false) bool isLoading,
+    @Default(false) bool isConnected,
   }) = _ChatData;
 
   factory ChatData.initial() => const ChatData(

@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
-import 'package:kepleomax/core/presentation/app_bar_loading_action.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
@@ -130,7 +129,11 @@ class _BodyState extends State<_Body> {
 
         return RefreshIndicator(
           onRefresh: () async {
-            context.read<ChatsBloc>().add(const ChatsEventLoad());
+            if (!data.isConnected) {
+              context.read<ChatsBloc>().add(const ChatsEventReconnect());
+            } else {
+              context.read<ChatsBloc>().add(const ChatsEventLoad());
+            }
           },
           child: ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -158,7 +161,8 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
 
         if (oldState is! ChatsStateBase) return true;
 
-        return oldState.data.isLoading != newState.data.isLoading;
+        return oldState.data.isLoading != newState.data.isLoading ||
+            oldState.data.isConnected != newState.data.isConnected;
       },
       builder: (context, state) {
         if (state is! ChatsStateBase) return const SizedBox();
@@ -166,8 +170,11 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
         final data = state.data;
         return KlmAppBar(
           context,
-          'Chats',
-          actions: !data.isLoading ? null : [const AppBarLoadingAction()],
+          !data.isConnected
+              ? 'Connecting..'
+              : data.isLoading
+              ? 'Updating..'
+              : 'Chats',
           key: const Key('chats_app_bar'),
         );
       },

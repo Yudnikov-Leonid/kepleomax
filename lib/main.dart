@@ -25,7 +25,10 @@ void main({Flavor? fv}) {
         printer: PrettyPrinter(noBoxingByDefault: true, methodCount: 1),
       );
 
-      flavor = fv!;
+      if (fv == null) {
+        throw Exception('No flavor provided');
+      }
+      flavor = fv;
 
       final dependencies = await initializeDependencies();
 

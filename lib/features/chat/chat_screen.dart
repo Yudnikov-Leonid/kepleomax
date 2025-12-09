@@ -9,7 +9,6 @@ import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/notifications/notifications_service.dart';
-import 'package:kepleomax/core/presentation/app_bar_loading_action.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
@@ -277,12 +276,12 @@ class _BodyState extends State<_Body> {
         final isAdded = _visibleMessages.add(el.$2);
         if (isAdded) {
           newVisibleMessages.add(el.$2);
-          //print('newVisibleMessage: ${_keys[i].$2.message}');
+          // print('newVisibleMessage: ${el.$2}');
         }
       } else {
         final isRemoved = _visibleMessages.remove(el.$2);
         if (isRemoved) {
-          // print('deletedVisibleMessage: ${_keys[i].$2}');
+          // print('deletedVisibleMessage: ${el.$2}');
         }
       }
     }
@@ -339,7 +338,6 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.transparent,
           titleSpacing: 0,
-          actions: !data.isLoading ? null : [const AppBarLoadingAction()],
           title: InkWell(
             splashColor: Colors.transparent,
             highlightColor: Colors.transparent,
@@ -358,13 +356,31 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                   UserImage(size: 40, url: data.otherUser?.profileImage),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      data.otherUser?.username ?? '-------',
-                      style: context.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 20,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          data.otherUser?.username ?? '-------',
+                          style: context.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 20,
+                            height: 1,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (data.isLoading || !data.isConnected) Text(
+                          !data.isConnected
+                              ? 'Connecting..'
+                              : data.isLoading
+                              ? 'Updating..'
+                              : '',
+                          style: context.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

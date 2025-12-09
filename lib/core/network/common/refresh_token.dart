@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/animation.dart';
+import 'package:kepleomax/core/network/common/api_constants.dart';
 import 'package:kepleomax/main.dart';
 
 /// this class only get a new token, but doesn't save it to the local storage
@@ -19,7 +20,7 @@ class RefreshToken {
       final response = await dio.post(
         '${flavor.baseUrl}/api/auth/refresh',
         data: {'refreshToken': refreshToken},
-      );
+      ).timeout(ApiConstants.timeout);
 
       if (response.statusCode == 401 || response.statusCode == 403) {
         logger.e('Forbidden to refresh token: ${response.statusCode}');

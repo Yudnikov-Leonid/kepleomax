@@ -29,6 +29,7 @@ abstract class ChatsData with _$ChatsData implements ChatsState {
     required List<Chat> chats,
     required int totalUnreadCount,
     @Default(true) bool isLoading,
+    @Default(false) bool isConnected,
   }) = _ChatsData;
 
   factory ChatsData.initial() => const ChatsData(chats: [], totalUnreadCount: 0);

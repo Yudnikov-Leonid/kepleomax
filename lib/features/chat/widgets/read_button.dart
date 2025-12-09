@@ -11,7 +11,7 @@ class _ReadButton extends StatefulWidget {
 }
 
 class _ReadButtonState extends State<_ReadButton> {
-  static const _offsetToShow = 100;
+  static const _offsetToShow = 200;
   double _lastPosition = 0;
 
   void _onScrollListener() {

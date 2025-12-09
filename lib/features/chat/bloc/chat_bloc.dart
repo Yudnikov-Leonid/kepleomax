@@ -38,31 +38,28 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _readMessagesSub = _messagesRepository.readMessagesStream.listen((data) {
       add(ChatEventReadMessagesUpdate(updates: data));
     }, cancelOnError: false);
-    _connectionStateSub = _messagesRepository.connectionStateStream.listen((
-      isConnected,
-    ) {
-      if (_data.chatId == -1 || _data.otherUser == null) return;
-      if (isConnected) {
-        add(ChatEventLoad(chatId: _data.chatId, otherUser: _data.otherUser));
-      } else {
-        add(const ChatEventLoading());
-      }
-    }, cancelOnError: false);
+    _connectionStateSub = _messagesRepository.connectionStateStream.listen(
+      (isConnected) => add(ChatEventConnectingChanged(isConnected)),
+      cancelOnError: false,
+    );
 
     on<ChatEvent>(
       (event, emit) => switch (event) {
         ChatEventLoad event => _onLoad(event, emit),
+        ChatEventLoadMore event => _onLoadMore(event, emit),
         ChatEventNewMessage event => _onNewMessage(event, emit),
         ChatEventReadMessagesUpdate event => _onReadMessagesUpdate(event, emit),
-        ChatEventLoading event => _onLoading(event, emit),
-        ChatEventLoadMore event => _onLoadMore(event, emit),
+        ChatEventReadMessagesBeforeTime event => _onReadMessagesBeforeTime(
+          event,
+          emit,
+        ),
         _ => () {},
       },
       transformer: sequential(),
     );
     on<ChatEventSendMessage>(_onSendMessage);
     on<ChatEventReadAllMessages>(_onReadAllMessages);
-    on<ChatEventReadMessagesBeforeTime>(_onReadMessagesBeforeTime);
+    on<ChatEventConnectingChanged>(_onConnectionChanged);
   }
 
   /// cause can be called on init and on connect at the same time
@@ -84,6 +81,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     );
     emit(ChatStateBase(data: _data));
 
+    print('MyLog onLoad');
     int chatId = event.chatId;
     try {
       /// show cached messages
@@ -122,11 +120,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       /// add unread messages line
       final newList = _withUnreadMessages(messages);
 
-      _data = _data.copyWith(messages: newList, isLoading: false);
+      _data = _data.copyWith(messages: newList);
     } catch (e, st) {
       logger.e(e, stackTrace: st);
       emit(ChatStateMessage(message: e.userErrorMessage, isError: true));
     } finally {
+      _data = _data.copyWith(isLoading: false);
       emit(ChatStateBase(data: _data));
     }
   }
@@ -169,6 +168,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     ChatEventReadMessagesBeforeTime event,
     Emitter<ChatState> emit,
   ) {
+    print('MyLog readMessagesBeforeTime 1');
+    if (_data.isLoading || !_data.isConnected) return;
+    print('MyLog readMessagesBeforeTime 2');
     _messagesRepository.readMessageBeforeTime(
       chatId: _data.chatId,
       time: event.time,
@@ -183,7 +185,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     ChatEventReadMessagesUpdate event,
     Emitter<ChatState> emit,
   ) {
+    print('MyLog readMessagesUpdate 1');
     if (_data.chatId != event.updates.chatId) return;
+    print('MyLog readMessagesUpdate 2');
 
     final updates = event.updates.messagesIds;
     final newMessages = <Message>[];
@@ -254,9 +258,16 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     }
   }
 
-  void _onLoading(ChatEventLoading event, Emitter<ChatState> emit) {
-    _data = _data.copyWith(isLoading: true);
+  void _onConnectionChanged(
+    ChatEventConnectingChanged event,
+    Emitter<ChatState> emit,
+  ) {
+    _data = _data.copyWith(isConnected: event.isConnected);
     emit(ChatStateBase(data: _data));
+
+    if (event.isConnected && _data.chatId != -1 && _data.otherUser != null) {
+      add(ChatEventLoad(chatId: _data.chatId, otherUser: _data.otherUser));
+    }
   }
 
   @override
@@ -283,9 +294,10 @@ class ChatEventLoadMore implements ChatEvent {
   const ChatEventLoadMore();
 }
 
-class ChatEventLoading implements ChatEvent {
-  /// or ChatEventHide
-  const ChatEventLoading();
+class ChatEventConnectingChanged implements ChatEvent {
+  final bool isConnected;
+
+  const ChatEventConnectingChanged(this.isConnected);
 }
 
 class ChatEventNewMessage implements ChatEvent {

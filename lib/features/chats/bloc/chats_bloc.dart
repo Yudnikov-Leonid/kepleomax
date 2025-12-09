@@ -34,15 +34,10 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     _subReadMessages = _messagesRepository.readMessagesStream.listen((data) {
       add(ChatsEventReadMessages(updates: data));
     }, cancelOnError: false);
-    _subConnectionState = _messagesRepository.connectionStateStream.listen((
-      isConnected,
-    ) {
-      if (isConnected) {
-        add(const ChatsEventLoad());
-      } else {
-        add(const ChatsEventLoading());
-      }
-    }, cancelOnError: false);
+    _subConnectionState = _messagesRepository.connectionStateStream.listen(
+      (isConnected) => add(ChatsEventConnectingChanged(isConnected)),
+      cancelOnError: false,
+    );
 
     on<ChatsEvent>(
       (event, emit) => switch (event) {
@@ -50,12 +45,12 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
         ChatsEventLoadCache event => _onLoadCache(event, emit),
         ChatsEventNewMessage event => _onNewMessage(event, emit),
         ChatsEventReadMessages event => _onReadMessages(event, emit),
-        ChatsEventLoading event => _onLoading(event, emit),
         ChatsEvent _ => () {},
       },
       transformer: sequential(),
     );
     on<ChatsEventReconnect>(_onReconnect);
+    on<ChatsEventConnectingChanged>(_onConnectingChanged);
   }
 
   int _lastTimeLoadWasCalled = 0;
@@ -104,9 +99,15 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     _messagesRepository.reconnect();
   }
 
-  void _onLoading(ChatsEventLoading event, Emitter<ChatsState> emit) {
-    _data = _data.copyWith(isLoading: true);
+  void _onConnectingChanged(
+    ChatsEventConnectingChanged event,
+    Emitter<ChatsState> emit,
+  ) {
+    _data = _data.copyWith(isConnected: event.isConnected);
     emit(ChatsStateBase(data: _data));
+    if (event.isConnected) {
+      add(const ChatsEventLoad());
+    }
   }
 
   void _onReadMessages(
@@ -211,8 +212,10 @@ class ChatsEventReconnect implements ChatsEvent {
   const ChatsEventReconnect();
 }
 
-class ChatsEventLoading implements ChatsEvent {
-  const ChatsEventLoading();
+class ChatsEventConnectingChanged implements ChatsEvent {
+  final bool isConnected;
+
+  const ChatsEventConnectingChanged(this.isConnected);
 }
 
 class ChatsEventNewMessage implements ChatsEvent {
