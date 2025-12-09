@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -21,18 +23,62 @@ class LocalDatabase {
           edited_at BIGINT,
           row_updated_at BIGINT NOT NULL
           )''');
-        await db.execute('CREATE INDEX messages_chat_id_index ON messages (chat_id)');
-        await db.execute('CREATE INDEX messages_row_updated_at_index ON messages (row_updated_at)');
+        await db.execute(
+          'CREATE INDEX messages_chat_id_index ON messages (chat_id)',
+        );
+        await db.execute(
+          'CREATE INDEX messages_row_updated_at_index ON messages (row_updated_at)',
+        );
+
+        await db.execute('''CREATE TABLE chats (
+          id INT PRIMARY KEY,
+          other_user TEXT NOT NULL,
+          last_message TEXT,
+          unread_count INT NOT NULL   
+        )''');
       },
       onUpgrade: (db, oldV, newV) async {},
     );
-    _db.delete(
-      'messages',
-      where: r'row_updated_at < $1',
-      whereArgs: [
-        DateTime.now().add(const Duration(days: -2)).millisecondsSinceEpoch,
-      ],
-    ).ignore();
+    _db
+        .delete(
+          'messages',
+          where: r'row_updated_at < $1',
+          whereArgs: [
+            DateTime.now().add(const Duration(days: -2)).millisecondsSinceEpoch,
+          ],
+        )
+        .ignore();
+  }
+
+  Future<List<ChatDto>> getChats() async {
+    final query = await _db.query('chats');
+    return query
+        .map(ChatDto.fromLocalJson)
+        .sorted(
+          (a, b) =>
+              (b.lastMessage?.createdAt ?? 0) - (a.lastMessage?.createdAt ?? 0),
+        )
+        .toList();
+  }
+
+  Future<void> clearAndInsertChats(List<ChatDto> chats) async {
+    await _db.delete('chats');
+    for (final chat in chats) {
+      _db.insert('chats', chat.toLocalJson());
+    }
+  }
+
+  Future<void> insertChat(ChatDto chat) async {
+    await _db.insert('chats', chat.toLocalJson());
+  }
+
+  Future<void> updateChat(ChatDto chat) async {
+    await _db.update(
+      'chats',
+      chat.toLocalJson(),
+      where: r'id = $1',
+      whereArgs: [chat.id],
+    );
   }
 
   Future<List<MessageDto>> getMessagesByChatId(
@@ -48,8 +94,7 @@ class LocalDatabase {
       limit: limit,
       offset: offset,
     );
-    final mapped = query.map(MessageDto.fromJson);
-    return mapped.toList();
+    return query.map(MessageDto.fromJson).toList();
   }
 
   Future<void> insertMessage(MessageDto message) async {

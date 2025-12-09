@@ -46,6 +46,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
 
     on<ChatsEvent>(
       (event, emit) => switch (event) {
+        ChatsEventLoadCache event => _onLoadCache(event, emit),
         ChatsEventLoad event => _onLoad(event, emit),
         ChatsEventNewMessage event => _onNewMessage(event, emit),
         ChatsEventReadMessages event => _onReadMessages(event, emit),
@@ -75,7 +76,22 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
       _data = _data.copyWith(
         chats: chats,
         totalUnreadCount: chats.fold(0, (a, b) => a + b.unreadCount),
-        isLoading: false,
+      );
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
+      emit(ChatsStateMessage(message: e.userErrorMessage, isError: true));
+    } finally {
+      _data = _data.copyWith(isLoading: false);
+      emit(ChatsStateBase(data: _data));
+    }
+  }
+
+  void _onLoadCache(ChatsEventLoadCache event, Emitter<ChatsState> emit) async {
+    try {
+      final cache = await _chatsRepository.getChatsFromCache();
+      _data = _data.copyWith(
+        chats: cache,
+        totalUnreadCount: cache.fold(0, (a, b) => a + b.unreadCount),
       );
       emit(ChatsStateBase(data: _data));
     } catch (e, st) {
@@ -110,6 +126,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
         newChats[chatIndex] = newChats[chatIndex].copyWith(
           lastMessage: newChats[chatIndex].lastMessage!.copyWith(isRead: true),
         );
+        _chatsRepository.updateLocalChat(newChats[chatIndex]).ignore();
         _data = _data.copyWith(chats: newChats);
         emit(ChatsStateBase(data: _data));
       }
@@ -127,6 +144,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
           999,
         );
     newChats[chatIndex] = newChats[chatIndex].copyWith(unreadCount: newUnreadCount);
+    _chatsRepository.updateLocalChat(newChats[chatIndex]).ignore();
     _data = _data.copyWith(
       chats: newChats,
       totalUnreadCount: newChats.fold(0, (a, b) => a + b.unreadCount),
@@ -158,6 +176,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
         lastMessage: event.message,
         unreadCount: event.message.user.isCurrent ? 0 : chat.unreadCount + 1,
       );
+      _chatsRepository.updateLocalChat(chat).ignore();
       _data = _data.copyWith(
         chats: [chat, ...newList],
         totalUnreadCount:
@@ -181,6 +200,11 @@ abstract class ChatsEvent {}
 
 class ChatsEventLoad implements ChatsEvent {
   const ChatsEventLoad();
+}
+
+/// call it on initState. Load will be called on ws connected
+class ChatsEventLoadCache implements ChatsEvent {
+  const ChatsEventLoadCache();
 }
 
 class ChatsEventReconnect implements ChatsEvent {

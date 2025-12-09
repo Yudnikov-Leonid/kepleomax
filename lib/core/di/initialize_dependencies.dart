@@ -126,7 +126,7 @@ List<_InitializationStep> _steps = [
         dio: dependencies.dio,
         baseUrl: flavor.baseUrl,
         tokenProvider: dependencies.tokenProvider,
-        localDatabase: dependencies.localDatabase
+        localDatabase: dependencies.localDatabase,
       );
 
       dependencies.filesRepository = FilesRepository(
@@ -140,6 +140,7 @@ List<_InitializationStep> _steps = [
       );
       dependencies.chatsRepository = ChatsRepository(
         chatsApi: dependencies.chatsApi,
+        localDatabase: dependencies.localDatabase,
       );
     },
   ),

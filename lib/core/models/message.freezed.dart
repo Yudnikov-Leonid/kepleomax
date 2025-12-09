@@ -220,8 +220,8 @@ return $default(_that.id,_that.user,_that.message,_that.chatId,_that.isRead,_tha
 /// @nodoc
 
 
-class _Message implements Message {
-  const _Message({required this.id, required this.user, required this.message, required this.chatId, required this.isRead, required this.createdAt, required this.editedAt});
+class _Message extends Message {
+  const _Message({required this.id, required this.user, required this.message, required this.chatId, required this.isRead, required this.createdAt, required this.editedAt}): super._();
   
 
 @override final  int id;

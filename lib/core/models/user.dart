@@ -7,6 +7,8 @@ part 'user.g.dart';
 
 @freezed
 abstract class User with _$User {
+  const User._();
+
   const factory User({
     required int id,
     required String username,
@@ -19,6 +21,13 @@ abstract class User with _$User {
     username: dto.username,
     profileImage: dto.profileImage,
     isCurrent: dto.isCurrent,
+  );
+
+  UserDto toDto() => UserDto(
+    id: id,
+    username: username,
+    profileImage: profileImage,
+    isCurrent: isCurrent,
   );
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);

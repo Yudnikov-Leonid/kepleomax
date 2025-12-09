@@ -15,7 +15,7 @@ abstract class IMessagesRepository {
 
   void reconnect();
 
-  /// api calls
+  /// api/db calls
   Future<List<Message>> getMessages({
     required int chatId,
     required int limit,
@@ -37,8 +37,6 @@ abstract class IMessagesRepository {
   Stream<ReadMessagesUpdate> get readMessagesStream;
 
   Stream<bool> get connectionStateStream;
-
-  bool get isConnected;
 }
 
 class MessagesRepository implements IMessagesRepository {
@@ -63,9 +61,6 @@ class MessagesRepository implements IMessagesRepository {
 
   @override
   void reconnect() => _webSocket.reconnect();
-
-  @override
-  bool get isConnected => _webSocket.isConnected;
 
   /// api calls
   @override

@@ -9,9 +9,11 @@ import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/notifications/notifications_service.dart';
+import 'package:kepleomax/core/presentation/app_bar_loading_action.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
+import 'package:kepleomax/core/presentation/klm_error_widget.dart';
 import 'package:kepleomax/core/presentation/klm_textfield.dart';
 import 'package:kepleomax/core/presentation/parse_time.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
@@ -155,18 +157,9 @@ class _BodyState extends State<_Body> {
       },
       builder: (context, state) {
         if (state is ChatStateError) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('error: ${state.message}', textAlign: TextAlign.center),
-                  const SizedBox(height: 10),
-                  TextButton(onPressed: widget.onRetry, child: const Text('Retry')),
-                ],
-              ),
-            ),
+          return KlmErrorWidget(
+            errorMessage: state.message,
+            onRetry: widget.onRetry,
           );
         }
 
@@ -254,8 +247,6 @@ class _BodyState extends State<_Body> {
 
   /// listeners
   void _onScrollListener() {
-    // print('scrollListener: ${widget._scrollController.hasClients}, ${widget._scrollController.offset}, ${widget._scrollController.position.maxScrollExtent}',);
-
     if (!widget.scrollController.hasClients || !_isScreenActive) return;
 
     if (widget.scrollController.offset >
@@ -339,16 +330,17 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
         if (state is! ChatStateBase) return const SizedBox();
 
         final data = state.data;
-        final isLoading = data.isLoading || data.otherUser == null;
-
         return AppBar(
           key: Key('chat_app_bar_${data.otherUser?.id}'),
           leading: const KlmBackButton(),
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.transparent,
           titleSpacing: 0,
+          actions: !data.isLoading ? null : [const AppBarLoadingAction()],
           title: InkWell(
-            onTap: isLoading
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            onTap: data.isLoading || data.otherUser == null
                 ? null
                 : () {
                     AppNavigator.withKeyOf(

@@ -14,7 +14,7 @@ late Logger logger;
 
 late Flavor flavor;
 
-void main({Flavor? flavor}) {
+void main({Flavor? fv}) {
   bool isAppRunning = false;
 
   runZonedGuarded(
@@ -23,7 +23,7 @@ void main({Flavor? flavor}) {
 
       logger = Logger();
 
-      flavor = flavor!;
+      flavor = fv!;
 
       final dependencies = await initializeDependencies();
 

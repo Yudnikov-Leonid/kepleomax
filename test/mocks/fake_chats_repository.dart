@@ -53,6 +53,18 @@ class FakeChatsRepository implements IChatsRepository {
     }
     return list;
   }
+
+  @override
+  Future<List<Chat>> getChatsFromCache() {
+    // TODO: implement getChatsFromCache
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateLocalChat(Chat chat) {
+    // TODO: implement updateLocalChat
+    throw UnimplementedError();
+  }
 }
 
 const _errorList = [

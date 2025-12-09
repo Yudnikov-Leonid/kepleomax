@@ -123,10 +123,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       final newList = _withUnreadMessages(messages);
 
       _data = _data.copyWith(messages: newList, isLoading: false);
-      emit(ChatStateBase(data: _data));
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      emit(ChatStateError(message: e.userErrorMessage));
+      emit(ChatStateMessage(message: e.userErrorMessage, isError: true));
+    } finally {
+      emit(ChatStateBase(data: _data));
     }
   }
 
@@ -245,12 +246,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      emit(
-        const ChatStateMessage(
-          message: 'Failed to load more messages',
-          isError: true,
-        ),
-      );
+      emit(ChatStateMessage(message: e.userErrorMessage, isError: true));
       _data = _data.copyWith(isAllMessagesLoaded: true);
     } finally {
       _isLoadingMore = false;

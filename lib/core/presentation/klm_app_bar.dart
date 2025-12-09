@@ -7,29 +7,34 @@ import 'package:kepleomax/core/scopes/auth_scope.dart';
 import '../navigation/app_navigator.dart';
 
 class KlmAppBar extends AppBar {
-  KlmAppBar(BuildContext context, String title, {Widget? leading, super.key})
-    : super(
-        leading: InkWell(
-          onTap: () {
-            AppNavigator.of(
-              context,
-            )?.push(UserPage(userId: AuthScope.userOf(context).id));
-          },
-          child:
-              leading ??
-              Container(
-                margin: const EdgeInsets.all(12),
-                child: UserImage(url: AuthScope.userOf(context).profileImage),
-              ),
-        ),
-        titleSpacing: 5,
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
-        title: Text(
-          title,
-          style: context.textTheme.labelLarge?.copyWith(fontSize: 24),
-        ),
-      );
+  KlmAppBar(
+    BuildContext context,
+    String title, {
+    Widget? leading,
+    super.actions,
+    super.key,
+  }) : super(
+         leading: InkWell(
+           onTap: () {
+             AppNavigator.of(
+               context,
+             )?.push(UserPage(userId: AuthScope.userOf(context).id));
+           },
+           child:
+               leading ??
+               Container(
+                 margin: const EdgeInsets.all(12),
+                 child: UserImage(url: AuthScope.userOf(context).profileImage),
+               ),
+         ),
+         titleSpacing: 5,
+         backgroundColor: Colors.white,
+         surfaceTintColor: Colors.white,
+         title: Text(
+           title,
+           style: context.textTheme.labelLarge?.copyWith(fontSize: 24),
+         ),
+       );
 }
 
 class KlmSliverAppBar extends SliverAppBar {

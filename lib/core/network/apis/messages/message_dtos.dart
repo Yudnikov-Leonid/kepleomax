@@ -71,4 +71,21 @@ class MessageDto {
   );
 
   Map<String, dynamic> toJson() => _$MessageDtoToJson(this);
+
+  Map<String, dynamic> toLocalJson() => {
+    'id': id,
+    'chat_id': chatId,
+    'sender_id': senderId,
+    'is_sender_user': isCurrentUser == null
+        ? null
+        : isCurrentUser!
+        ? 1
+        : 0,
+    'user': user?.toJson(),
+    'other_user_id': otherUserId,
+    'message': message,
+    'is_read': isRead ? 1 : 0,
+    'created_at': createdAt,
+    'edited_at': editedAt,
+  };
 }

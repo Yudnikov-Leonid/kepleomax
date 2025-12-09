@@ -211,8 +211,8 @@ return $default(_that.id,_that.username,_that.profileImage,_that.isCurrent);case
 /// @nodoc
 @JsonSerializable()
 
-class _User implements User {
-  const _User({required this.id, required this.username, required this.profileImage, required this.isCurrent});
+class _User extends User {
+  const _User({required this.id, required this.username, required this.profileImage, required this.isCurrent}): super._();
   factory _User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
 @override final  int id;

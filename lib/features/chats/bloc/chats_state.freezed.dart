@@ -287,6 +287,266 @@ $ChatsDataCopyWith<$Res> get data {
 }
 
 /// @nodoc
+mixin _$ChatsStateMessage {
+
+ String get message; bool get isError;
+/// Create a copy of ChatsStateMessage
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ChatsStateMessageCopyWith<ChatsStateMessage> get copyWith => _$ChatsStateMessageCopyWithImpl<ChatsStateMessage>(this as ChatsStateMessage, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChatsStateMessage&&(identical(other.message, message) || other.message == message)&&(identical(other.isError, isError) || other.isError == isError));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,message,isError);
+
+@override
+String toString() {
+  return 'ChatsStateMessage(message: $message, isError: $isError)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ChatsStateMessageCopyWith<$Res>  {
+  factory $ChatsStateMessageCopyWith(ChatsStateMessage value, $Res Function(ChatsStateMessage) _then) = _$ChatsStateMessageCopyWithImpl;
+@useResult
+$Res call({
+ String message, bool isError
+});
+
+
+
+
+}
+/// @nodoc
+class _$ChatsStateMessageCopyWithImpl<$Res>
+    implements $ChatsStateMessageCopyWith<$Res> {
+  _$ChatsStateMessageCopyWithImpl(this._self, this._then);
+
+  final ChatsStateMessage _self;
+  final $Res Function(ChatsStateMessage) _then;
+
+/// Create a copy of ChatsStateMessage
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? message = null,Object? isError = null,}) {
+  return _then(_self.copyWith(
+message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,isError: null == isError ? _self.isError : isError // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [ChatsStateMessage].
+extension ChatsStateMessagePatterns on ChatsStateMessage {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ChatsStateMessage value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ChatsStateMessage() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ChatsStateMessage value)  $default,){
+final _that = this;
+switch (_that) {
+case _ChatsStateMessage():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ChatsStateMessage value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ChatsStateMessage() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String message,  bool isError)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ChatsStateMessage() when $default != null:
+return $default(_that.message,_that.isError);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String message,  bool isError)  $default,) {final _that = this;
+switch (_that) {
+case _ChatsStateMessage():
+return $default(_that.message,_that.isError);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String message,  bool isError)?  $default,) {final _that = this;
+switch (_that) {
+case _ChatsStateMessage() when $default != null:
+return $default(_that.message,_that.isError);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _ChatsStateMessage implements ChatsStateMessage {
+  const _ChatsStateMessage({required this.message, this.isError = false});
+  
+
+@override final  String message;
+@override@JsonKey() final  bool isError;
+
+/// Create a copy of ChatsStateMessage
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ChatsStateMessageCopyWith<_ChatsStateMessage> get copyWith => __$ChatsStateMessageCopyWithImpl<_ChatsStateMessage>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChatsStateMessage&&(identical(other.message, message) || other.message == message)&&(identical(other.isError, isError) || other.isError == isError));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,message,isError);
+
+@override
+String toString() {
+  return 'ChatsStateMessage(message: $message, isError: $isError)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ChatsStateMessageCopyWith<$Res> implements $ChatsStateMessageCopyWith<$Res> {
+  factory _$ChatsStateMessageCopyWith(_ChatsStateMessage value, $Res Function(_ChatsStateMessage) _then) = __$ChatsStateMessageCopyWithImpl;
+@override @useResult
+$Res call({
+ String message, bool isError
+});
+
+
+
+
+}
+/// @nodoc
+class __$ChatsStateMessageCopyWithImpl<$Res>
+    implements _$ChatsStateMessageCopyWith<$Res> {
+  __$ChatsStateMessageCopyWithImpl(this._self, this._then);
+
+  final _ChatsStateMessage _self;
+  final $Res Function(_ChatsStateMessage) _then;
+
+/// Create a copy of ChatsStateMessage
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? message = null,Object? isError = null,}) {
+  return _then(_ChatsStateMessage(
+message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,isError: null == isError ? _self.isError : isError // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$ChatsStateError {
 
  String get message;

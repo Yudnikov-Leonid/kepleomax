@@ -13,6 +13,12 @@ abstract class ChatsStateBase with _$ChatsStateBase implements ChatsState {
 }
 
 @freezed
+abstract class ChatsStateMessage with _$ChatsStateMessage implements ChatsState {
+  const factory ChatsStateMessage(
+      {required String message, @Default(false) bool isError}) = _ChatsStateMessage;
+}
+
+@freezed
 abstract class ChatsStateError with _$ChatsStateError implements ChatsState {
   const factory ChatsStateError({required String message}) = _ChatsStateError;
 }

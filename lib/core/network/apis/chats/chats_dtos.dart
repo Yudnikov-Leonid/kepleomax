@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/common/user_dto.dart';
@@ -49,5 +51,26 @@ class ChatDto {
 
   factory ChatDto.fromJson(Map<String, dynamic> json) => _$ChatDtoFromJson(json);
 
-  Map<String, dynamic> toJson() => _$ChatDtoToJson(this);
+  factory ChatDto.fromLocalJson(Map<String, dynamic> json) => ChatDto(
+    id: json['id'],
+    otherUser: UserDto.fromJson(jsonDecode(json['other_user'])),
+    lastMessage: json['last_message'] == null
+        ? null
+        : MessageDto.fromJson(jsonDecode(json['last_message'])),
+    unreadCount: json['unread_count'],
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'other_user': otherUser.toJson(),
+    'last_message': lastMessage?.toJson(),
+    'unread_count': unreadCount,
+  };
+
+  Map<String, dynamic> toLocalJson() => {
+    'id': id,
+    'other_user': jsonEncode(otherUser.toLocalJson()),
+    'last_message': jsonEncode(lastMessage?.toLocalJson()),
+    'unread_count': unreadCount,
+  };
 }

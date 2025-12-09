@@ -7,25 +7,29 @@ part 'chat.freezed.dart';
 
 @freezed
 abstract class Chat with _$Chat {
+  const Chat._();
+
   const factory Chat({
     required int id,
-    required User? otherUser,
+    required User otherUser,
     required Message? lastMessage,
     required int unreadCount,
   }) = _Chat;
 
-  factory Chat.fromDto(ChatDto dto) =>
-      Chat(
-        id: dto.id,
-        otherUser: User.fromDto(dto.otherUser),
-        lastMessage: dto.lastMessage == null ? null : Message.fromDto(
-            dto.lastMessage!),
-        unreadCount: dto.unreadCount,
-      );
+  factory Chat.fromDto(ChatDto dto) => Chat(
+    id: dto.id,
+    otherUser: User.fromDto(dto.otherUser),
+    lastMessage: dto.lastMessage == null ? null : Message.fromDto(dto.lastMessage!),
+    unreadCount: dto.unreadCount,
+  );
+
+  ChatDto toDto() => ChatDto(
+    id: id,
+    otherUser: otherUser.toDto(),
+    lastMessage: lastMessage?.toDto(),
+    unreadCount: unreadCount,
+  );
 
   factory Chat.loading() =>
-      Chat(id: -1,
-          otherUser: User.loading(),
-          lastMessage: null,
-          unreadCount: 1);
+      Chat(id: -1, otherUser: User.loading(), lastMessage: null, unreadCount: 1);
 }

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
+import 'package:kepleomax/core/presentation/app_bar_loading_action.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
@@ -23,21 +24,48 @@ class ChatsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: KlmAppBar(context, 'Chats', key: const Key('chats_app_bar')),
-      body: const _Body(key: Key('chats_body')),
+    return const Scaffold(
+      appBar: _AppBar(key: Key('chats_app_bar')),
+      body: _Body(key: Key('chats_body')),
     );
   }
 }
 
 /// body
-class _Body extends StatelessWidget {
+class _Body extends StatefulWidget {
   const _Body({super.key});
 
   @override
+  State<_Body> createState() => _BodyState();
+}
+
+class _BodyState extends State<_Body> {
+  /// callbacks
+  @override
+  void initState() {
+    context.read<ChatsBloc>().add(const ChatsEventLoadCache());
+    super.initState();
+  }
+
+  /// build
+  @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ChatsBloc, ChatsState>(
-      /// don't need buildWhen
+    return BlocConsumer<ChatsBloc, ChatsState>(
+      buildWhen: (oldState, newState) {
+        if (newState is ChatsStateMessage) return false;
+        if (oldState is ChatsStateBase && newState is ChatsStateBase) {
+          return oldState.data != newState.data;
+        }
+        return true;
+      },
+      listener: (context, state) {
+        if (state is ChatsStateMessage) {
+          context.showSnackBar(
+            text: state.message,
+            color: state.isError ? KlmColors.errorRed : null,
+          );
+        }
+      },
       builder: (context, state) {
         if (state is ChatsStateError) {
           return KlmErrorWidget(
@@ -52,7 +80,7 @@ class _Body extends StatelessWidget {
 
         final data = state.data;
 
-        if (data.isLoading) {
+        if (data.isLoading && data.chats.isEmpty) {
           return RefreshIndicator(
             onRefresh: () async {
               context.read<ChatsBloc>().add(const ChatsEventReconnect());
@@ -108,15 +136,44 @@ class _Body extends StatelessWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(vertical: 10),
             itemCount: data.chats.length,
-            itemBuilder: (context, i) => data.chats[i].otherUser == null
-                ? const SizedBox()
-                : _ChatWidget(
-                    key: Key('chat-${data.chats[i].id}'),
-                    chat: data.chats[i],
-                  ),
+            itemBuilder: (context, i) => _ChatWidget(
+              key: Key('chat-${data.chats[i].id}'),
+              chat: data.chats[i],
+            ),
           ),
         );
       },
     );
   }
+}
+
+class _AppBar extends StatelessWidget implements PreferredSizeWidget {
+  const _AppBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ChatsBloc, ChatsState>(
+      buildWhen: (oldState, newState) {
+        if (newState is! ChatsStateBase) return false;
+
+        if (oldState is! ChatsStateBase) return true;
+
+        return oldState.data.isLoading != newState.data.isLoading;
+      },
+      builder: (context, state) {
+        if (state is! ChatsStateBase) return const SizedBox();
+
+        final data = state.data;
+        return KlmAppBar(
+          context,
+          'Chats',
+          actions: !data.isLoading ? null : [const AppBarLoadingAction()],
+          key: const Key('chats_app_bar'),
+        );
+      },
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

@@ -6,6 +6,8 @@ part 'message.freezed.dart';
 
 @freezed
 abstract class Message with _$Message {
+  const Message._();
+
   const factory Message({
     required int id,
     required User user,
@@ -16,44 +18,59 @@ abstract class Message with _$Message {
     required int? editedAt,
   }) = _Message;
 
-  factory Message.loading() =>
-      Message(id: -3,
-          user: User.loading(),
-          message: '---------------------------',
-          chatId: -1,
-          isRead: true,
-          createdAt: 0,
-          editedAt: 0);
+  factory Message.loading() => Message(
+    id: -3,
+    user: User.loading(),
+    message: '---------------------------',
+    chatId: -1,
+    isRead: true,
+    createdAt: 0,
+    editedAt: 0,
+  );
 
-  factory Message.fromDto(MessageDto dto) =>
-      Message(
-        user: dto.user != null
-            ? User.fromDto(dto.user!)
-            : User(
-          id: dto.isCurrentUser! ? (dto.otherUserId ?? dto.senderId) : dto.senderId,
-          username: '',
-          profileImage: '',
-          /// need only this field
-          isCurrent: dto.isCurrentUser!,
-        ),
-        id: dto.id,
-        message: dto.message,
-        chatId: dto.chatId,
-        isRead: dto.isRead,
-        createdAt: dto.createdAt,
-        editedAt: dto.editedAt,
-      );
+  factory Message.fromDto(MessageDto dto) => Message(
+    user: dto.user != null
+        ? User.fromDto(dto.user!)
+        : User(
+            id: dto.isCurrentUser!
+                ? (dto.otherUserId ?? dto.senderId)
+                : dto.senderId,
+            username: '',
+            profileImage: '',
 
-  /// ui line
-  factory Message.unreadMessages() =>
-      Message(
-        id: -2,
-        user: User.loading(),
-        message: '',
-        chatId: -1,
-        /// should be true so counter of unread messages works properly
-        isRead: true,
-        createdAt: 0,
-        editedAt: null,
-      );
+            /// need only this field
+            isCurrent: dto.isCurrentUser!,
+          ),
+    id: dto.id,
+    message: dto.message,
+    chatId: dto.chatId,
+    isRead: dto.isRead,
+    createdAt: dto.createdAt,
+    editedAt: dto.editedAt,
+  );
+
+  MessageDto toDto() => MessageDto(
+    id: id,
+    chatId: chatId,
+    senderId: user.id,
+    isCurrentUser: user.isCurrent,
+    user: user.toDto(),
+    otherUserId: null,
+    message: message,
+    isRead: isRead,
+    createdAt: createdAt,
+    editedAt: editedAt,
+  );
+
+  /// used to display line in the ui
+  factory Message.unreadMessages() => Message(
+    id: -2,
+    user: User.loading(),
+    message: '',
+    chatId: -1,
+    /// should be true so counter of unread messages works properly
+    isRead: true,
+    createdAt: 0,
+    editedAt: null,
+  );
 }

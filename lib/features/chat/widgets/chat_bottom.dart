@@ -59,17 +59,12 @@ class _BottomState extends State<_Bottom> {
                         _controller.clear();
                         setState(() {});
                       },
-                style: IconButton.styleFrom(backgroundColor: KlmColors.primaryColor),
-                icon: widget.isLoading
-                    ? const SizedBox(
-                        height: 16,
-                        width: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.arrow_upward, color: Colors.white),
+                style: IconButton.styleFrom(
+                  backgroundColor: widget.isLoading
+                      ? Colors.grey
+                      : KlmColors.primaryColor,
+                ),
+                icon: const Icon(Icons.arrow_upward, color: Colors.white),
               ),
             ],
           ),

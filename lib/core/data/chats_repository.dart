@@ -1,9 +1,14 @@
+import 'package:kepleomax/core/data/local_database.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_api.dart';
 import 'package:kepleomax/core/network/common/api_constants.dart';
 
 abstract class IChatsRepository {
   Future<List<Chat>> getChats();
+
+  Future<List<Chat>> getChatsFromCache();
+
+  Future<void> updateLocalChat(Chat chat);
 
   Future<Chat?> getChatWithUser(int otherUserId);
 
@@ -12,8 +17,11 @@ abstract class IChatsRepository {
 
 class ChatsRepository implements IChatsRepository {
   final ChatsApi _chatsApi;
+  final LocalDatabase _localDatabase;
 
-  ChatsRepository({required ChatsApi chatsApi}) : _chatsApi = chatsApi;
+  ChatsRepository({required ChatsApi chatsApi, required LocalDatabase localDatabase})
+    : _localDatabase = localDatabase,
+      _chatsApi = chatsApi;
 
   @override
   Future<List<Chat>> getChats() async {
@@ -25,7 +33,21 @@ class ChatsRepository implements IChatsRepository {
       );
     }
 
-    return res.data.data!.map(Chat.fromDto).toList();
+    final data = res.data.data!;
+    await _localDatabase.clearAndInsertChats(data);
+    return data.map(Chat.fromDto).toList();
+  }
+
+  @override
+  Future<List<Chat>> getChatsFromCache() async {
+    final chats = await _localDatabase.getChats();
+    final mapped = chats.map(Chat.fromDto).toList();
+    return mapped;
+  }
+
+  @override
+  Future<void> updateLocalChat(Chat chat) async {
+    await _localDatabase.updateChat(chat.toDto());
   }
 
   @override
@@ -61,6 +83,8 @@ class ChatsRepository implements IChatsRepository {
       );
     }
 
-    return Chat.fromDto(res.data.data!);
+    final data = res.data.data!;
+    _localDatabase.insertChat(data);
+    return Chat.fromDto(data);
   }
 }
