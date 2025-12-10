@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as material;
-import 'package:kepleomax/core/native/klm_method_channel.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
 
 typedef AppPages = List<AppPage>;
@@ -12,13 +11,11 @@ class AppNavigator extends StatefulWidget {
   const AppNavigator({
     required this.initialState,
     required this.navigatorKey,
-    this.methodChannel,
     super.key,
   });
 
   final AppPages initialState;
   final String navigatorKey;
-  final KlmMethodChannel? methodChannel;
 
   static AppNavigatorState? of(BuildContext context) =>
       context.findAncestorStateOfType<AppNavigatorState>();
@@ -59,33 +56,6 @@ class AppNavigatorState extends State<AppNavigator> with WidgetsBindingObserver 
   AppPages get state => _state;
   late AppPages _state;
   static bool _isDialogOpened = false;
-
-  Future<void> showGeneralDialog(BuildContext context, Widget dialog) async {
-    _isDialogOpened = true;
-    await material.showGeneralDialog(
-      context: context,
-      useRootNavigator: true,
-      pageBuilder: (context, _, _) => _PopScope(child: dialog),
-    );
-    _isDialogOpened = false;
-  }
-
-  Future<void> showModalBottomSheet(BuildContext context, Widget bottomSheet) async {
-    _isDialogOpened = true;
-    await material.showModalBottomSheet(
-      context: context,
-      useRootNavigator: true,
-      backgroundColor: Colors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => _PopScope(child: bottomSheet),
-      isDismissible: false,
-      //enableDrag: false,
-    );
-    _isDialogOpened = false;
-  }
 
   @override
   void initState() {
@@ -140,15 +110,36 @@ class AppNavigatorState extends State<AppNavigator> with WidgetsBindingObserver 
   @override
   Future<bool> didPopRoute() async {
     if (_isDialogOpened) return false;
-    if (_state.length <= 1) {
-      if (widget.methodChannel != null) {
-        widget.methodChannel!.moveTaskToBack();
-        return true;
-      }
-      return false;
-    }
+    if (_state.length <= 1) return false;
     _onDidRemovePage(_state.last);
     return true;
+  }
+
+  Future<void> showGeneralDialog(BuildContext context, Widget dialog) async {
+    _isDialogOpened = true;
+    await material.showGeneralDialog(
+      context: context,
+      useRootNavigator: true,
+      pageBuilder: (context, _, _) => _PopScope(child: dialog),
+    );
+    _isDialogOpened = false;
+  }
+
+  Future<void> showModalBottomSheet(BuildContext context, Widget bottomSheet) async {
+    _isDialogOpened = true;
+    await material.showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _PopScope(child: bottomSheet),
+      isDismissible: false,
+      //enableDrag: false,
+    );
+    _isDialogOpened = false;
   }
 
   void _onDidRemovePage(Page<Object?> page) {

@@ -13,7 +13,7 @@ abstract class IMessagesRepository {
 
   void dispose();
 
-  void reconnect();
+  void reconnect({bool onlyIfNot = false});
 
   /// api/db calls
   Future<List<Message>> getMessages({
@@ -60,7 +60,8 @@ class MessagesRepository implements IMessagesRepository {
   void dispose() => _webSocket.disconnect();
 
   @override
-  void reconnect() => _webSocket.reconnect();
+  void reconnect({bool onlyIfNot = false}) =>
+      onlyIfNot ? _webSocket.connectIfNot() : _webSocket.reconnect();
 
   /// api calls
   @override

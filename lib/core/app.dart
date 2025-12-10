@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
@@ -45,7 +44,6 @@ class _AppState extends State<App> {
               child: AppNavigator(
                 initialState: [const MainPage()],
                 navigatorKey: mainNavigatorKey,
-                methodChannel: Dependencies.of(context).methodChannel,
                 key: mainNavigatorGlobalKey,
               ),
             ),

@@ -136,7 +136,7 @@ class PostWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                const Expanded(child: SizedBox()),
+                const Spacer(),
                 Tooltip(
                   message:
                       '${ParseTime.unixTimeToPreciseDate(post.createdAt)}${post.updatedAt == null ? '' : '\nedited: ${ParseTime.unixTimeToPreciseDate(post.updatedAt!)}'}',

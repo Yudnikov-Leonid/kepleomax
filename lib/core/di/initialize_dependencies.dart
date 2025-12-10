@@ -50,10 +50,6 @@ List<_InitializationStep> _steps = [
     call: (dependencies) async {
       dependencies.sharedPreferences = await SharedPreferences.getInstance();
       dependencies.secureStorage = const FlutterSecureStorage();
-      dependencies.tokenProvider = TokenProvider(
-        prefs: dependencies.sharedPreferences,
-        secureStorage: dependencies.secureStorage,
-      );
       dependencies.methodChannel = KlmMethodChannel();
       CachedNetworkImage.logLevel = CacheManagerLogLevel.debug;
     },
@@ -83,6 +79,14 @@ List<_InitializationStep> _steps = [
 
       final dio = Dio(BaseOptions(validateStatus: (_) => true));
 
+      /// cause need prettyDioLogger here
+      dependencies.tokenProvider = TokenProvider(
+        prefs: dependencies.sharedPreferences,
+        secureStorage: dependencies.secureStorage,
+        dio: Dio(BaseOptions(validateStatus: (_) => true))
+          ..interceptors.add(dependencies.prettyDioLogger),
+      );
+
       /// cause need dio in authController and need authController in dio
       dependencies.authApi = AuthApi(dio, flavor.baseUrl);
       dependencies.authRepository = AuthRepository(authApi: dependencies.authApi);
@@ -100,7 +104,7 @@ List<_InitializationStep> _steps = [
         tokenProvider: dependencies.tokenProvider,
         userProvider: UserProvider(prefs: dependencies.sharedPreferences),
         prefs: dependencies.sharedPreferences,
-        localDatabase: dependencies.localDatabase
+        localDatabase: dependencies.localDatabase,
       );
       await authController.init();
       dependencies.authController = authController;
@@ -108,8 +112,6 @@ List<_InitializationStep> _steps = [
       dio.interceptors.addAll([
         dependencies.prettyDioLogger,
         AuthInterceptor(
-          refreshTokenDio: Dio(BaseOptions(validateStatus: (_) => true))
-            ..interceptors.add(dependencies.prettyDioLogger),
           tokenProvider: dependencies.tokenProvider,
           authController: dependencies.authController,
         ),
@@ -126,7 +128,6 @@ List<_InitializationStep> _steps = [
       dependencies.messagesApi = MessagesApi(dependencies.dio, flavor.baseUrl);
       dependencies.chatsApi = ChatsApi(dependencies.dio, flavor.baseUrl);
       dependencies.messagesWebSocket = MessagesWebSocket(
-        dio: dependencies.dio,
         baseUrl: flavor.baseUrl,
         tokenProvider: dependencies.tokenProvider,
         localDatabase: dependencies.localDatabase,

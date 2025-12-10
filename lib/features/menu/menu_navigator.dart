@@ -7,11 +7,21 @@ import 'package:kepleomax/features/settings/settings_screen.dart';
 const menuNavigatorKey = 'MenuNavigator';
 final menuNavigatorGlobalKey = GlobalKey();
 
-class MenuNavigator extends StatelessWidget {
+class MenuNavigator extends StatefulWidget {
   const MenuNavigator({super.key});
 
   @override
+  State<MenuNavigator> createState() => _MenuNavigatorState();
+}
+
+class _MenuNavigatorState extends State<MenuNavigator>
+    with AutomaticKeepAliveClientMixin<MenuNavigator> {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return AppNavigator(
       initialState: [const MenuPage()],
       navigatorKey: menuNavigatorKey,

@@ -1,22 +1,16 @@
 import 'package:dio/dio.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
-import 'package:kepleomax/core/network/common/ntp_time.dart';
-import 'package:kepleomax/core/network/common/refresh_token.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
 
 class AuthInterceptor extends QueuedInterceptorsWrapper {
   final TokenProvider _tokenProvider;
   final AuthController _authController;
-  final Dio _refreshTokenDio;
 
   AuthInterceptor({
     required TokenProvider tokenProvider,
     required AuthController authController,
-    required Dio refreshTokenDio,
-  }) : _refreshTokenDio = refreshTokenDio,
-       _authController = authController,
+  }) : _authController = authController,
        _tokenProvider = tokenProvider;
 
   @override
@@ -26,12 +20,11 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
       return handler.next(options);
     }
 
-    var accessToken = _tokenProvider.getAccessToken();
-    final refreshToken = await _tokenProvider.getRefreshToken();
-    if (accessToken == null ||
-        refreshToken == null ||
-        accessToken.isEmpty ||
-        refreshToken.isEmpty) {
+    final accessToken = await _tokenProvider.getAccessToken(
+      onLogoutCallback: _logout,
+    );
+    if (accessToken == null || accessToken.isEmpty) {
+      /// logout will be called in _tokenProvider.getAccessToken
       logger.e('No token');
       handler.reject(
         DioException(
@@ -42,51 +35,6 @@ class AuthInterceptor extends QueuedInterceptorsWrapper {
       );
       return;
     }
-
-    final now = await NTPTime.now();
-    final accessTokenHasExpired = now.isAfter(
-      JwtDecoder.getExpirationDate(accessToken),
-    );
-    final refreshTokenHasExpired = now.isAfter(
-      JwtDecoder.getExpirationDate(refreshToken),
-    );
-
-    if (refreshTokenHasExpired) {
-      logger.i('refresh token has expired');
-      _logout();
-      return handler.reject(
-        DioException(
-          requestOptions: options,
-          message: 'Refresh token is expired',
-          type: DioExceptionType.cancel,
-        ),
-      );
-    } else if (accessTokenHasExpired) {
-      final newAccessToken = await RefreshToken(
-        dio: _refreshTokenDio,
-        logout: _logout,
-      ).refreshToken(refreshToken);
-      if (newAccessToken == null) {
-        logger.i('access token has expired, failed to refresh');
-
-        /// don't need to logout, cause this error can be if the server is unavailable
-        /// or there's no internet connection. We should logout only if request
-        /// if success and the status code == 401/403, this logic is made in
-        /// _refreshToken() method
-        return handler.reject(
-          DioException(
-            requestOptions: options,
-            message: 'Access token is expired',
-            type: DioExceptionType.cancel,
-          ),
-        );
-      } else {
-        logger.i('access token has expired, success to refresh');
-        await _tokenProvider.saveAccessToken(newAccessToken);
-        accessToken = newAccessToken;
-      }
-    }
-
     handler.next(options..headers.addAll({'Authorization': 'Bearer $accessToken'}));
   }
 

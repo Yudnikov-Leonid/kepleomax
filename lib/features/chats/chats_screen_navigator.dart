@@ -8,11 +8,21 @@ import 'package:kepleomax/features/chats/chats_screen.dart';
 const chatsNavigatorKey = 'ChatsNavigator';
 final chatsNavigatorGlobalKey = GlobalKey();
 
-class ChatsNavigator extends StatelessWidget {
+class ChatsNavigator extends StatefulWidget {
   const ChatsNavigator({super.key});
 
   @override
+  State<ChatsNavigator> createState() => _ChatsNavigatorState();
+}
+
+class _ChatsNavigatorState extends State<ChatsNavigator>
+    with AutomaticKeepAliveClientMixin<ChatsNavigator> {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return AppNavigator(
       initialState: [const ChatsPage()],
       navigatorKey: chatsNavigatorKey,

@@ -8,7 +8,7 @@ import 'core/app.dart';
 import 'core/di/initialize_dependencies.dart';
 import 'core/flavor/flavor.dart';
 
-/// flutter build apk -t lib/core/flavor/main_develop.dart
+/// flutter build apk -t lib/main_develop.dart
 
 late Logger logger;
 

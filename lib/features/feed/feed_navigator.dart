@@ -6,11 +6,23 @@ import 'package:kepleomax/features/feed/feed_screen.dart';
 const feedNavigatorKey = 'FeedNavigator';
 final feedNavigatorGlobalKey = GlobalKey();
 
-class FeedNavigator extends StatelessWidget {
+class FeedNavigator extends StatefulWidget {
   const FeedNavigator({super.key});
 
   @override
+  State<FeedNavigator> createState() => _FeedNavigatorState();
+}
+
+class _FeedNavigatorState extends State<FeedNavigator>
+    with AutomaticKeepAliveClientMixin<FeedNavigator> {
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return AppNavigator(
       initialState: [const FeedPage()],
       navigatorKey: feedNavigatorKey,

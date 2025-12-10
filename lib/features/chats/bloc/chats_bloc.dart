@@ -42,13 +42,13 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     on<ChatsEvent>(
       (event, emit) => switch (event) {
         ChatsEventLoad event => _onLoad(event, emit),
-        ChatsEventLoadCache event => _onLoadCache(event, emit),
         ChatsEventNewMessage event => _onNewMessage(event, emit),
         ChatsEventReadMessages event => _onReadMessages(event, emit),
         ChatsEvent _ => () {},
       },
       transformer: sequential(),
     );
+    on<ChatsEventLoadCache>(_onLoadCache);
     on<ChatsEventReconnect>(_onReconnect);
     on<ChatsEventConnectingChanged>(_onConnectingChanged);
   }
@@ -57,7 +57,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
 
   void _onLoad(ChatsEventLoad event, Emitter<ChatsState> emit) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    if (now - 300 < _lastTimeLoadWasCalled) {
+    if (now - 500 < _lastTimeLoadWasCalled) {
       return;
     }
     _lastTimeLoadWasCalled = now;
@@ -96,7 +96,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
   }
 
   void _onReconnect(ChatsEventReconnect event, Emitter<ChatsState> emit) {
-    _messagesRepository.reconnect();
+    _messagesRepository.reconnect(onlyIfNot: event.onlyIfNot);
   }
 
   void _onConnectingChanged(
@@ -209,7 +209,9 @@ class ChatsEventLoadCache implements ChatsEvent {
 }
 
 class ChatsEventReconnect implements ChatsEvent {
-  const ChatsEventReconnect();
+  final bool onlyIfNot;
+
+  const ChatsEventReconnect({this.onlyIfNot = false});
 }
 
 class ChatsEventConnectingChanged implements ChatsEvent {

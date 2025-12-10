@@ -1,11 +1,7 @@
 import 'dart:async';
-import 'package:dio/dio.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:kepleomax/core/data/local/local_database.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
-import 'package:kepleomax/core/network/common/ntp_time.dart';
-import 'package:kepleomax/core/network/common/refresh_token.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
 import 'package:socket_io_client/socket_io_client.dart';
@@ -13,16 +9,13 @@ import 'package:socket_io_client/socket_io_client.dart';
 class MessagesWebSocket {
   final String _baseUrl;
   final TokenProvider _tokenProvider;
-  final Dio _dio;
   final LocalDatabase _localDatabase;
 
   MessagesWebSocket({
     required String baseUrl,
     required TokenProvider tokenProvider,
-    required Dio dio,
     required LocalDatabase localDatabase,
   }) : _localDatabase = localDatabase,
-       _dio = dio,
        _tokenProvider = tokenProvider,
        _baseUrl = baseUrl;
 
@@ -45,6 +38,7 @@ class MessagesWebSocket {
   Socket? _socket;
 
   void init() async {
+    print('WebSocketLog! init, _socket != null: ${_socket != null}');
     if (_socket != null) {
       _socket!.disconnect();
       _socket = null;
@@ -52,17 +46,18 @@ class MessagesWebSocket {
 
     /// you can't pass auth data in OptionBuilder cause on reconnect it won't update
     /// for some reason (idk why)
-    final token = await _getAccessToken();
-    if (token == null) {
-      logger.e('try to connect to ws, but no accessToken');
-      _socket?.disconnect();
-      return;
-    }
+    final accessToken = await _tokenProvider.getAccessToken();
 
     /// socket
-    _socket = io(_baseUrl, OptionBuilder().setTransports(['websocket']).build());
-    _socket!.auth = {'token': 'Bearer $token'};
-    _socket!.connect();
+    _socket = io(
+      _baseUrl,
+      OptionBuilder()
+          .enableForceNew()
+          .setAuth({'token': 'Bearer $accessToken'})
+          .enableAutoConnect()
+          .setTransports(['websocket'])
+          .build(),
+    );
 
     /// events
     _socket!.onConnect((_) {
@@ -94,12 +89,13 @@ class MessagesWebSocket {
     _socket!.on('auth_error', (data) async {
       logger.d('WebSocketLog auth_error $data');
       if (data == 401) {
-        final token = await _getAccessToken();
+        final token = await _tokenProvider.getAccessToken();
         if (token == null) {
           logger.e('try to connect to ws, but no accessToken');
           _socket!.disconnect();
           return;
         }
+        _socket!.disconnect();
         _socket!.auth = {'token': 'Bearer $token'};
         _socket!.connect();
       }
@@ -107,17 +103,24 @@ class MessagesWebSocket {
   }
 
   void reconnect() {
-    disconnect();
-    init();
+    print('WebSocketLog! reconnect, _socket != null: ${_socket != null}');
+    if (_socket != null) {
+      disconnect();
+      init();
+    }
   }
 
   void connectIfNot() {
+    print(
+      'WebSocketLog! connectIfNot, _socket != null: ${_socket != null}, _socket.disconnected: ${_socket?.disconnected}',
+    );
     if (_socket != null && _socket!.disconnected) {
       _socket!.connect();
     }
   }
 
   void disconnect() {
+    print('WebSocketLog! disconnect, socket != null: ${_socket != null}');
     if (_socket != null) {
       _socket!.dispose();
     }
@@ -136,38 +139,6 @@ class MessagesWebSocket {
 
   void readMessageBeforeTime({required int chatId, required int time}) {
     _socket!.emit('read_before_time', {'chat_id': chatId, 'time': time});
-  }
-
-  /// handle auth
-  Future<String?> _getAccessToken() async {
-    final accessToken = _tokenProvider.getAccessToken();
-    final refreshToken = await _tokenProvider.getRefreshToken();
-    if (accessToken == null || refreshToken == null) {
-      return null;
-    }
-
-    final now = await NTPTime.now();
-    final accessTokenHasExpired = now.isAfter(
-      JwtDecoder.getExpirationDate(accessToken),
-    );
-    final refreshTokenHasExpired = now.isAfter(
-      JwtDecoder.getExpirationDate(refreshToken),
-    );
-
-    if (refreshTokenHasExpired) {
-      return null;
-    } else if (accessTokenHasExpired) {
-      final newToken = await RefreshToken(dio: _dio).refreshToken(refreshToken);
-      if (newToken == null) {
-        logger.e('WebSocketLog try to connect to ws, failed to update accessToken');
-        return null;
-      } else {
-        await _tokenProvider.saveAccessToken(newToken);
-        return newToken;
-      }
-    } else {
-      return accessToken;
-    }
   }
 }
 

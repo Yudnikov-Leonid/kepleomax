@@ -28,24 +28,29 @@ class _MessageWidget extends StatelessWidget {
       );
     }
 
+    print('buildMessage');
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (_isCurrent)
-            const Expanded(child: SizedBox())
+            const Spacer()
           else ...[
-            InkWell(
-              onTap: () {
-                context.findAncestorStateOfType<AppNavigatorState>();
+            SizedBox(
+              height: 35,
+              width: 35,
+              child: InkWell(
+                onTap: () {
+                  context.findAncestorStateOfType<AppNavigatorState>();
 
-                AppNavigator.withKeyOf(
-                  context,
-                  mainNavigatorKey,
-                )!.push(UserPage(userId: user.id));
-              },
-              child: UserImage(size: 35, url: user.profileImage),
+                  AppNavigator.withKeyOf(
+                    context,
+                    mainNavigatorKey,
+                  )!.push(UserPage(userId: user.id));
+                },
+                child: UserImage(size: 35, url: user.profileImage),
+              ),
             ),
             const SizedBox(width: 10),
           ],
@@ -53,23 +58,26 @@ class _MessageWidget extends StatelessWidget {
             constraints: BoxConstraints(maxWidth: context.screenSize.width * 0.78),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: _isCurrent
-                  ? KlmColors.currentUserBg
-                  : Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              color: _isCurrent ? KlmColors.currentUserBg : Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(16),
+                topRight: const Radius.circular(16),
+                bottomLeft: _isCurrent ? const Radius.circular(16) : Radius.zero,
+                bottomRight: _isCurrent ? Radius.zero : const Radius.circular(16),
+              ),
             ),
             child: Stack(
               children: [
                 /// text for time TODO fix, not working 100% correctly
+                // Text(
+                //   '${message.message}${_isCurrent ? '    ' : '  '}${ParseTime.unixTimeToTime(message.createdAt)}',
+                //   style: context.textTheme.bodyMedium?.copyWith(
+                //     fontSize: 15,
+                //     color: Colors.red,
+                //   ),
+                // ),
                 Text(
-                  '${message.message}${_isCurrent ? '    ' : '  '}${ParseTime.unixTimeToTime(message.createdAt)}',
-                  style: context.textTheme.bodyMedium?.copyWith(
-                    fontSize: 15,
-                    color: Colors.transparent,
-                  ),
-                ),
-                SelectableText(
-                  message.message,
+                  '${message.message}${_isCurrent ? '    ' : '  '}         ',
                   style: context.textTheme.bodyMedium?.copyWith(fontSize: 15),
                 ),
                 Positioned(
@@ -103,7 +111,7 @@ class _MessageWidget extends StatelessWidget {
               ],
             ),
           ),
-          if (!_isCurrent) const Expanded(child: SizedBox()),
+          if (!_isCurrent) const Spacer(),
         ],
       ),
     );

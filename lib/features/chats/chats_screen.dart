@@ -31,20 +31,8 @@ class ChatsScreen extends StatelessWidget {
 }
 
 /// body
-class _Body extends StatefulWidget {
+class _Body extends StatelessWidget {
   const _Body({super.key});
-
-  @override
-  State<_Body> createState() => _BodyState();
-}
-
-class _BodyState extends State<_Body> {
-  /// callbacks
-  @override
-  void initState() {
-    context.read<ChatsBloc>().add(const ChatsEventLoadCache());
-    super.initState();
-  }
 
   /// build
   @override

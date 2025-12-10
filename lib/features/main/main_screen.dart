@@ -19,7 +19,9 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  final _pageController = PageController(initialPage: 1);
   int _currentIndex = 1;
+
 
   final _globalKeys = [
     feedNavigatorGlobalKey,
@@ -74,6 +76,7 @@ class _MainScreenState extends State<MainScreen> {
                   }
                   setState(() {
                     _currentIndex = index;
+                    _pageController.jumpToPage(index);
                   });
                 },
                 selectedItemColor: KlmColors.primaryColor,
@@ -133,7 +136,11 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
       ),
-      body: IndexedStack(index: _currentIndex, children: _pages),
+      body: PageView(
+        controller: _pageController,
+        physics: const NeverScrollableScrollPhysics(),
+        children: _pages,
+      ) //_pages[_currentIndex] // IndexedStack(index: _currentIndex, children: _pages),
     );
   }
 }
