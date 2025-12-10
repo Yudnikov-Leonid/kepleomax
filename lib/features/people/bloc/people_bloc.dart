@@ -19,21 +19,50 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
       _onLoad,
       transformer: (events, mapper) => Rx.merge([
         events
-            .throttleTime(const Duration(seconds: 2)),
+            .throttleTime(const Duration(seconds: 3)),
         events
-            .debounceTime(const Duration(milliseconds: 600))
-            .throttleTime(const Duration(milliseconds: 500)),
+            .debounceTime(const Duration(milliseconds: 900))
+            .throttleTime(const Duration(milliseconds: 750)),
       ]).flatMap(mapper),
     );
-    on<PeopleEventLoadMore>(_onLoadMore);
     on<PeopleEventInitialLoad>(_onInitialLoad);
+    on<PeopleEventLoadMore>(_onLoadMore);
     on<PeopleEventEditSearch>(_onEditSearch);
+  }
+
+  void _onInitialLoad(
+      PeopleEventInitialLoad event,
+      Emitter<PeopleState> emit,
+      ) async {
+    _data = _data.copyWith(isLoading: true);
+    emit(PeopleStateBase(data: _data));
+
+    try {
+      final newUsers = await _userRepository.search(
+        search: '',
+        limit: _pagingLimit,
+        offset: 0,
+      );
+
+      _data = _data.copyWith(
+        users: newUsers,
+        isAllUsersLoaded: newUsers.length < _pagingLimit,
+        isLoading: false,
+      );
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
+      emit(PeopleStateError(message: e.userErrorMessage));
+      _data = _data.copyWith(isLoading: false, isAllUsersLoaded: true);
+    } finally {
+      emit(PeopleStateBase(data: _data));
+    }
   }
 
   void _onLoad(PeopleEventLoad event, Emitter<PeopleState> emit) async {
     _data = _data.copyWith(isLoading: true);
     emit(PeopleStateBase(data: _data));
 
+    print('searchEvent: ${_data.searchText}');
     try {
       final newUsers = await _userRepository.search(
         search: _data.searchText,
@@ -72,34 +101,6 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     } catch (e, st) {
       logger.e(e, stackTrace: st);
       emit(PeopleStateError(message: e.userErrorMessage));
-    } finally {
-      emit(PeopleStateBase(data: _data));
-    }
-  }
-
-  void _onInitialLoad(
-    PeopleEventInitialLoad event,
-    Emitter<PeopleState> emit,
-  ) async {
-    _data = _data.copyWith(isLoading: true);
-    emit(PeopleStateBase(data: _data));
-
-    try {
-      final newUsers = await _userRepository.search(
-        search: '',
-        limit: _pagingLimit,
-        offset: 0,
-      );
-
-      _data = _data.copyWith(
-        users: newUsers,
-        isAllUsersLoaded: newUsers.length < _pagingLimit,
-        isLoading: false,
-      );
-    } catch (e, st) {
-      logger.e(e, stackTrace: st);
-      emit(PeopleStateError(message: e.userErrorMessage));
-      _data = _data.copyWith(isLoading: false, isAllUsersLoaded: true);
     } finally {
       emit(PeopleStateBase(data: _data));
     }

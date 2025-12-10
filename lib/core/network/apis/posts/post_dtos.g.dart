@@ -44,9 +44,6 @@ PostDto _$PostDtoFromJson(Map<String, dynamic> json) => PostDto(
   userId: (json['user_id'] as num).toInt(),
   content: json['content'] as String,
   images: (json['images'] as List<dynamic>).map((e) => e as String).toList(),
-  usersWhoLikedIds: (json['users_who_liked_ids'] as List<dynamic>)
-      .map((e) => e as String)
-      .toList(),
   createdAt: (json['created_at'] as num).toInt(),
   editedAt: (json['edited_at'] as num?)?.toInt(),
   user: UserDto.fromJson(json['user'] as Map<String, dynamic>),
@@ -57,7 +54,6 @@ Map<String, dynamic> _$PostDtoToJson(PostDto instance) => <String, dynamic>{
   'user_id': instance.userId,
   'content': instance.content,
   'images': instance.images,
-  'users_who_liked_ids': instance.usersWhoLikedIds,
   'created_at': instance.createdAt,
   'edited_at': instance.editedAt,
   'user': instance.user,

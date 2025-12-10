@@ -36,7 +36,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     } catch (e, st) {
       logger.e(e, stackTrace: st);
 
-      /// TODO restore data that was before load? cause after refresh all data can disappear
       emit(UserStateMessage(message: e.userErrorMessage, isError: true));
     } finally {
       _userData = _userData.copyWith(profile: profile, isLoading: false);

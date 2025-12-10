@@ -13,6 +13,7 @@ import 'package:kepleomax/core/data/messages_repository.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
+import 'package:kepleomax/core/native/klm_method_channel.dart';
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_api.dart';
 import 'package:kepleomax/core/network/apis/files/files_api.dart';
@@ -53,6 +54,7 @@ List<_InitializationStep> _steps = [
         prefs: dependencies.sharedPreferences,
         secureStorage: dependencies.secureStorage,
       );
+      dependencies.methodChannel = KlmMethodChannel();
       CachedNetworkImage.logLevel = CacheManagerLogLevel.debug;
     },
   ),

@@ -8,6 +8,7 @@ import 'package:kepleomax/core/data/files_repository.dart';
 import 'package:kepleomax/core/data/messages_repository.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
+import 'package:kepleomax/core/native/klm_method_channel.dart';
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_api.dart';
 import 'package:kepleomax/core/network/apis/files/files_api.dart';
@@ -28,6 +29,7 @@ class Dependencies {
   late final SharedPreferences sharedPreferences;
   late final FlutterSecureStorage secureStorage;
   late final PrettyDioLogger prettyDioLogger;
+  late final KlmMethodChannel methodChannel;
 
   late final Dio dio;
   late final AuthApi authApi;

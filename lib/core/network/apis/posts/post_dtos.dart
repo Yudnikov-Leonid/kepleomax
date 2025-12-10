@@ -49,8 +49,6 @@ class PostDto {
   final int userId;
   final String content;
   final List<String> images;
-  @JsonKey(name: 'users_who_liked_ids')
-  final List<String> usersWhoLikedIds;
   @JsonKey(name: 'created_at')
   final int createdAt;
   @JsonKey(name: 'edited_at')
@@ -62,7 +60,6 @@ class PostDto {
     required this.userId,
     required this.content,
     required this.images,
-    required this.usersWhoLikedIds,
     required this.createdAt,
     required this.editedAt,
     required this.user,

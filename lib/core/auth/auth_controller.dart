@@ -105,7 +105,6 @@ class AuthController {
     final savedToken = _prefs.getString(_fcmKey);
     if (token == savedToken) return;
 
-    // TODO not always do this
     await _userRepository
         .addFCMToken(token: token)
         .then((result) {

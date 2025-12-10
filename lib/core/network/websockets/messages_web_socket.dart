@@ -4,13 +4,11 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:kepleomax/core/data/local/local_database.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
+import 'package:kepleomax/core/network/common/ntp_time.dart';
 import 'package:kepleomax/core/network/common/refresh_token.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
-import 'package:ntp/ntp.dart';
 import 'package:socket_io_client/socket_io_client.dart';
-
-import '../common/api_constants.dart';
 
 class MessagesWebSocket {
   final String _baseUrl;
@@ -148,7 +146,7 @@ class MessagesWebSocket {
       return null;
     }
 
-    final now = await NTP.now(timeout: ApiConstants.timeout);
+    final now = await NTPTime.now();
     final accessTokenHasExpired = now.isAfter(
       JwtDecoder.getExpirationDate(accessToken),
     );

@@ -341,7 +341,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
           title: InkWell(
             splashColor: Colors.transparent,
             highlightColor: Colors.transparent,
-            onTap: data.isLoading || data.otherUser == null
+            onTap: data.otherUser == null
                 ? null
                 : () {
                     AppNavigator.withKeyOf(
@@ -369,17 +369,18 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
-                        if (data.isLoading || !data.isConnected) Text(
-                          !data.isConnected
-                              ? 'Connecting..'
-                              : data.isLoading
-                              ? 'Updating..'
-                              : '',
-                          style: context.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey,
+                        if (data.isLoading || !data.isConnected)
+                          Text(
+                            !data.isConnected
+                                ? 'Connecting..'
+                                : data.isLoading
+                                ? 'Updating..'
+                                : '',
+                            style: context.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),

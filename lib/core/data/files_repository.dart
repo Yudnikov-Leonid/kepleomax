@@ -15,7 +15,7 @@ class FilesRepository implements IFilesRepository {
   @override
   Future<String> uploadFile(String path) async {
     final res = await _filesApi
-        .uploadFile(File(path))
+        .uploadFile(File(path.trim()))
         .timeout(ApiConstants.longTimeout);
 
     if (res.response.statusCode != 201) {

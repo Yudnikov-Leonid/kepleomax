@@ -81,7 +81,6 @@ class MessagesRepository implements IMessagesRepository {
 
     final dtos = res.data.data!;
     for (final dto in dtos) {
-      /// TODO is it good? or with one query
       _localStorage.insertMessage(dto);
     }
 
@@ -99,7 +98,7 @@ class MessagesRepository implements IMessagesRepository {
   /// ws sends
   @override
   void sendMessage({required String message, required int recipientId}) =>
-      _webSocket.sendMessage(message: message, recipientId: recipientId);
+      _webSocket.sendMessage(message: message.trim(), recipientId: recipientId);
 
   @override
   void readAllMessages({required int chatId}) =>

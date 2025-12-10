@@ -23,7 +23,7 @@ class AuthRepository implements IAuthRepository {
   }) async {
     final res = await _authApi
         .login(
-          data: LoginRequestDto(email: email, password: password),
+          data: LoginRequestDto(email: email.trim(), password: password.trim()),
         )
         .timeout(ApiConstants.timeout);
 
@@ -39,14 +39,14 @@ class AuthRepository implements IAuthRepository {
   @override
   Future<void> logout({required String refreshToken}) async {
     await _authApi
-        .logout(data: LogoutRequestDto(refreshToken: refreshToken))
+        .logout(data: LogoutRequestDto(refreshToken: refreshToken.trim()))
         .timeout(ApiConstants.timeout);
   }
 
   @override
   Future<void> register({required String email, required String password}) async {
     final res = await _authApi.register(
-      data: LoginRequestDto(email: email, password: password),
+      data: LoginRequestDto(email: email.trim(), password: password.trim()),
     );
 
     if (res.response.statusCode != 201 && res.response.statusCode != 200) {

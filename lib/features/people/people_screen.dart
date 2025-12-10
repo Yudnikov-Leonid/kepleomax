@@ -4,6 +4,7 @@ import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
+import 'package:kepleomax/core/presentation/app_bar_loading_action.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
@@ -100,13 +101,6 @@ class _BodyState extends State<_Body> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-              ] else if (data.users.isEmpty) ...[
-                const SizedBox(height: 16),
-                const SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: CircularProgressIndicator(),
-                ),
               ],
               Expanded(
                 child: ListView.builder(
@@ -183,18 +177,32 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.transparent,
-      centerTitle: true,
-      title: Text(
-        'People',
-        style: context.textTheme.bodyLarge?.copyWith(
-          fontSize: 22,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      leading: const KlmBackButton(),
+    return BlocBuilder<PeopleBloc, PeopleState>(
+      buildWhen: (oldState, newState) {
+        if (newState is! PeopleStateBase) return false;
+
+        if (oldState is! PeopleStateBase) return true;
+
+        return oldState.data.isLoading != newState.data.isLoading;
+      },
+      builder: (context, state) {
+        return AppBar(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          centerTitle: true,
+          actions: state is PeopleStateBase && state.data.isLoading
+              ? const [AppBarLoadingAction()]
+              : null,
+          title: Text(
+            'People',
+            style: context.textTheme.bodyLarge?.copyWith(
+              fontSize: 22,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          leading: const KlmBackButton(),
+        );
+      },
     );
   }
 

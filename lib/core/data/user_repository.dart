@@ -12,15 +12,15 @@ import 'package:kepleomax/core/network/common/api_constants.dart';
 abstract class IUserRepository {
   Future<User> getUser({required int userId});
 
+  Future<UserProfile> getUserProfile(int userId);
+
+  Future<UserProfile> updateProfile(UserProfile profile, {updateImage = false});
+
   Future<List<User>> search({
     required String search,
     required int limit,
     required int offset,
   });
-
-  Future<UserProfile> getUserProfile(int userId);
-
-  Future<UserProfile> updateProfile(UserProfile profile, {updateImage = false});
 
   Future<bool> addFCMToken({required String token});
 
@@ -51,25 +51,6 @@ class UserRepository implements IUserRepository {
     }
 
     return User.fromDto(res.data.data!);
-  }
-
-  @override
-  Future<List<User>> search({
-    required String search,
-    required int limit,
-    required int offset,
-  }) async {
-    final res = await _userApi
-        .searchUsers(search: search, limit: limit, offset: offset)
-        .timeout(ApiConstants.timeout);
-
-    if (res.response.statusCode != 200) {
-      throw Exception(
-        res.data.message ?? "Failed to get users: ${res.response.statusCode}",
-      );
-    }
-
-    return res.data.data.map(User.fromDto).toList();
   }
 
   @override
@@ -139,6 +120,26 @@ class UserRepository implements IUserRepository {
         profileImage: newImagePath ?? profile.user.profileImage,
       ),
     );
+  }
+
+  @override
+  Future<List<User>> search({
+    required String search,
+    required int limit,
+    required int offset,
+  }) async {
+    /// don't need search.trim()
+    final res = await _userApi
+        .searchUsers(search: search, limit: limit, offset: offset)
+        .timeout(ApiConstants.timeout);
+
+    if (res.response.statusCode != 200) {
+      throw Exception(
+        res.data.message ?? "Failed to get users: ${res.response.statusCode}",
+      );
+    }
+
+    return res.data.data.map(User.fromDto).toList();
   }
 
   @override
