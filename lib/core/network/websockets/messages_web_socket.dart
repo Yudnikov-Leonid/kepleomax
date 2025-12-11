@@ -38,7 +38,7 @@ class MessagesWebSocket {
   Socket? _socket;
 
   void init() async {
-    print('WebSocketLog! init, _socket != null: ${_socket != null}');
+    logger.d('WebSocketLog! init, _socket != null: ${_socket != null}');
     if (_socket != null) {
       _socket!.disconnect();
       _socket = null;
@@ -103,7 +103,7 @@ class MessagesWebSocket {
   }
 
   void reconnect() {
-    print('WebSocketLog! reconnect, _socket != null: ${_socket != null}');
+    logger.d('WebSocketLog! reconnect, _socket != null: ${_socket != null}');
     if (_socket != null) {
       disconnect();
       init();
@@ -111,7 +111,7 @@ class MessagesWebSocket {
   }
 
   void connectIfNot() {
-    print(
+    logger.d(
       'WebSocketLog! connectIfNot, _socket != null: ${_socket != null}, _socket.disconnected: ${_socket?.disconnected}',
     );
     if (_socket != null && _socket!.disconnected) {
@@ -120,7 +120,7 @@ class MessagesWebSocket {
   }
 
   void disconnect() {
-    print('WebSocketLog! disconnect, socket != null: ${_socket != null}');
+    logger.d('WebSocketLog! disconnect, socket != null: ${_socket != null}');
     if (_socket != null) {
       _socket!.dispose();
     }

@@ -9,9 +9,15 @@ class Flavor {
 
   const Flavor({required this.baseUrl, required this.imageUrl, required this.type});
 
-  factory Flavor.dev() => const Flavor(
+  factory Flavor.devLocal() => const Flavor(
     baseUrl: 'http://192.168.0.106:13000',
     imageUrl: 'http://192.168.0.106:13000/api/files/',
+    type: FlavorType.develop,
+  );
+
+  factory Flavor.devPublic() => const Flavor(
+    baseUrl: 'http://34.118.78.192:13000',
+    imageUrl: 'http://34.118.78.192:13000/api/files/',
     type: FlavorType.develop,
   );
 
