@@ -48,6 +48,6 @@ final class ChatPage extends AppPage {
     : super(
         name: "chat_screen",
         child: ChatScreen(chatId: chatId, otherUser: otherUser),
-        key: ValueKey("chat_screen_$chatId"),
+        key: ValueKey("chat_screen_${chatId}_${otherUser?.id}"),
       );
 }

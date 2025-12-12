@@ -32,7 +32,7 @@ abstract class ChatData with _$ChatData implements ChatState {
     required User? otherUser,
     required List<Message> messages,
     required bool isAllMessagesLoaded,
-    @Default(false) bool isLoading,
+    @Default(true) bool isLoading,
     @Default(false) bool isConnected,
   }) = _ChatData;
 

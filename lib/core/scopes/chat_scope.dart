@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:focus_detector/focus_detector.dart';
+import 'package:kepleomax/core/data/messages_repository.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/notifications/notifications_service.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
-import 'package:kepleomax/features/chat/bloc/chat_bloc.dart';
 import 'package:kepleomax/features/chats/bloc/chats_bloc.dart';
 import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 
@@ -19,14 +19,24 @@ class ChatScope extends StatefulWidget {
 
 class _ChatScopeState extends State<ChatScope> {
   bool _isScreenInited = false;
+  late final IMessagesRepository _repository;
 
+  /// callbacks
   @override
   void initState() {
+    _repository = Dependencies.of(context).messagesRepository;
+    _repository.initSocket();
     NotificationService.instance.init().ignore();
     super.initState();
   }
 
-  void _onResume(ChatsState state, ChatsBloc bloc) {
+  @override
+  void dispose() {
+    _repository.disconnect();
+    super.dispose();
+  }
+
+  void _onResume(ChatsState state) {
     if (!_isScreenInited) {
       _isScreenInited = true;
       return;
@@ -34,41 +44,27 @@ class _ChatScopeState extends State<ChatScope> {
     if (state is ChatsStateBase && !state.data.isConnected) {
       print('MyLog chatScope onResume');
       Future.delayed(const Duration(seconds: 1), () {
-        bloc.add(const ChatsEventReconnect(onlyIfNot: true));
+        _repository.reconnect(onlyIfNot: true);
       });
     }
   }
 
+  /// build
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => ChatsBloc(
-            userId: AuthScope.userOf(context).id,
-            chatsRepository: Dependencies.of(context).chatsRepository,
-            messagesRepository: Dependencies.of(context).messagesRepository,
-          )..add(const ChatsEventLoadCache()),
-        ),
-        BlocProvider<ChatBloc>(
-          create: (context) => ChatBloc(
-            chatsRepository: Dependencies.of(context).chatsRepository,
-            messagesRepository: Dependencies.of(context).messagesRepository,
-          ),
-        ),
-      ],
+    /// ChatsBloc should be provided here cause it's used in bottomNavBar
+    return BlocProvider(
+      create: (context) => ChatsBloc(
+        userId: AuthScope.userOf(context).id,
+        chatsRepository: Dependencies.of(context).chatsRepository,
+        messagesRepository: Dependencies.of(context).messagesRepository,
+      )..add(const ChatsEventLoadCache()),
       child: BlocBuilder<ChatsBloc, ChatsState>(
-        builder: (context, state) {
-          /// ping to init
-          context.read<ChatBloc>();
-          final bloc = context.read<ChatsBloc>();
-
-          return FocusDetector(
-            onForegroundGained: () => _onResume(state, bloc),
-            onVisibilityGained: () => _onResume(state, bloc),
-            child: widget.child,
-          );
-        },
+        builder: (context, state) => FocusDetector(
+          onForegroundGained: () => _onResume(state),
+          onVisibilityGained: () => _onResume(state),
+          child: widget.child,
+        ),
       ),
     );
   }

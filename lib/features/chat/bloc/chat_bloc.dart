@@ -15,8 +15,6 @@ import 'chat_state.dart';
 
 const _pagingCount = 25;
 
-/// don't need to clear method, it may cause some bugs (if you navigate from chats to
-/// chat, from it to user page and click "message" button)
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final IMessagesRepository _messagesRepository;
   final IChatsRepository _chatsRepository;
@@ -31,7 +29,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }) : _messagesRepository = messagesRepository,
        _chatsRepository = chatsRepository,
        super(ChatStateBase.initial()) {
-    _messagesRepository.initSocket();
     _newMessageSub = _messagesRepository.newMessageStream.listen((message) {
       add(ChatEventNewMessage(newMessage: message));
     }, cancelOnError: false);
@@ -45,6 +42,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     on<ChatEvent>(
       (event, emit) => switch (event) {
+        ChatEventLoadCache event => _onLoadCache(event, emit),
         ChatEventLoad event => _onLoad(event, emit),
         ChatEventLoadMore event => _onLoadMore(event, emit),
         ChatEventNewMessage event => _onNewMessage(event, emit),
@@ -57,10 +55,20 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       },
       transformer: sequential(),
     );
-    on<ChatEventLoadCache>(_onLoadCache);
+    on<ChatEventInit>(_onInit);
     on<ChatEventSendMessage>(_onSendMessage);
     on<ChatEventReadAllMessages>(_onReadAllMessages);
     on<ChatEventConnectingChanged>(_onConnectionChanged);
+  }
+
+  void _onInit(ChatEventInit event, Emitter<ChatState> emit) {
+    _data = _data.copyWith(chatId: event.chatId, otherUser: event.otherUser);
+    emit(ChatStateBase(data: _data));
+    
+    add(ChatEventLoadCache(chatId: event.chatId, otherUser: event.otherUser));
+    if (_messagesRepository.isConnected) {
+      add(ChatEventLoad(chatId: event.chatId, otherUser: event.otherUser));
+    }
   }
 
   /// cause can be called on init and on connect at the same time
@@ -72,11 +80,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       return;
     }
     _lastTimeLoadWasCalled = now;
-    print('onLoad');
 
+    /// should set isConnected cause it can be called at init bloc
     _data = _data.copyWith(
-      chatId: event.chatId,
-      otherUser: event.otherUser,
+      isConnected: _messagesRepository.isConnected,
       isLoading: true,
       isAllMessagesLoaded: false,
     );
@@ -115,9 +122,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       /// add unread messages line
       final newList = _withUnreadMessages(messages);
 
-      if (event.chatId == _data.chatId) {
-        _data = _data.copyWith(messages: newList);
-      }
+      _data = _data.copyWith(messages: newList);
     } catch (e, st) {
       logger.e(e, stackTrace: st);
       emit(ChatStateMessage(message: e.userErrorMessage, isError: true));
@@ -163,14 +168,39 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   void _onLoadCache(ChatEventLoadCache event, Emitter<ChatState> emit) async {
     try {
-      print('onLoadCache: chatId: ${event.chatId}, otherUser: ${event.otherUser}');
-      final List<Message> cache = event.chatId == -1
+      print(
+        'ChatBloc onLoadCache: chatId: ${event.chatId}, otherUser: ${event.otherUser}',
+      );
+
+      /// set chatId
+      final int? chatId;
+      if (event.chatId == -1) {
+        chatId = (await _chatsRepository.getChatWithUserFromCache(
+          event.otherUser!.id,
+        ))?.id;
+      } else {
+        chatId = event.chatId;
+      }
+
+      /// get cache
+      final List<Message> cache = chatId == null || chatId == -1
           ? []
-          : await _messagesRepository.getMessagesFromCache(chatId: event.chatId);
+          : await _messagesRepository.getMessagesFromCache(chatId: chatId);
+
+      /// set otherUser
+      final User? otherUser;
+      if (event.otherUser == null) {
+        final chat = await _chatsRepository.getChatWithIdFromCache(chatId!);
+        otherUser = chat?.otherUser;
+      } else {
+        otherUser = event.otherUser;
+      }
+
+      print('ChatBloc loadCache, set chatId: $chatId, otherUser: $otherUser');
       _data = _data.copyWith(
-        chatId: event.chatId,
+        chatId: chatId ?? -1,
         messages: _withUnreadMessages(cache),
-        otherUser: event.otherUser,
+        otherUser: otherUser,
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);
@@ -274,6 +304,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     ChatEventConnectingChanged event,
     Emitter<ChatState> emit,
   ) {
+    print('ChatBloc connectionChanged: ${event.isConnected}');
     _data = _data.copyWith(isConnected: event.isConnected);
     emit(ChatStateBase(data: _data));
 
@@ -289,13 +320,19 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _newMessageSub.cancel();
     _readMessagesSub.cancel();
     _connectionStateSub.cancel();
-    _messagesRepository.dispose();
     return super.close();
   }
 }
 
 /// events
 abstract class ChatEvent {}
+
+class ChatEventInit implements ChatEvent {
+  final int chatId;
+  final User? otherUser;
+
+  const ChatEventInit({required this.chatId, required this.otherUser});
+}
 
 class ChatEventLoad implements ChatEvent {
   final int chatId;

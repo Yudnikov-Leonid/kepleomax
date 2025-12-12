@@ -9,8 +9,9 @@ import '../navigation/app_navigator.dart';
 class KlmAppBar extends AppBar {
   KlmAppBar(
     BuildContext context,
-    String title, {
+    String? title, {
     Widget? leading,
+    Widget? titleWidget,
     super.actions,
     super.key,
   }) : super(
@@ -30,8 +31,8 @@ class KlmAppBar extends AppBar {
          titleSpacing: 5,
          backgroundColor: Colors.white,
          surfaceTintColor: Colors.white,
-         title: Text(
-           title,
+         title: titleWidget ?? Text(
+           title ?? '',
            style: context.textTheme.labelLarge?.copyWith(fontSize: 24),
          ),
        );

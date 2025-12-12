@@ -207,7 +207,7 @@ return $default(_that.url,_that.file);case _:
 
 
 class _ImageUrlOrFile implements ImageUrlOrFile {
-  const _ImageUrlOrFile({this.url, this.file}): assert(url != null || file != null, 'Both fields cannot be null');
+  const _ImageUrlOrFile({this.url, this.file}): assert(url != null || file != null, 'Both fields cannot be null'),assert(url != null && file != null, 'Both fields cannot be filled');
   
 
 @override final  String? url;

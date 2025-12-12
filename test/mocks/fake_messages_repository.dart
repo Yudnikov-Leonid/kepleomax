@@ -50,7 +50,7 @@ class FakeMessagesRepository implements IMessagesRepository {
   }
 
   @override
-  void dispose() {
+  void disconnect() {
     // TODO: implement dispose
   }
 
@@ -69,10 +69,12 @@ class FakeMessagesRepository implements IMessagesRepository {
   }
 
   @override
-  void reconnect() {}
-
-  @override
   void sendMessage({required String message, required int recipientId}) {
     // TODO: implement sendMessage
+  }
+
+  @override
+  void reconnect({bool onlyIfNot = false}) {
+    // TODO: implement reconnect
   }
 }

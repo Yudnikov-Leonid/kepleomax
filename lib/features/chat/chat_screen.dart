@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:focus_detector/focus_detector.dart';
+import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
@@ -48,16 +49,10 @@ class _ChatScreenState extends State<ChatScreen> {
   /// callbacks
   @override
   void initState() {
-    _chatBloc = context.read<ChatBloc>();
-    _chatBloc.add(
-      ChatEventLoadCache(chatId: widget.chatId, otherUser: widget.otherUser),
-    );
-    if (_chatBloc.state is ChatStateBase &&
-        (_chatBloc.state as ChatStateBase).data.isConnected) {
-      _chatBloc.add(
-        ChatEventLoad(chatId: widget.chatId, otherUser: widget.otherUser),
-      );
-    }
+    _chatBloc = ChatBloc(
+      chatsRepository: Dependencies.of(context).chatsRepository,
+      messagesRepository: Dependencies.of(context).messagesRepository,
+    )..add(ChatEventInit(chatId: widget.chatId, otherUser: widget.otherUser));
     super.initState();
   }
 
@@ -70,22 +65,32 @@ class _ChatScreenState extends State<ChatScreen> {
   /// build
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      floatingActionButton: _ReadButton(
-        scrollController: _scrollController,
-        key: const Key('chat_read_button'),
-      ),
-      appBar: const _AppBar(key: Key('chat_appbar')),
-      body: _Body(
-        chatBloc: _chatBloc,
-        scrollController: _scrollController,
-        onRetry: () {
-          _chatBloc.add(
-            ChatEventLoad(chatId: widget.chatId, otherUser: widget.otherUser),
+    return BlocProvider(
+      create: (context) => _chatBloc,
+      child: Builder(
+        builder: (context) {
+          /// ping to call init
+          context.read<ChatBloc>();
+
+          return Scaffold(
+            resizeToAvoidBottomInset: true,
+            floatingActionButton: _ReadButton(
+              scrollController: _scrollController,
+              key: const Key('chat_read_button'),
+            ),
+            appBar: const _AppBar(key: Key('chat_appbar')),
+            body: _Body(
+              chatBloc: _chatBloc,
+              scrollController: _scrollController,
+              onRetry: () {
+                _chatBloc.add(
+                  ChatEventLoad(chatId: widget.chatId, otherUser: widget.otherUser),
+                );
+              },
+              key: const Key('chat_body'),
+            ),
           );
         },
-        key: const Key('chat_body'),
       ),
     );
   }
@@ -294,7 +299,7 @@ class _BodyState extends State<_Body> {
       }
     }
     if (newVisibleMessages.isNotEmpty) {
-      context.read<ChatBloc>().add(
+      widget.chatBloc.add(
         ChatEventReadMessagesBeforeTime(time: newVisibleMessages[0].createdAt),
       );
     }

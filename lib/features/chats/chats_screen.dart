@@ -125,7 +125,7 @@ class _Body extends StatelessWidget {
                   ),
                 ),
               );
-            }
+            },
           );
         }
 
@@ -177,6 +177,27 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
               : data.isLoading
               ? 'Updating..'
               : 'Chats',
+          // titleWidget: Row(
+          //   children: [
+          //     Text(
+          //       !data.isConnected
+          //           ? 'Connecting..'
+          //           : data.isLoading
+          //           ? 'Updating..'
+          //           : 'Chats',
+          //       style: context.textTheme.labelLarge?.copyWith(fontSize: 24),
+          //     ),
+          //     const SizedBox(width: 12),
+          //     if (!data.isConnected) Text(
+          //       '(swipe to refresh)',
+          //       style: context.textTheme.bodySmall?.copyWith(
+          //         fontWeight: FontWeight.w400,
+          //         fontSize: 12,
+          //         color: Colors.grey
+          //       ),
+          //     ),
+          //   ],
+          // ),
           key: const Key('chats_app_bar'),
         );
       },

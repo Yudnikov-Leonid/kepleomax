@@ -11,7 +11,7 @@ abstract class IMessagesRepository {
   /// callbacks
   void initSocket();
 
-  void dispose();
+  void disconnect();
 
   void reconnect({bool onlyIfNot = false});
 
@@ -37,6 +37,8 @@ abstract class IMessagesRepository {
   Stream<ReadMessagesUpdate> get readMessagesStream;
 
   Stream<bool> get connectionStateStream;
+
+  bool get isConnected;
 }
 
 class MessagesRepository implements IMessagesRepository {
@@ -57,7 +59,7 @@ class MessagesRepository implements IMessagesRepository {
   void initSocket() => _webSocket.init();
 
   @override
-  void dispose() => _webSocket.disconnect();
+  void disconnect() => _webSocket.disconnect();
 
   @override
   void reconnect({bool onlyIfNot = false}) =>
@@ -118,4 +120,7 @@ class MessagesRepository implements IMessagesRepository {
 
   @override
   Stream<bool> get connectionStateStream => _webSocket.connectionStateStream;
+
+  @override
+  bool get isConnected => _webSocket.isConnected;
 }

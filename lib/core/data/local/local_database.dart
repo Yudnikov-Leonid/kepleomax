@@ -22,6 +22,8 @@ abstract class ILocalMessagesDatabase {
 abstract class ILocalChatsDatabase {
   Future<List<ChatDto>> getChats();
 
+  Future<ChatDto?> getChat(int chatId);
+
   Future<void> clearAndInsertChats(List<ChatDto> chats);
 
   Future<void> insertChat(ChatDto chat);
@@ -92,6 +94,12 @@ class LocalDatabase implements ILocalMessagesDatabase, ILocalChatsDatabase {
               (b.lastMessage?.createdAt ?? 0) - (a.lastMessage?.createdAt ?? 0),
         )
         .toList();
+  }
+
+  @override
+  Future<ChatDto?> getChat(int chatId) async {
+    final query = await _db.query('chats', where: 'id = ?', whereArgs: [chatId]);
+    return query.map(ChatDto.fromLocalJson).firstOrNull;
   }
 
   @override

@@ -12,7 +12,11 @@ abstract class IChatsRepository {
 
   Future<Chat?> getChatWithUser(int otherUserId);
 
+  Future<Chat?> getChatWithUserFromCache(int otherUserId);
+
   Future<Chat?> getChatWithId(int chatId);
+
+  Future<Chat?> getChatWithIdFromCache(int chatId);
 }
 
 class ChatsRepository implements IChatsRepository {
@@ -69,6 +73,18 @@ class ChatsRepository implements IChatsRepository {
   }
 
   @override
+  Future<Chat?> getChatWithUserFromCache(int otherUserId) async {
+    final chats = await _localDatabase.getChats();
+    /// TODO make query in _localDatabase to this
+    final dto = chats.where((e) => e.otherUser.id == otherUserId).firstOrNull;
+    if (dto == null) {
+      return null;
+    } else {
+      return Chat.fromDto(dto);
+    }
+  }
+
+  @override
   Future<Chat?> getChatWithId(int chatId) async {
     final res = await _chatsApi
         .getChatWithId(chatId: chatId)
@@ -86,5 +102,13 @@ class ChatsRepository implements IChatsRepository {
     final data = res.data.data!;
     _localDatabase.insertChat(data);
     return Chat.fromDto(data);
+  }
+
+  @override
+  Future<Chat?> getChatWithIdFromCache(int chatId) async {
+    final dto = await _localDatabase.getChat(chatId);
+    print('MyLog getChatWithIdFromCache: ${dto?.toJson()}');
+    if (dto == null) return null;
+    return Chat.fromDto(dto);
   }
 }

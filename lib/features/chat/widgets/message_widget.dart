@@ -79,7 +79,7 @@ class _MessageWidget extends StatelessWidget {
                   onOpen: (link) async {
                     await launchUrl(Uri.parse(link.url));
                   },
-                  text: '${message.message}${_isCurrent ? '    ' : '  '}         ',
+                  text: '${message.message}${_isCurrent ? '     ' : ' '}         ',
                   style: context.textTheme.bodyMedium?.copyWith(fontSize: 15),
                   options: const LinkifyOptions(removeWww: true),
                 ),
@@ -96,6 +96,7 @@ class _MessageWidget extends StatelessWidget {
                         child: Text(
                           //(DateTime.now().millisecondsSinceEpoch % 1000).toString(),
                           ParseTime.unixTimeToTime(message.createdAt),
+                          textScaler: const TextScaler.linear(1),
                           style: context.textTheme.bodyMedium?.copyWith(
                             color: _isCurrent ? KlmColors.readMessage : Colors.grey,
                             letterSpacing: -0.2,

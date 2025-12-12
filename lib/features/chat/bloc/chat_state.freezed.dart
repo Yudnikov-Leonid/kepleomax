@@ -1016,7 +1016,7 @@ return $default(_that.chatId,_that.otherUser,_that.messages,_that.isAllMessagesL
 
 
 class _ChatData implements ChatData {
-  const _ChatData({required this.chatId, required this.otherUser, required final  List<Message> messages, required this.isAllMessagesLoaded, this.isLoading = false, this.isConnected = false}): _messages = messages;
+  const _ChatData({required this.chatId, required this.otherUser, required final  List<Message> messages, required this.isAllMessagesLoaded, this.isLoading = true, this.isConnected = false}): _messages = messages;
   
 
 @override final  int chatId;
