@@ -16,6 +16,7 @@ class KlmTextField extends StatefulWidget {
     this.readOnly = false,
     this.multiline = false,
     this.textCapitalization = TextCapitalization.none,
+    this.textInputType,
     super.key,
   });
 
@@ -31,6 +32,7 @@ class KlmTextField extends StatefulWidget {
   final bool readOnly;
   final bool multiline;
   final TextCapitalization textCapitalization;
+  final TextInputType? textInputType;
 
   @override
   State<KlmTextField> createState() => _KlmTextFieldState();
@@ -69,12 +71,13 @@ class _KlmTextFieldState extends State<KlmTextField> {
       child: Stack(
         children: [
           TextFormField(
-            obscureText: widget.isPassword,
             controller: widget.controller,
             focusNode: _focusNode,
+            obscureText: widget.isPassword,
             maxLines: widget.multiline ? null : 1,
             maxLength: widget.maxLength ?? 50,
-            keyboardType: widget.multiline ? TextInputType.multiline : null,
+            keyboardType: widget.textInputType ?? (widget.multiline ? TextInputType
+                .multiline : null),
             onChanged: (value) {
               setState(() {});
               widget.onChanged(value);
@@ -91,21 +94,21 @@ class _KlmTextFieldState extends State<KlmTextField> {
                   ? null
                   : widget.controller.text.isNotEmpty
                   ? SizedBox(
-                      height: 17,
-                      width: 17,
-                      child: InkWell(
-                        onTap: () {
-                          widget.controller.clear();
-                          widget.onChanged('');
-                          setState(() {});
-                        },
-                        child: const Icon(
-                          Icons.close,
-                          color: Colors.black,
-                          size: 17,
-                        ),
-                      ),
-                    )
+                height: 17,
+                width: 17,
+                child: InkWell(
+                  onTap: () {
+                    widget.controller.clear();
+                    widget.onChanged('');
+                    setState(() {});
+                  },
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.black,
+                    size: 17,
+                  ),
+                ),
+              )
                   : null,
               counter: const SizedBox(),
               contentPadding: const EdgeInsets.all(15),
@@ -119,12 +122,12 @@ class _KlmTextFieldState extends State<KlmTextField> {
               label: widget.label == null
                   ? null
                   : Container(
-                      color: Colors.white,
-                      child: Text(
-                        widget.label!,
-                        style: context.textTheme.bodyMedium,
-                      ),
-                    ),
+                color: Colors.white,
+                child: Text(
+                  widget.label!,
+                  style: context.textTheme.bodyMedium,
+                ),
+              ),
               hintText: widget.hint,
               hintStyle: const TextStyle(color: Colors.grey),
               labelStyle: context.textTheme.titleLarge?.copyWith(color: Colors.grey),
@@ -146,16 +149,17 @@ class _KlmTextFieldState extends State<KlmTextField> {
     );
   }
 
-  InputBorder? _getFocusedBorder() => widget.readOnly
-      ? _getBorder(false)
-      : OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: const BorderSide(
-            color: Colors.blue,
-            width: 3,
-            strokeAlign: BorderSide.strokeAlignOutside,
-          ),
-        );
+  InputBorder? _getFocusedBorder() =>
+      widget.readOnly
+          ? _getBorder(false)
+          : OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(
+          color: Colors.blue,
+          width: 3,
+          strokeAlign: BorderSide.strokeAlignOutside,
+        ),
+      );
 
   InputBorder? _getBorder(bool isError) {
     if (isError) {

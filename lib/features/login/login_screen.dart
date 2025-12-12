@@ -92,6 +92,7 @@ class _BodyState extends State<_Body> {
                   const SizedBox(height: 52),
                   KlmTextField(
                     controller: _emailController,
+                    textInputType: TextInputType.emailAddress,
                     validators: [loginEmailValidator],
                     onChanged: (text) {
                       context.read<LoginBloc>().add(

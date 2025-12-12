@@ -205,9 +205,9 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
   Future<void> _saveToGallery() async {
     try {
       String savedTo = 'gallery';
-      final String path;
+      Directory? directory;
       if (Platform.isIOS) {
-        path = (await getApplicationDocumentsDirectory()).path;
+        directory = await getApplicationDocumentsDirectory();
       } else {
         Directory? directory = Directory('/storage/emulated/0/Download');
 
@@ -215,11 +215,9 @@ class _PhotosPreviewScreenState extends State<PhotosPreviewScreen> {
           directory = await getExternalStorageDirectory();
           savedTo = 'external storage';
         }
-
-        if (directory == null) throw Exception("Can't save image");
-
-        path = '${directory.path}/${widget.urls[_index]}';
       }
+      if (directory == null) throw Exception("Can't save image");
+      final path = '${directory.path}/${widget.urls[_index]}';
 
       await Dio().download(flavor.imageUrl + widget.urls[_index], path);
       await Gal.putImage(path);
@@ -489,7 +487,10 @@ class _AppBarState extends State<_AppBar> {
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem<String>(value: 'save', child: Text('Save to gallery')),
+            const PopupMenuItem<String>(
+              value: 'save',
+              child: Text('Save to gallery'),
+            ),
           ],
         ),
       ],

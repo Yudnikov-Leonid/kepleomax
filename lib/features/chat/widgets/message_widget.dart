@@ -75,9 +75,13 @@ class _MessageWidget extends StatelessWidget {
                 //     color: Colors.red,
                 //   ),
                 // ),
-                Text(
-                  '${message.message}${_isCurrent ? '    ' : '  '}         ',
+                Linkify(
+                  onOpen: (link) async {
+                    await launchUrl(Uri.parse(link.url));
+                  },
+                  text: '${message.message}${_isCurrent ? '    ' : '  '}         ',
                   style: context.textTheme.bodyMedium?.copyWith(fontSize: 15),
+                  options: const LinkifyOptions(removeWww: true),
                 ),
                 Positioned(
                   right: 0,

@@ -1,7 +1,9 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/presentation/klm_cached_image.dart';
@@ -12,9 +14,12 @@ import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/generated/images_keys.images_keys.dart';
 import 'package:kepleomax/main.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 part 'widgets/photo_row.dart';
+
 part 'widgets/photo_widget.dart';
+
 part 'widgets/post_images_widget.dart';
 
 class PostWidget extends StatelessWidget {
@@ -105,12 +110,16 @@ class PostWidget extends StatelessWidget {
           if (post.content.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
-              child: Text(
-                post.content,
+              child: Linkify(
+                onOpen: (link) async {
+                  await launchUrl(Uri.parse(link.url));
+                },
+                text: post.content,
                 style: context.textTheme.bodyLarge?.copyWith(
                   fontSize: 15,
                   fontWeight: FontWeight.w400,
                 ),
+                options: const LinkifyOptions(removeWww: true),
               ),
             ),
           Padding(
@@ -118,7 +127,9 @@ class PostWidget extends StatelessWidget {
             child: Row(
               children: [
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Fluttertoast.showToast(msg: 'Not working now');
+                  },
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.zero,
                     minimumSize: Size.zero,

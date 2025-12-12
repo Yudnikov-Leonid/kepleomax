@@ -29,12 +29,16 @@ class NotificationService {
           AndroidFlutterLocalNotificationsPlugin
         >()
         ?.createNotificationChannel(androidChannel);
-    const initializationSettingsAndroid = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
     );
 
     await _localNotifications.initialize(
-      const InitializationSettings(android: initializationSettingsAndroid),
+      const InitializationSettings(android: androidSettings, iOS: iosSettings),
       onDidReceiveNotificationResponse: (response) {
         _handleAppOpened(response);
       },
@@ -115,6 +119,7 @@ class NotificationService {
             priority: Priority.high,
             icon: '@mipmap/ic_launcher',
           ),
+          iOS: DarwinNotificationDetails()
         ),
         payload: chatId,
       );

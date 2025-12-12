@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
@@ -17,6 +18,7 @@ import 'package:kepleomax/features/user/bloc/user_states.dart';
 import 'package:num_remap/num_remap.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/presentation/colors.dart';
 import '../../core/presentation/photos_preview/photos_preview_screen.dart';
 
@@ -194,13 +196,17 @@ class _Body extends StatelessWidget {
                     const SizedBox(height: 8),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Text(
-                        data.isLoading
+                      child: Linkify(
+                        onOpen: (link) async {
+                          await launchUrl(Uri.parse(link.url));
+                        },
+                        text: data.isLoading
                             ? '-------------'
                             : data.profile?.description ??
                                   'Failed to load description',
+                        style: context.textTheme.bodyLarge,
                         textAlign: TextAlign.center,
-                        style: context.textTheme.bodyLarge?.copyWith(),
+                        options: const LinkifyOptions(removeWww: true),
                       ),
                     ),
                   ],

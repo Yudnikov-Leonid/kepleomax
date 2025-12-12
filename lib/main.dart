@@ -24,9 +24,9 @@ void main({Flavor? fv}) {
       );
 
       if (fv == null) {
-        throw Exception('No flavor provided');
+      logger.e('Flavor is not provided');
       }
-      flavor = fv;
+      flavor = fv ?? Flavor.devPublic();
 
       final dependencies = await initializeDependencies();
 

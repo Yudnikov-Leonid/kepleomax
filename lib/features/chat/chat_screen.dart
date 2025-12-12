@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:focus_detector/focus_detector.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
@@ -19,6 +20,7 @@ import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/features/chat/bloc/chat_bloc.dart';
 import 'package:kepleomax/features/chat/bloc/chat_state.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 part 'widgets/chat_bottom.dart';
 
