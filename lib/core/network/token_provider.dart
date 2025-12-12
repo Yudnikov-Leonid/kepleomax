@@ -71,7 +71,9 @@ class TokenProvider implements ITokenProvider {
         logger.e('no refreshToken');
         return null;
       }
-      final isRefreshExpired = now.isAfter(JwtDecoder.getExpirationDate(refreshToken));
+      final isRefreshExpired = now.isAfter(
+        JwtDecoder.getExpirationDate(refreshToken),
+      );
       if (isRefreshExpired) {
         onLogoutCallback?.call();
         logger.e('refreshToken is expired');
@@ -87,7 +89,9 @@ class TokenProvider implements ITokenProvider {
             )
             .timeout(ApiConstants.timeout);
 
-        if (response.statusCode == 401 || response.statusCode == 403) {
+        if (response.statusCode == 401 ||
+            response.statusCode == 403 ||
+            response.statusCode == 404) {
           logger.e('forbidden to refresh the accessToken: ${response.statusCode}');
           onLogoutCallback?.call();
           return null;

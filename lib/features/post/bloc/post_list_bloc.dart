@@ -16,10 +16,12 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
   final int? _userId;
   int _loadTime = 0;
 
-  PostListBloc({required IPostRepository postRepository, required int? userId})
-    : _postRepository = postRepository,
-      _userId = userId,
-      super(PostListStateBase.initial()) {
+  PostListBloc({
+    required IPostRepository postRepository,
+    required int? userId,
+  }) : _postRepository = postRepository,
+       _userId = userId,
+       super(PostListStateBase.initial()) {
     on<PostListEvent>(
       (event, emit) => switch (event) {
         PostListEventLoad event => _onLoad(event, emit),

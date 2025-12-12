@@ -46,8 +46,16 @@ class _ChatScreenState extends State<ChatScreen> {
   /// callbacks
   @override
   void initState() {
-    _chatBloc = context.read<ChatBloc>()
-      ..add(ChatEventLoad(chatId: widget.chatId, otherUser: widget.otherUser));
+    _chatBloc = context.read<ChatBloc>();
+    _chatBloc.add(
+      ChatEventLoadCache(chatId: widget.chatId, otherUser: widget.otherUser),
+    );
+    if (_chatBloc.state is ChatStateBase &&
+        (_chatBloc.state as ChatStateBase).data.isConnected) {
+      _chatBloc.add(
+        ChatEventLoad(chatId: widget.chatId, otherUser: widget.otherUser),
+      );
+    }
     super.initState();
   }
 
@@ -212,13 +220,11 @@ class _BodyState extends State<_Body> {
                           ),
                           reverse: true,
                           itemCount: data.messages.length,
-                          itemBuilder: (context, i) => data.otherUser == null
-                              ? const SizedBox()
-                              : _MessageWidget(
-                                  key: _keys[data.messages[i].id]!.$1,
-                                  message: data.messages[i],
-                                  user: data.otherUser!,
-                                ),
+                          itemBuilder: (context, i) => _MessageWidget(
+                            key: _keys[data.messages[i].id]!.$1,
+                            message: data.messages[i],
+                            user: data.otherUser ?? User.loading(),
+                          ),
                         ),
                 ),
               ),
@@ -326,7 +332,8 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
         if (oldState is! ChatStateBase) return true;
 
         return oldState.data.otherUser != newState.data.otherUser ||
-            oldState.data.isLoading != newState.data.isLoading;
+            oldState.data.isLoading != newState.data.isLoading ||
+            oldState.data.isConnected != newState.data.isConnected;
       },
       builder: (context, state) {
         if (state is! ChatStateBase) return const SizedBox();

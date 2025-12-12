@@ -39,36 +39,6 @@ class AuthController {
        _userProvider = userProvider,
        _prefs = prefs;
 
-  Future<void> registerUser({required String email, required String password}) =>
-      _authRepository.register(email: email, password: password);
-
-  Future<void> login({required String email, required String password}) async {
-    final res = await _authRepository.login(email: email, password: password);
-
-    await _tokenProvider.saveAccessToken(res.accessToken);
-    await _tokenProvider.saveRefreshToken(res.refreshToken);
-    await updateUser(User.fromDto(res.user));
-  }
-
-  Future<void> logout() async {
-    try {
-      await updateUser(null);
-      _localDatabase.clear().ignore();
-      final refreshToken = await _tokenProvider.getRefreshToken();
-      if (refreshToken != null) {
-        try {
-          _authRepository.logout(refreshToken: refreshToken);
-        } catch (e, st) {
-          logger.e(e, stackTrace: st);
-        }
-      }
-    } catch (e, st) {
-      logger.e(e, stackTrace: st);
-    } finally {
-      await _tokenProvider.clearAll();
-    }
-  }
-
   Future<void> init() async {
     final user = await _userProvider.getSavedUser();
     _user = user;
@@ -85,7 +55,41 @@ class AuthController {
     });
   }
 
+  Future<void> registerUser({required String email, required String password}) =>
+      _authRepository.register(email: email, password: password);
+
+  Future<void> login({required String email, required String password}) async {
+    final res = await _authRepository.login(email: email, password: password);
+
+    await _tokenProvider.saveAccessToken(res.accessToken);
+    await _tokenProvider.saveRefreshToken(res.refreshToken);
+    await updateUser(User.fromDto(res.user));
+  }
+
+  Future<void> logout() async {
+    if (_user == null) return;
+
+    try {
+      await updateUser(null);
+      _localDatabase.clear().ignore();
+      final refreshToken = await _tokenProvider.getRefreshToken();
+      if (refreshToken != null) {
+        try {
+          await _authRepository.logout(refreshToken: refreshToken);
+        } catch (e, st) {
+          logger.e(e, stackTrace: st);
+        }
+      }
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
+    } finally {
+      await _tokenProvider.clearAll();
+    }
+  }
+
   Future<void> updateUser(User? newUser) async {
+    if (newUser == _user) return;
+
     _user = newUser;
     _userProvider.setNewUser(newUser);
     for (final listener in _listeners) {
@@ -93,13 +97,14 @@ class AuthController {
     }
 
     if (newUser != null) {
-      await _checkToken();
+      await _checkFcmToken();
     } else {
-      await _deleteToken();
+      await _deleteFcmToken();
     }
   }
 
-  Future<void> _checkToken() async {
+  Future<void> _checkFcmToken() async {
+    /// TODO make solution better
     final token = await FirebaseMessaging.instance.getToken();
     if (token == null) return;
     final savedToken = _prefs.getString(_fcmKey);
@@ -121,7 +126,7 @@ class AuthController {
   }
 
   /// I'm not sure it works
-  Future<void> _deleteToken() async {
+  Future<void> _deleteFcmToken() async {
     final token = await FirebaseMessaging.instance.getToken();
     if (token == null) return;
     _prefs.remove(_fcmKey);

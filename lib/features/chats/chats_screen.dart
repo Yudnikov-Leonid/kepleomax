@@ -91,27 +91,41 @@ class _Body extends StatelessWidget {
         }
 
         if (data.chats.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "You have no chats now",
-                  style: context.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 18,
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              return RefreshIndicator(
+                onRefresh: () async {
+                  context.read<ChatsBloc>().add(const ChatsEventLoad());
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: SizedBox(
+                    height: constraints.maxHeight,
+                    width: constraints.maxWidth,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "You have no chats now",
+                          style: context.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 18,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        KlmButton(
+                          onPressed: () {
+                            AppNavigator.of(context)!.push(const PeoplePage());
+                          },
+                          width: 200,
+                          text: 'Find people',
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                KlmButton(
-                  onPressed: () {
-                    AppNavigator.of(context)!.push(const PeoplePage());
-                  },
-                  width: 200,
-                  text: 'Find people',
-                ),
-              ],
-            ),
+              );
+            }
           );
         }
 

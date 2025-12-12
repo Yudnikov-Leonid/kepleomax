@@ -33,7 +33,9 @@ class _ChatScopeState extends State<ChatScope> {
     }
     if (state is ChatsStateBase && !state.data.isConnected) {
       print('MyLog chatScope onResume');
-      bloc.add(const ChatsEventReconnect(onlyIfNot: true));
+      Future.delayed(const Duration(seconds: 1), () {
+        bloc.add(const ChatsEventReconnect(onlyIfNot: true));
+      });
     }
   }
 

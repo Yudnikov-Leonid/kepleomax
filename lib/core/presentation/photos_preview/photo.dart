@@ -16,16 +16,23 @@ class _Photo extends StatefulWidget {
 
 /// TODO refactor
 class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
-  /// zoom controller
-  late AnimationController _zoomAnimationController;
+  late AnimationController _zoomController;
   Animation<Matrix4>? _zoomAnimation;
 
   TransformationController get _controller => widget.transformationController;
 
+  final GlobalKey _childKey = GlobalKey();
+  Size? _childSize;
+
+  bool _isOnlyXAxes = false;
+
+  bool _isOnlyYAxes = false;
+
+  /// callbacks
   @override
   void initState() {
     _controller.addListener(_setState);
-    _zoomAnimationController =
+    _zoomController =
         AnimationController(vsync: this, duration: const Duration(milliseconds: 150))
           ..addListener(() {
             _controller.value = _zoomAnimation!.value;
@@ -36,6 +43,9 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
       if (renderBox != null) {
         setState(() {
           _childSize = renderBox.size;
+          _isOnlyXAxes = _childSize!.aspectRatio > 1;
+          _isOnlyYAxes = (_childSize!.aspectRatio * 100).round() / 100 <
+              context.screenSize.aspectRatio;
         });
       }
     });
@@ -45,20 +55,11 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
   @override
   void dispose() {
     _controller.removeListener(_setState);
-    _zoomAnimationController.dispose();
+    _zoomController.dispose();
     super.dispose();
   }
 
-  final GlobalKey _childKey = GlobalKey();
-  Size? _childSize;
-
-  bool get _isOnlyXAxes => _childSize == null ? false : _childSize!.aspectRatio > 1;
-
-  bool get _isOnlyYAxes => _childSize == null
-      ? false
-      : (_childSize!.aspectRatio * 100).round() / 100 <
-            context.screenSize.aspectRatio;
-
+  /// listeners
   void _setState() {
     setState(() {});
   }
@@ -74,6 +75,7 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
     return GestureDetector(
       onDoubleTapDown: _onDoubleTap,
       child: InteractiveViewer(
+        transformationController: _controller,
         panAxis: _isOnlyXAxes
             ? PanAxis.horizontal
             : _isOnlyYAxes
@@ -81,8 +83,8 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
             : PanAxis.free,
         constrained: false,
         clipBehavior: Clip.none,
-        transformationController: _controller,
         maxScale: _maxScaleFactor,
+        scaleEnabled: false,
         minScale: 1,
         boundaryMargin: _isOnlyXAxes || _isOnlyYAxes
             ? EdgeInsets.zero
@@ -102,14 +104,11 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
                             ? screenHeight
                             : _childSize!.height,
                       ),
-                child: ColoredBox(
-                  color: Colors.green,
-                  child: KlmCachedImage(
-                    imageUrl: flavor.imageUrl + widget.url,
-                    errorColor: Colors.white,
-                    width: context.imageMaxWidth,
-                    key: _childKey,
-                  ),
+                child: KlmCachedImage(
+                  imageUrl: flavor.imageUrl + widget.url,
+                  errorColor: Colors.white,
+                  width: context.imageMaxWidth,
+                  key: _childKey,
                 ),
               ),
             ],
@@ -173,7 +172,7 @@ class _PhotoState extends State<_Photo> with SingleTickerProviderStateMixin {
     _zoomAnimation = Matrix4Tween(
       begin: _controller.value,
       end: endMatrix,
-    ).animate(CurveTween(curve: Curves.easeOut).animate(_zoomAnimationController));
-    _zoomAnimationController.forward(from: 0);
+    ).animate(CurveTween(curve: Curves.easeOut).animate(_zoomController));
+    _zoomController.forward(from: 0);
   }
 }

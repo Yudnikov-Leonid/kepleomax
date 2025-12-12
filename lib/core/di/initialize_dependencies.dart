@@ -51,7 +51,7 @@ List<_InitializationStep> _steps = [
       dependencies.sharedPreferences = await SharedPreferences.getInstance();
       dependencies.secureStorage = const FlutterSecureStorage();
       dependencies.methodChannel = KlmMethodChannel();
-      CachedNetworkImage.logLevel = CacheManagerLogLevel.debug;
+      CachedNetworkImage.logLevel = CacheManagerLogLevel.verbose;
     },
   ),
 

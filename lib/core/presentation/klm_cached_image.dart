@@ -15,7 +15,6 @@ class KlmCachedImage extends CachedNetworkImage {
     super.key,
   }) : super(
          imageUrl: '$imageUrl${width == null ? '' : '?w=$width'}',
-         useOldImageOnUrlChange: true,
          fadeInDuration: const Duration(milliseconds: 75),
          fadeOutDuration: const Duration(milliseconds: 75),
          placeholder: (context, value) => showProgress

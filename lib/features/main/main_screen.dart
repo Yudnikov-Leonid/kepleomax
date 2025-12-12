@@ -20,8 +20,9 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   final _pageController = PageController(initialPage: 1);
-  int _currentIndex = 1;
 
+  int get _index =>
+      _pageController.hasClients ? _pageController.page?.round() ?? 1 : 1;
 
   final _globalKeys = [
     feedNavigatorGlobalKey,
@@ -46,8 +47,7 @@ class _MainScreenState extends State<MainScreen> {
             splashColor: Colors.transparent,
             highlightColor: Colors.transparent,
             hoverColor: Colors.transparent,
-            splashFactory:
-                NoSplash.splashFactory, // Recommended for complete removal
+            splashFactory: NoSplash.splashFactory,
           ),
           child: BlocBuilder<ChatsBloc, ChatsState>(
             buildWhen: (oldState, newState) {
@@ -64,18 +64,16 @@ class _MainScreenState extends State<MainScreen> {
                   : null;
 
               return BottomNavigationBar(
-                currentIndex: _currentIndex,
+                currentIndex: _index,
                 key: const Key('main_bottom_navigation_bar'),
                 showSelectedLabels: false,
                 showUnselectedLabels: false,
                 selectedFontSize: 0,
                 onTap: (index) {
-                  if (_currentIndex == index) {
-                    (_globalKeys[_currentIndex].currentState as AppNavigatorState)
-                        .popAll();
+                  if (_index == index) {
+                    (_globalKeys[_index].currentState as AppNavigatorState).popAll();
                   }
                   setState(() {
-                    _currentIndex = index;
                     _pageController.jumpToPage(index);
                   });
                 },
@@ -124,7 +122,7 @@ class _MainScreenState extends State<MainScreen> {
                       ImagesKeys.hub_icon_svg,
                       height: 25,
                       width: 25,
-                      color: _currentIndex == 2
+                      color: _index == 2
                           ? KlmColors.primaryColor
                           : KlmColors.inactiveColor,
                     ),
@@ -140,7 +138,7 @@ class _MainScreenState extends State<MainScreen> {
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
         children: _pages,
-      ) //_pages[_currentIndex] // IndexedStack(index: _currentIndex, children: _pages),
+      ), //_pages[_currentIndex] // IndexedStack(index: _currentIndex, children: _pages),
     );
   }
 }

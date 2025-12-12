@@ -57,8 +57,11 @@ class _ReadButtonState extends State<_ReadButton> {
         final isScrolledUp = widget._scrollController.positions.length == 1
             ? widget._scrollController.offset > _offsetToShow
             : false;
-        if ((allMessagesIsRead && !isScrolledUp) || data.isLoading)
+
+        if (allMessagesIsRead && !isScrolledUp) {
           return const SizedBox();
+        }
+
         return Padding(
           padding: const EdgeInsets.only(bottom: 75),
           child: Stack(
@@ -70,20 +73,24 @@ class _ReadButtonState extends State<_ReadButton> {
                 elevation: 1,
                 backgroundColor: Colors.white,
                 isExtended: true,
+                onPressed: data.isLoading || !data.isConnected
+                    ? null
+                    : () {
+                        widget._scrollController.animateTo(
+                          0,
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeOut,
+                        );
+                        if (!allMessagesIsRead) {
+                          context.read<ChatBloc>().add(
+                            const ChatEventReadAllMessages(),
+                          );
+                        }
+                      },
                 child: Transform.rotate(
                   angle: 270 * math.pi / 180,
                   child: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
                 ),
-                onPressed: () {
-                  widget._scrollController.animateTo(
-                    0,
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOut,
-                  );
-                  if (!allMessagesIsRead) {
-                    context.read<ChatBloc>().add(const ChatEventReadAllMessages());
-                  }
-                },
               ),
               if (!allMessagesIsRead)
                 Positioned(

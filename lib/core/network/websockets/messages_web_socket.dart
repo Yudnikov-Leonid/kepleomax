@@ -103,11 +103,9 @@ class MessagesWebSocket {
   }
 
   void reconnect() {
-    logger.d('WebSocketLog! reconnect, _socket != null: ${_socket != null}');
-    if (_socket != null) {
-      disconnect();
-      init();
-    }
+    logger.d('WebSocketLog! reconnect');
+    disconnect();
+    init();
   }
 
   void connectIfNot() {
@@ -130,15 +128,22 @@ class MessagesWebSocket {
 
   /// events
   void sendMessage({required String message, required int recipientId}) {
-    _socket!.emit('message', {'recipient_id': recipientId, 'message': message});
+    if (_socket?.connected ?? false) {
+      _socket!.emit('message', {'recipient_id': recipientId, 'message': message});
+    }
   }
 
   void readAllMessages({required int chatId}) {
-    _socket!.emit('read_all', {'chat_id': chatId});
+    print('WebSocketLog readAllMessages from chat: $chatId');
+    if (_socket?.connected ?? false) {
+      _socket!.emit('read_all', {'chat_id': chatId});
+    }
   }
 
   void readMessageBeforeTime({required int chatId, required int time}) {
-    _socket!.emit('read_before_time', {'chat_id': chatId, 'time': time});
+    if (_socket?.connected ?? false) {
+      _socket!.emit('read_before_time', {'chat_id': chatId, 'time': time});
+    }
   }
 }
 

@@ -57,6 +57,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       },
       transformer: sequential(),
     );
+    on<ChatEventLoadCache>(_onLoadCache);
     on<ChatEventSendMessage>(_onSendMessage);
     on<ChatEventReadAllMessages>(_onReadAllMessages);
     on<ChatEventConnectingChanged>(_onConnectionChanged);
@@ -71,9 +72,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       return;
     }
     _lastTimeLoadWasCalled = now;
+    print('onLoad');
 
     _data = _data.copyWith(
-      messages: [],
       chatId: event.chatId,
       otherUser: event.otherUser,
       isLoading: true,
@@ -81,14 +82,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     );
     emit(ChatStateBase(data: _data));
 
-    print('MyLog onLoad');
     int chatId = event.chatId;
     try {
-      /// show cached messages
-      final cache = await _messagesRepository.getMessagesFromCache(chatId: chatId);
-      _data = _data.copyWith(messages: _withUnreadMessages(cache));
-      emit(ChatStateBase(data: _data));
-
       /// either chatId == -1 and we have otherUser, or otherUser == null and we have chatId
       if (event.chatId == -1) {
         final chat = await _chatsRepository.getChatWithUser(event.otherUser!.id);
@@ -120,7 +115,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       /// add unread messages line
       final newList = _withUnreadMessages(messages);
 
-      _data = _data.copyWith(messages: newList);
+      if (event.chatId == _data.chatId) {
+        _data = _data.copyWith(messages: newList);
+      }
     } catch (e, st) {
       logger.e(e, stackTrace: st);
       emit(ChatStateMessage(message: e.userErrorMessage, isError: true));
@@ -164,13 +161,30 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     return newList;
   }
 
+  void _onLoadCache(ChatEventLoadCache event, Emitter<ChatState> emit) async {
+    try {
+      print('onLoadCache: chatId: ${event.chatId}, otherUser: ${event.otherUser}');
+      final List<Message> cache = event.chatId == -1
+          ? []
+          : await _messagesRepository.getMessagesFromCache(chatId: event.chatId);
+      _data = _data.copyWith(
+        chatId: event.chatId,
+        messages: _withUnreadMessages(cache),
+        otherUser: event.otherUser,
+      );
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
+      emit(const ChatStateMessage(message: 'Failed to load cache', isError: true));
+    } finally {
+      emit(ChatStateBase(data: _data));
+    }
+  }
+
   void _onReadMessagesBeforeTime(
     ChatEventReadMessagesBeforeTime event,
     Emitter<ChatState> emit,
   ) {
-    print('MyLog readMessagesBeforeTime 1');
     if (_data.isLoading || !_data.isConnected) return;
-    print('MyLog readMessagesBeforeTime 2');
     _messagesRepository.readMessageBeforeTime(
       chatId: _data.chatId,
       time: event.time,
@@ -185,9 +199,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     ChatEventReadMessagesUpdate event,
     Emitter<ChatState> emit,
   ) {
-    print('MyLog readMessagesUpdate 1');
     if (_data.chatId != event.updates.chatId) return;
-    print('MyLog readMessagesUpdate 2');
 
     final updates = event.updates.messagesIds;
     final newMessages = <Message>[];
@@ -265,8 +277,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _data = _data.copyWith(isConnected: event.isConnected);
     emit(ChatStateBase(data: _data));
 
-    if (event.isConnected && _data.chatId != -1 && _data.otherUser != null) {
-      add(ChatEventLoad(chatId: _data.chatId, otherUser: _data.otherUser));
+    if (event.isConnected) {
+      if (_data.chatId != -1 || _data.otherUser != null) {
+        add(ChatEventLoad(chatId: _data.chatId, otherUser: _data.otherUser));
+      }
     }
   }
 
@@ -288,6 +302,13 @@ class ChatEventLoad implements ChatEvent {
   final User? otherUser;
 
   const ChatEventLoad({required this.chatId, required this.otherUser});
+}
+
+class ChatEventLoadCache implements ChatEvent {
+  final int chatId;
+  final User? otherUser;
+
+  const ChatEventLoadCache({required this.chatId, required this.otherUser});
 }
 
 class ChatEventLoadMore implements ChatEvent {

@@ -37,11 +37,9 @@ class AuthRepository implements IAuthRepository {
   }
 
   @override
-  Future<void> logout({required String refreshToken}) async {
-    await _authApi
-        .logout(data: LogoutRequestDto(refreshToken: refreshToken.trim()))
-        .timeout(ApiConstants.timeout);
-  }
+  Future<void> logout({required String refreshToken}) => _authApi
+      .logout(data: LogoutRequestDto(refreshToken: refreshToken.trim()))
+      .timeout(ApiConstants.timeout);
 
   @override
   Future<void> register({required String email, required String password}) async {
