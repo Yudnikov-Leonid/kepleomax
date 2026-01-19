@@ -19,11 +19,14 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
   late StreamSubscription _subReadMessages;
   late StreamSubscription _subConnectionState;
   final int _userId;
+  /// fot testing
+  final Duration callsTimeout;
 
   ChatsBloc({
     required IChatsRepository chatsRepository,
     required IMessagesRepository messagesRepository,
     required int userId,
+    this.callsTimeout = const Duration(milliseconds: 500)
   }) : _chatsRepository = chatsRepository,
        _messagesRepository = messagesRepository,
        _userId = userId,
@@ -57,7 +60,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
 
   void _onLoad(ChatsEventLoad event, Emitter<ChatsState> emit) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    if (now - 500 < _lastTimeLoadWasCalled) {
+    if (now - callsTimeout.inMilliseconds < _lastTimeLoadWasCalled) {
       return;
     }
     _lastTimeLoadWasCalled = now;

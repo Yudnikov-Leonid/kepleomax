@@ -11,10 +11,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kepleomax/main.dart';
 import 'package:logger/logger.dart';
 
-import 'mocks/fake_chats_repository.dart';
-import 'mocks/fake_messages_repository.dart';
-
-/// flutter test test/chats_bloc_test.dart
+import '../../mocks/fake_chats_repository.dart';
+import '../../mocks/fake_messages_repository.dart';
 
 void main() {
   group('chats_bloc_tests', () {
@@ -35,6 +33,7 @@ void main() {
         chatsRepository: chatsRepository,
         messagesRepository: messagesRepository,
         userId: 12,
+        callsTimeout: Duration.zero,
       );
       statesIterator = StreamIterator(bloc.stream);
     });

@@ -64,6 +64,18 @@ class FakeChatsRepository implements IChatsRepository {
   Future<void> updateLocalChat(Chat chat) async {
     // TODO: implement updateLocalChat
   }
+
+  @override
+  Future<Chat?> getChatWithIdFromCache(int chatId) {
+    // TODO: implement getChatWithIdFromCache
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Chat?> getChatWithUserFromCache(int otherUserId) {
+    // TODO: implement getChatWithUserFromCache
+    throw UnimplementedError();
+  }
 }
 
 const _errorList = [
