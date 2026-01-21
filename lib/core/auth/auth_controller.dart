@@ -71,7 +71,7 @@ class AuthController {
 
     try {
       await updateUser(null);
-      _localDatabase.clear().ignore();
+      _localDatabase.reset().ignore();
       final refreshToken = await _tokenProvider.getRefreshToken();
       if (refreshToken != null) {
         try {

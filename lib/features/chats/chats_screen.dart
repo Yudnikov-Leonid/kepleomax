@@ -66,7 +66,7 @@ class _Body extends StatelessWidget {
         if (state is! ChatsStateBase) return const SizedBox();
 
         final data = state.data;
-
+        print('MyLog ChatsRepository emitChatsList rebuild, totalUnreadCount: ${data.totalUnreadCount}');
         if (data.isLoading && data.chats.isEmpty) {
           return RefreshIndicator(
             onRefresh: () async {
@@ -95,7 +95,9 @@ class _Body extends StatelessWidget {
             builder: (context, constraints) {
               return RefreshIndicator(
                 onRefresh: () async {
-                  context.read<ChatsBloc>().add(const ChatsEventLoad());
+                  context.read<ChatsBloc>().add(
+                    const ChatsEventLoad(withCache: false),
+                  );
                 },
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -134,7 +136,7 @@ class _Body extends StatelessWidget {
             if (!data.isConnected) {
               context.read<ChatsBloc>().add(const ChatsEventReconnect());
             } else {
-              context.read<ChatsBloc>().add(const ChatsEventLoad());
+              context.read<ChatsBloc>().add(const ChatsEventLoad(withCache: false));
             }
           },
           child: ListView.builder(

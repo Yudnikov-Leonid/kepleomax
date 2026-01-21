@@ -53,7 +53,7 @@ class _ReadButtonState extends State<_ReadButton> {
         final data = state.data;
         if (state.data.messages.isEmpty) return const SizedBox();
         final allMessagesIsRead =
-            data.messages.first.user.isCurrent || data.messages.first.isRead;
+            data.messages.first.isCurrentUser || data.messages.first.isRead;
         final isScrolledUp = widget._scrollController.positions.length == 1
             ? widget._scrollController.offset > _offsetToShow
             : false;

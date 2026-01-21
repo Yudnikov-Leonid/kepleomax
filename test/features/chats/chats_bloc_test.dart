@@ -9,7 +9,6 @@ import 'package:kepleomax/features/chats/bloc/chats_bloc.dart';
 import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kepleomax/main.dart';
-import 'package:logger/logger.dart';
 
 import '../../mocks/fake_chats_repository.dart';
 import '../../mocks/fake_messages_repository.dart';
@@ -23,7 +22,6 @@ void main() {
 
     setUp(() {
       /// init env
-      logger = Logger(level: Level.off);
       flavor = Flavor.release();
 
       /// init bloc

@@ -144,7 +144,8 @@ List<_InitializationStep> _steps = [
       );
       dependencies.chatsRepository = ChatsRepository(
         chatsApi: dependencies.chatsApi,
-        localDatabase: dependencies.localDatabase,
+        webSocket: dependencies.messagesWebSocket,
+        localChatsDatabase: dependencies.localDatabase,
       );
     },
   ),

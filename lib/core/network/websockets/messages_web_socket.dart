@@ -9,12 +9,12 @@ import 'package:socket_io_client/socket_io_client.dart';
 class MessagesWebSocket {
   final String _baseUrl;
   final TokenProvider _tokenProvider;
-  final LocalDatabase _localDatabase;
+  final ILocalMessagesDatabase _localDatabase;
 
   MessagesWebSocket({
     required String baseUrl,
     required TokenProvider tokenProvider,
-    required LocalDatabase localDatabase,
+    required ILocalMessagesDatabase localDatabase,
   }) : _localDatabase = localDatabase,
        _tokenProvider = tokenProvider,
        _baseUrl = baseUrl;
@@ -74,14 +74,16 @@ class MessagesWebSocket {
     _socket!.on('new_message', (data) {
       logger.d('WebSocketLog new_message: $data');
       final messageDto = MessageDto.fromJson(data);
-      _localDatabase.insertMessage(messageDto).ignore();
-      _messageController.add(Message.fromDto(messageDto));
+      _localDatabase.insertMessage(messageDto).whenComplete(() {
+        _messageController.add(Message.fromDto(messageDto));
+      });
     });
     _socket!.on('read_messages', (data) {
       logger.d('WebSocketLog read_messages: $data');
       final updates = ReadMessagesUpdate.fromJson(data);
-      _localDatabase.readMessages(updates.messagesIds);
-      _readMessagesController.add(updates);
+      _localDatabase.readMessages(updates).whenComplete(() {
+        _readMessagesController.add(updates);
+      });
     });
     _socket!.onError((error) {
       logger.e('WebSocketLog error: $error');
@@ -150,11 +152,13 @@ class MessagesWebSocket {
 class ReadMessagesUpdate {
   final int chatId;
   final int senderId;
+  final bool isCurrentUser;
   final List<int> messagesIds;
 
   ReadMessagesUpdate({
     required this.chatId,
     required this.senderId,
+    required this.isCurrentUser,
     required this.messagesIds,
   });
 
@@ -162,8 +166,16 @@ class ReadMessagesUpdate {
       ReadMessagesUpdate(
         chatId: json['chat_id'],
         senderId: json['sender_id'],
+        isCurrentUser: json['is_current_user'],
         messagesIds: json['messages_ids']
             .map<int>((id) => int.parse(id.toString()))
             .toList(),
       );
+}
+
+class OnlineStatusUpdate {
+  final int userId;
+  final bool newStatus;
+
+  OnlineStatusUpdate({required this.userId, required this.newStatus});
 }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:equatable/equatable.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/common/user_dto.dart';
@@ -33,7 +34,7 @@ class ChatsResponse {
 }
 
 @JsonSerializable()
-class ChatDto {
+class ChatDto extends Equatable {
   final int id;
   @JsonKey(name: 'other_user')
   final UserDto otherUser;
@@ -42,7 +43,7 @@ class ChatDto {
   @JsonKey(name: 'unread_count')
   final int unreadCount;
 
-  ChatDto({
+  const ChatDto({
     required this.id,
     required this.otherUser,
     required this.lastMessage,
@@ -70,7 +71,9 @@ class ChatDto {
   Map<String, dynamic> toLocalJson() => {
     'id': id,
     'other_user': jsonEncode(otherUser.toLocalJson()),
-    'last_message': jsonEncode(lastMessage?.toLocalJson()),
     'unread_count': unreadCount,
   };
+
+  @override
+  List<Object?> get props => [id, otherUser, lastMessage, unreadCount];
 }

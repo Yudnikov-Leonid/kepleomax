@@ -4,9 +4,6 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/messages_repository.dart';
-import 'package:kepleomax/core/models/chat.dart';
-import 'package:kepleomax/core/models/message.dart';
-import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:kepleomax/main.dart';
@@ -15,10 +12,10 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
   final IChatsRepository _chatsRepository;
   final IMessagesRepository _messagesRepository;
   late ChatsData _data = ChatsData.initial();
-  late StreamSubscription _subMessages;
-  late StreamSubscription _subReadMessages;
+  StreamSubscription? _chatsUpdatesSub;
   late StreamSubscription _subConnectionState;
   final int _userId;
+
   /// fot testing
   final Duration callsTimeout;
 
@@ -26,17 +23,11 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     required IChatsRepository chatsRepository,
     required IMessagesRepository messagesRepository,
     required int userId,
-    this.callsTimeout = const Duration(milliseconds: 500)
+    this.callsTimeout = const Duration(milliseconds: 500),
   }) : _chatsRepository = chatsRepository,
        _messagesRepository = messagesRepository,
        _userId = userId,
        super(ChatsStateBase.initial()) {
-    _subMessages = _messagesRepository.newMessageStream.listen((newMessage) {
-      add(ChatsEventNewMessage(message: newMessage));
-    }, cancelOnError: false);
-    _subReadMessages = _messagesRepository.readMessagesStream.listen((data) {
-      add(ChatsEventReadMessages(updates: data));
-    }, cancelOnError: false);
     _subConnectionState = _messagesRepository.connectionStateStream.listen(
       (isConnected) => add(ChatsEventConnectingChanged(isConnected)),
       cancelOnError: false,
@@ -45,8 +36,6 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     on<ChatsEvent>(
       (event, emit) => switch (event) {
         ChatsEventLoad event => _onLoad(event, emit),
-        ChatsEventNewMessage event => _onNewMessage(event, emit),
-        ChatsEventReadMessages event => _onReadMessages(event, emit),
         ChatsEvent _ => () {},
       },
       transformer: sequential(),
@@ -54,11 +43,34 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     on<ChatsEventLoadCache>(_onLoadCache);
     on<ChatsEventReconnect>(_onReconnect);
     on<ChatsEventConnectingChanged>(_onConnectingChanged);
+    on<ChatsEventEmitChatsList>(_onEmitChatsList);
   }
 
   int _lastTimeLoadWasCalled = 0;
 
   void _onLoad(ChatsEventLoad event, Emitter<ChatsState> emit) async {
+    print('MyLog2 onLoad');
+    _data = _data.copyWith(isLoading: true);
+    emit(ChatsStateBase(data: _data));
+
+    _chatsUpdatesSub?.cancel();
+    _chatsUpdatesSub = _chatsRepository
+        .getChats2(withCache: event.withCache)
+        .listen(
+          (newList) {
+            add(ChatsEventEmitChatsList(data: newList));
+          },
+          onError: (e, st) {
+            logger.e(e, stackTrace: st);
+            emit(ChatsStateMessage(message: e.userErrorMessage, isError: true));
+            emit(ChatsStateBase(data: _data));
+          },
+          cancelOnError: false,
+        );
+  }
+
+  @Deprecated('use _onLoad instead')
+  void _onLoadOld(ChatsEventLoad event, Emitter<ChatsState> emit) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     if (now - callsTimeout.inMilliseconds < _lastTimeLoadWasCalled) {
       return;
@@ -84,18 +96,32 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     }
   }
 
+  @Deprecated('this logic is moved to _onLoad2')
   void _onLoadCache(ChatsEventLoadCache event, Emitter<ChatsState> emit) async {
-    try {
-      final cache = await _chatsRepository.getChatsFromCache();
-      _data = _data.copyWith(
-        chats: cache,
-        totalUnreadCount: cache.fold(0, (a, b) => a + b.unreadCount),
-      );
-      emit(ChatsStateBase(data: _data));
-    } catch (e, st) {
-      logger.e(e, stackTrace: st);
-      emit(ChatsStateError(message: e.userErrorMessage));
-    }
+    // try {
+    //   final cache = await _chatsRepository.getChatsFromCache();
+    //   _data = _data.copyWith(
+    //     chats: cache,
+    //     totalUnreadCount: cache.fold(0, (a, b) => a + b.unreadCount),
+    //   );
+    //   emit(ChatsStateBase(data: _data));
+    // } catch (e, st) {
+    //   logger.e(e, stackTrace: st);
+    //   emit(ChatsStateError(message: e.userErrorMessage));
+    // }
+  }
+
+  void _onEmitChatsList(
+    ChatsEventEmitChatsList event,
+    Emitter<ChatsState> emit,
+  ) async {
+    print('MyLog ChatsRepository emitChatsList');
+    _data = _data.copyWith(
+      chats: event.data.chats,
+      totalUnreadCount: event.data.chats.fold(0, (a, b) => a + b.unreadCount),
+      isLoading: event.data.fromCache,
+    );
+    emit(ChatsStateBase(data: _data));
   }
 
   void _onReconnect(ChatsEventReconnect event, Emitter<ChatsState> emit) {
@@ -113,87 +139,9 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     }
   }
 
-  void _onReadMessages(
-    ChatsEventReadMessages event,
-    Emitter<ChatsState> emit,
-  ) async {
-    final chatIndex = _data.chats.indexWhere(
-      (chat) => chat.id == event.updates.chatId,
-    );
-    final newChats = _data.chats.toList();
-
-    if (event.updates.senderId == _userId) {
-      /// current user message was read
-      if (event.updates.messagesIds.contains(
-        _data.chats[chatIndex].lastMessage!.id,
-      )) {
-        newChats[chatIndex] = newChats[chatIndex].copyWith(
-          lastMessage: newChats[chatIndex].lastMessage!.copyWith(isRead: true),
-        );
-        _chatsRepository.updateLocalChat(newChats[chatIndex]).ignore();
-        _data = _data.copyWith(chats: newChats);
-        emit(ChatsStateBase(data: _data));
-      }
-      return;
-    }
-
-    if (chatIndex == -1 ||
-        event.updates.senderId == _userId ||
-        event.updates.messagesIds.isEmpty) {
-      return;
-    }
-    final newUnreadCount =
-        (newChats[chatIndex].unreadCount - event.updates.messagesIds.length).clamp(
-          0,
-          999,
-        );
-    newChats[chatIndex] = newChats[chatIndex].copyWith(unreadCount: newUnreadCount);
-    _chatsRepository.updateLocalChat(newChats[chatIndex]).ignore();
-    _data = _data.copyWith(
-      chats: newChats,
-      totalUnreadCount: newChats.fold(0, (a, b) => a + b.unreadCount),
-    );
-    emit(ChatsStateBase(data: _data));
-  }
-
-  void _onNewMessage(ChatsEventNewMessage event, Emitter<ChatsState> emit) async {
-    final chatId = event.message.chatId;
-    final chatIndex = _data.chats.indexWhere((e) => e.id == chatId);
-    if (chatIndex == -1) {
-      /// get new chat
-      try {
-        final newChat = await _chatsRepository.getChatWithId(event.message.chatId);
-        _data = _data.copyWith(
-          chats: [newChat!, ..._data.chats],
-          totalUnreadCount:
-              _data.totalUnreadCount + (event.message.user.isCurrent ? 0 : 1),
-        );
-      } catch (e, st) {
-        emit(ChatsStateError(message: e.userErrorMessage));
-        logger.e(e, stackTrace: st);
-        return;
-      }
-    } else {
-      final newList = _data.chats.toList();
-      Chat chat = newList.removeAt(chatIndex);
-      chat = chat.copyWith(
-        lastMessage: event.message,
-        unreadCount: event.message.user.isCurrent ? 0 : chat.unreadCount + 1,
-      );
-      _chatsRepository.updateLocalChat(chat).ignore();
-      _data = _data.copyWith(
-        chats: [chat, ...newList],
-        totalUnreadCount:
-            _data.totalUnreadCount + (event.message.user.isCurrent ? 0 : 1),
-      );
-    }
-    emit(ChatsStateBase(data: _data));
-  }
-
   @override
   Future<void> close() {
-    _subMessages.cancel();
-    _subReadMessages.cancel();
+    _chatsUpdatesSub?.cancel();
     _subConnectionState.cancel();
     return super.close();
   }
@@ -203,7 +151,9 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
 abstract class ChatsEvent {}
 
 class ChatsEventLoad implements ChatsEvent {
-  const ChatsEventLoad();
+  final bool withCache;
+
+  const ChatsEventLoad({this.withCache = true});
 }
 
 /// call it on initState. Load will be called on ws connected
@@ -223,14 +173,8 @@ class ChatsEventConnectingChanged implements ChatsEvent {
   const ChatsEventConnectingChanged(this.isConnected);
 }
 
-class ChatsEventNewMessage implements ChatsEvent {
-  final Message message;
+class ChatsEventEmitChatsList implements ChatsEvent {
+  final ChatsCollection data;
 
-  const ChatsEventNewMessage({required this.message});
-}
-
-class ChatsEventReadMessages implements ChatsEvent {
-  final ReadMessagesUpdate updates;
-
-  const ChatsEventReadMessages({required this.updates});
+  const ChatsEventEmitChatsList({required this.data});
 }

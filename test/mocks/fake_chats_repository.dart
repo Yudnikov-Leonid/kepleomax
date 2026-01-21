@@ -7,14 +7,11 @@ import 'package:kepleomax/core/models/user.dart';
 
 class FakeChatsRepository implements IChatsRepository {
   final _getChatsController = StreamController<List<Chat>>();
-  late final _getChatsIterator = StreamIterator(
-    _getChatsController.stream,
-  );
+  late final _getChatsIterator = StreamIterator(_getChatsController.stream);
   final _getChatWithIdController = StreamController<Chat>();
   late final _getChatWithIdIterator = StreamIterator(
     _getChatWithIdController.stream,
   );
-
 
   /// tests methods
   void getChatsReturn(List<Chat> value) {
@@ -30,6 +27,10 @@ class FakeChatsRepository implements IChatsRepository {
   }
 
   /// overrides
+  @override
+  // TODO: implement chatsUpdatesStream
+  Stream<List<Chat>> get chatsUpdatesStream => throw UnimplementedError();
+
   @override
   Future<Chat?> getChatWithId(int chatId) async {
     final isMoveNext = await _getChatWithIdIterator.moveNext();

@@ -21,11 +21,7 @@ MessageDto _$MessageDtoFromJson(Map<String, dynamic> json) => MessageDto(
   id: (json['id'] as num).toInt(),
   chatId: (json['chat_id'] as num).toInt(),
   senderId: (json['sender_id'] as num).toInt(),
-  isCurrentUser: json['is_current_user'] as bool?,
-  user: json['user'] == null
-      ? null
-      : UserDto.fromJson(json['user'] as Map<String, dynamic>),
-  otherUserId: (json['other_user_id'] as num?)?.toInt(),
+  isCurrentUser: json['is_current_user'] as bool,
   message: json['message'] as String,
   isRead: json['is_read'] as bool,
   createdAt: (json['created_at'] as num).toInt(),
@@ -38,8 +34,6 @@ Map<String, dynamic> _$MessageDtoToJson(MessageDto instance) =>
       'chat_id': instance.chatId,
       'sender_id': instance.senderId,
       'is_current_user': instance.isCurrentUser,
-      'user': instance.user,
-      'other_user_id': instance.otherUserId,
       'message': instance.message,
       'is_read': instance.isRead,
       'created_at': instance.createdAt,

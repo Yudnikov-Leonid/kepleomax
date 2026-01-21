@@ -1,5 +1,4 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 
 part 'message.freezed.dart';
@@ -10,7 +9,8 @@ abstract class Message with _$Message {
 
   const factory Message({
     required int id,
-    required User user,
+    required int senderId,
+    required bool isCurrentUser,
     required String message,
     required int chatId,
     required bool isRead,
@@ -18,9 +18,10 @@ abstract class Message with _$Message {
     required int? editedAt,
   }) = _Message;
 
-  factory Message.loading() => Message(
+  factory Message.loading() => const Message(
     id: -3,
-    user: User.loading(),
+    senderId: -1,
+    isCurrentUser: false,
     message: '---------------------------',
     chatId: -1,
     isRead: true,
@@ -29,21 +30,11 @@ abstract class Message with _$Message {
   );
 
   factory Message.fromDto(MessageDto dto) => Message(
-    user: dto.user != null
-        ? User.fromDto(dto.user!)
-        : User(
-            id: dto.isCurrentUser!
-                ? (dto.otherUserId ?? dto.senderId)
-                : dto.senderId,
-            username: '',
-            profileImage: '',
-
-            /// need only this field
-            isCurrent: dto.isCurrentUser!,
-          ),
     id: dto.id,
-    message: dto.message,
     chatId: dto.chatId,
+    senderId: dto.senderId,
+    isCurrentUser: dto.isCurrentUser,
+    message: dto.message,
     isRead: dto.isRead,
     createdAt: dto.createdAt,
     editedAt: dto.editedAt,
@@ -52,10 +43,10 @@ abstract class Message with _$Message {
   MessageDto toDto() => MessageDto(
     id: id,
     chatId: chatId,
-    senderId: user.id,
-    isCurrentUser: user.isCurrent,
-    user: user.toDto(),
-    otherUserId: null,
+    senderId: senderId,
+    isCurrentUser: isCurrentUser,
+    //user: user.toDto(),
+    //otherUserId: null,
     message: message,
     isRead: isRead,
     createdAt: createdAt,
@@ -63,11 +54,15 @@ abstract class Message with _$Message {
   );
 
   /// used to display line in the ui
-  factory Message.unreadMessages() => Message(
+  factory Message.unreadMessages() => const Message(
     id: -2,
-    user: User.loading(),
+    //user: User.loading(),
+    senderId: -1,
+    isCurrentUser: false,
+    // TODO true or false to work properly?
     message: '',
     chatId: -1,
+
     /// should be true so counter of unread messages works properly
     isRead: true,
     createdAt: 0,

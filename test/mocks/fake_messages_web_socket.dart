@@ -1,10 +1,9 @@
 import 'dart:async';
 
-import 'package:kepleomax/core/data/messages_repository.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 
-class FakeMessagesRepository implements IMessagesRepository {
+class FakeMessagesWebSocket implements MessagesWebSocket {
   final _connectionController = StreamController<bool>();
   final _readMessagesController = StreamController<ReadMessagesUpdate>();
   final _newMessagesController = StreamController<Message>();
@@ -23,41 +22,25 @@ class FakeMessagesRepository implements IMessagesRepository {
   Stream<bool> get connectionStateStream => _connectionController.stream;
 
   @override
+  Stream<ReadMessagesUpdate> get readMessagesStream => _readMessagesController.stream;
+
+  @override
   // TODO: implement newMessageStream
   Stream<Message> get newMessageStream => _newMessagesController.stream;
 
   @override
-  // TODO: implement readMessagesStream
-  Stream<ReadMessagesUpdate> get readMessagesStream => _readMessagesController.stream;
-
-  @override
-  // TODO: implement onlineStatusUpdateStream
-  Stream<OnlineStatusUpdate> get onlineStatusUpdateStream => throw UnimplementedError();
-
-  @override
-  Future<List<Message>> getMessages({
-    required int chatId,
-    required int limit,
-    required int offset,
-  }) {
-    // TODO: implement getMessages
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Message>> getMessagesFromCache({required int chatId}) {
-    // TODO: implement getMessagesFromCache
-    throw UnimplementedError();
-  }
-
-  @override
-  void initSocket() {
-    // TODO: implement initSocket
+  void connectIfNot() {
+    // TODO: implement connectIfNot
   }
 
   @override
   void disconnect() {
-    // TODO: implement dispose
+    // TODO: implement disconnect
+  }
+
+  @override
+  void init() {
+    // TODO: implement init
   }
 
   @override
@@ -75,12 +58,12 @@ class FakeMessagesRepository implements IMessagesRepository {
   }
 
   @override
-  void sendMessage({required String message, required int recipientId}) {
-    // TODO: implement sendMessage
+  void reconnect() {
+    // TODO: implement reconnect
   }
 
   @override
-  void reconnect({bool onlyIfNot = false}) {
-    // TODO: implement reconnect
+  void sendMessage({required String message, required int recipientId}) {
+    // TODO: implement sendMessage
   }
 }

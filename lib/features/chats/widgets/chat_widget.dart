@@ -28,7 +28,7 @@ class _ChatWidget extends StatelessWidget {
               SizedBox(
                 height: 60,
                 width: 60,
-                child: UserImage(url: chat.otherUser!.profileImage),
+                child: UserImage(url: chat.otherUser.profileImage),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -37,7 +37,7 @@ class _ChatWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      chat.otherUser!.username,
+                      chat.otherUser.username,
                       overflow: TextOverflow.ellipsis,
                       style: context.textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w700,
@@ -49,7 +49,7 @@ class _ChatWidget extends StatelessWidget {
                       FittedBox(
                         child: Row(
                           children: [
-                            if (chat.lastMessage!.user.isCurrent)
+                            if (chat.lastMessage!.isCurrentUser)
                               Text(
                                 'You: ',
                                 style: context.textTheme.bodyLarge?.copyWith(
@@ -85,7 +85,7 @@ class _ChatWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              if (chat.lastMessage?.user.isCurrent ?? false)
+              if (chat.lastMessage?.isCurrentUser ?? false)
                 Icon(chat.lastMessage!.isRead ? Icons.check_box : Icons.check)
               else if (chat.lastMessage != null && chat.unreadCount > 0)
                 Container(

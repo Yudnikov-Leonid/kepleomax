@@ -22,10 +22,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   late StreamSubscription _newMessageSub;
   late StreamSubscription _readMessagesSub;
   late StreamSubscription _connectionStateSub;
+  late StreamSubscription _chatUpdatesSub;
 
   ChatBloc({
     required IMessagesRepository messagesRepository,
     required IChatsRepository chatsRepository,
+    required int chatId,
   }) : _messagesRepository = messagesRepository,
        _chatsRepository = chatsRepository,
        super(ChatStateBase.initial()) {
@@ -39,6 +41,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       (isConnected) => add(ChatEventConnectingChanged(isConnected)),
       cancelOnError: false,
     );
+    _chatUpdatesSub = _chatsRepository.chatsUpdatesStream.listen((newList) {
+      final currentChat = newList.chats.where((e) => e.id == chatId).firstOrNull;
+      if (currentChat != null) {
+        add(ChatEventChangeUnreadCount(newCount: currentChat.unreadCount));
+      }
+    }, cancelOnError: false);
 
     on<ChatEvent>(
       (event, emit) => switch (event) {
@@ -59,6 +67,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatEventSendMessage>(_onSendMessage);
     on<ChatEventReadAllMessages>(_onReadAllMessages);
     on<ChatEventConnectingChanged>(_onConnectionChanged);
+    on<ChatEventChangeUnreadCount>(_onChangeUnreadCount);
   }
 
   void _onInit(ChatEventInit event, Emitter<ChatState> emit) {
@@ -138,7 +147,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     var newList = <Message>[];
     bool isStopMessageFound = false;
     for (int i = 0; i < messages.length; i++) {
-      if (messages[i].user.isCurrent) {
+      if (messages[i].isCurrentUser) {
         /// message of current user, unreadMessagesLine can't be above, so end the loop
         newList.addAll(messages.sublist(i));
         isStopMessageFound = true;
@@ -254,7 +263,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onNewMessage(ChatEventNewMessage event, Emitter<ChatState> emit) {
-    if (_data.chatId == -1 && event.newMessage.user.id == _data.otherUser?.id) {
+    if (_data.chatId == -1 && event.newMessage.senderId == _data.otherUser?.id) {
       _data = _data.copyWith(chatId: event.newMessage.chatId);
     }
     if (event.newMessage.chatId == _data.chatId) {
@@ -315,11 +324,17 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     }
   }
 
+  void _onChangeUnreadCount(ChatEventChangeUnreadCount event, Emitter<ChatState> emit) {
+    _data = _data.copyWith(unreadCount: event.newCount);
+    emit(ChatStateBase(data: _data));
+  }
+
   @override
   Future<void> close() {
     _newMessageSub.cancel();
     _readMessagesSub.cancel();
     _connectionStateSub.cancel();
+    _chatUpdatesSub.cancel();
     return super.close();
   }
 }
@@ -385,4 +400,10 @@ class ChatEventReadMessagesBeforeTime implements ChatEvent {
   final int time;
 
   ChatEventReadMessagesBeforeTime({required this.time});
+}
+
+class ChatEventChangeUnreadCount implements ChatEvent {
+  final int newCount;
+
+  ChatEventChangeUnreadCount({required this.newCount});
 }

@@ -52,6 +52,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _chatBloc = ChatBloc(
       chatsRepository: Dependencies.of(context).chatsRepository,
       messagesRepository: Dependencies.of(context).messagesRepository,
+      chatId: widget.chatId,
     )..add(ChatEventInit(chatId: widget.chatId, otherUser: widget.otherUser));
     super.initState();
   }
@@ -274,7 +275,7 @@ class _BodyState extends State<_Body> {
     double heightOffset = 0;
     for (int i = 0; i < _keys.length; i++) {
       final el = _keys.values.elementAt(i); // $1 - globalKey, $2 - message
-      if (el.$2.user.isCurrent || el.$2.isRead) break;
+      if (el.$2.isCurrentUser || el.$2.isRead) break;
 
       final renderBox = el.$1.currentContext?.findRenderObject() as RenderBox?;
       if (renderBox == null) continue;

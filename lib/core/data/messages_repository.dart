@@ -38,18 +38,20 @@ abstract class IMessagesRepository {
 
   Stream<bool> get connectionStateStream;
 
+  Stream<OnlineStatusUpdate> get onlineStatusUpdateStream;
+
   bool get isConnected;
 }
 
 class MessagesRepository implements IMessagesRepository {
   final MessagesApi _messagesApi;
   final MessagesWebSocket _webSocket;
-  final ILocalMessagesDatabase _localStorage;
+  final ILocalDatabase _localStorage;
 
   MessagesRepository({
     required MessagesApi messagesApi,
     required MessagesWebSocket messagesWebSocket,
-    required LocalDatabase localDatabase,
+    required ILocalDatabase localDatabase,
   }) : _messagesApi = messagesApi,
        _webSocket = messagesWebSocket,
        _localStorage = localDatabase;
@@ -123,4 +125,8 @@ class MessagesRepository implements IMessagesRepository {
 
   @override
   bool get isConnected => _webSocket.isConnected;
+
+  @override
+  // TODO: implement onlineStatusUpdateStream
+  Stream<OnlineStatusUpdate> get onlineStatusUpdateStream => throw UnimplementedError();
 }

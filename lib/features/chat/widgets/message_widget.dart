@@ -6,7 +6,7 @@ class _MessageWidget extends StatelessWidget {
   final Message message;
   final User user;
 
-  bool get _isCurrent => message.user.isCurrent;
+  bool get _isCurrent => message.isCurrentUser;
 
   @override
   Widget build(BuildContext context) {

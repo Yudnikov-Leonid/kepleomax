@@ -8,7 +8,9 @@ import 'core/app.dart';
 import 'core/di/initialize_dependencies.dart';
 import 'core/flavor/flavor.dart';
 
-late Logger logger;
+final Logger logger = Logger(
+  printer: PrettyPrinter(noBoxingByDefault: true, methodCount: 10),
+);
 
 late Flavor flavor;
 
@@ -19,12 +21,8 @@ void main({Flavor? fv}) {
     () async {
       WidgetsFlutterBinding.ensureInitialized().deferFirstFrame();
 
-      logger = Logger(
-        printer: PrettyPrinter(noBoxingByDefault: true, methodCount: 1),
-      );
-
       if (fv == null) {
-      logger.e('Flavor is not provided');
+        logger.e('Flavor is not provided');
       }
       flavor = fv ?? Flavor.devPublic();
 
