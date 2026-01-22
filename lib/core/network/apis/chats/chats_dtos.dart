@@ -52,25 +52,19 @@ class ChatDto extends Equatable {
 
   factory ChatDto.fromJson(Map<String, dynamic> json) => _$ChatDtoFromJson(json);
 
+  /// json['other_user'] should be map\<String, dynamic>
   factory ChatDto.fromLocalJson(Map<String, dynamic> json) => ChatDto(
     id: json['id'],
-    otherUser: UserDto.fromJson(jsonDecode(json['other_user'])),
+    otherUser: UserDto.fromJson(json['other_user']),
     lastMessage: json['last_message'] == null
         ? null
         : MessageDto.fromJson(jsonDecode(json['last_message']), fromCache: true),
     unreadCount: json['unread_count'],
   );
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'other_user': otherUser.toJson(),
-    'last_message': lastMessage?.toJson(),
-    'unread_count': unreadCount,
-  };
-
   Map<String, dynamic> toLocalJson() => {
     'id': id,
-    'other_user': jsonEncode(otherUser.toLocalJson()),
+    'other_user_id': otherUser.id,
     'unread_count': unreadCount,
   };
 

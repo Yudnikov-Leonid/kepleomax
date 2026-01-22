@@ -11,13 +11,13 @@ abstract class IChatsLocalDataSource {
 
   Future<void> clearAndInsertChats(Iterable<ChatDto> chats);
 
-  Future<void> insertChat(ChatDto chat);
+  Future<void> insert(ChatDto chat);
+
+  Future<void> update(ChatDto chat);
 
   Future<void> increaseUnreadCountBy1(int chatId);
 
   Future<void> decreaseUnreadCount(int chatId, int amount);
-
-  Future<void> updateChat(ChatDto chat);
 }
 
 class ChatsLocalDataSource implements IChatsLocalDataSource {
@@ -27,8 +27,25 @@ class ChatsLocalDataSource implements IChatsLocalDataSource {
 
   @override
   Future<ChatDto?> getChat(int chatId) async {
-    final query = await _database.query('chats', where: 'id = ?', whereArgs: [chatId]);
-    return query.map(ChatDto.fromLocalJson).firstOrNull;
+    final query = await _database.query(
+      'chats',
+      where: 'id = ?',
+      whereArgs: [chatId],
+    );
+
+    if (query.isEmpty) return null;
+
+    final otherUser = await _database.query(
+      'users',
+      where: 'id = ?',
+      whereArgs: [query.first['other_user_id']],
+    );
+    if (otherUser.isEmpty)
+      throw Exception('otherUser in cache not found'); //todo what to return?
+    final newJson = Map<String, dynamic>.from(query.first);
+    newJson['other_user_id'] = null;
+    newJson['other_user'] = otherUser.firstOrNull;
+    return ChatDto.fromJson(newJson);
   }
 
   @override
@@ -37,6 +54,8 @@ class ChatsLocalDataSource implements IChatsLocalDataSource {
 
     final result = <ChatDto>[];
     for (var chat in query) {
+      chat = Map.from(chat);
+
       final lastMessage = await _database.query(
         'messages',
         limit: 1,
@@ -44,34 +63,55 @@ class ChatsLocalDataSource implements IChatsLocalDataSource {
         whereArgs: [chat['id']],
         orderBy: 'created_at DESC',
       );
-
       if (lastMessage.isNotEmpty) {
-        chat = Map.from(chat);
         chat['last_message'] = jsonEncode(lastMessage[0]);
       }
+
+      final otherUser = await _database.query(
+        'users',
+        where: 'id = ?',
+        whereArgs: [chat['other_user_id']],
+      );
+      if (otherUser.isEmpty)
+        throw Exception('otherUser in cache not found'); //todo what to return?
+      chat['other_user_id'] = null;
+      chat['other_user'] = otherUser.first;
+
       result.add(ChatDto.fromLocalJson(chat));
     }
 
     return result.sorted(
-          (a, b) => (b.lastMessage?.createdAt ?? 0) - (a.lastMessage?.createdAt ?? 0),
+      (a, b) => (b.lastMessage?.createdAt ?? 0) - (a.lastMessage?.createdAt ?? 0),
+    );
+  }
+
+  @override
+  Future<void> insert(ChatDto chat) async {
+    await _database.insert(
+      'chats',
+      chat.toLocalJson(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  @override
+  Future<void> update(ChatDto chat) async {
+    await _database.update(
+      'chats',
+      chat.toLocalJson(),
+      where: 'id = ?',
+      whereArgs: [chat.id],
     );
   }
 
   @override
   Future<void> clearAndInsertChats(Iterable<ChatDto> chats) async {
     await _database.delete('chats');
-    for (final chat in chats) {
-      await _database.insert('chats', chat.toLocalJson());
-    }
-  }
-
-  @override
-  Future<void> insertChat(ChatDto chat) async {
-    await _database.insert(
-      'chats',
-      chat.toLocalJson(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    _database.transaction((transaction) async {
+      for (final chat in chats) {
+        await transaction.insert('chats', chat.toLocalJson());
+      }
+    });
   }
 
   @override
@@ -87,16 +127,6 @@ class ChatsLocalDataSource implements IChatsLocalDataSource {
     await _database.rawUpdate(
       'UPDATE chats SET unread_count = unread_count - ? WHERE id = ?',
       [amount, chatId],
-    );
-  }
-
-  @override
-  Future<void> updateChat(ChatDto chat) async {
-    await _database.update(
-      'chats',
-      chat.toLocalJson(),
-      where: 'id = ?',
-      whereArgs: [chat.id],
     );
   }
 }

@@ -28,9 +28,16 @@ class LocalDatabaseManager {
 
       await db.execute('''CREATE TABLE chats (
           id INT PRIMARY KEY,
-          other_user TEXT NOT NULL,
-          unread_count INT NOT NULL   
+          other_user_id INT NOT NULL,
+          unread_count INT NOT NULL
         )''');
+
+      await db.execute('''CREATE TABLE users (
+          id SERIAL PRIMARY KEY, 
+          username VARCHAR(50) NOT NULL,
+          profile_image VARCHAR(32),
+          is_current BIT NOT NULL)
+          ''');
     },
     onUpgrade: (db, oldV, newV) async {},
   );

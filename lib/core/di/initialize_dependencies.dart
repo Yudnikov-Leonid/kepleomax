@@ -12,8 +12,9 @@ import 'package:kepleomax/core/data/data_sources/chats_api_data_sources.dart';
 import 'package:kepleomax/core/data/data_sources/messages_api_data_sources.dart';
 import 'package:kepleomax/core/data/db/local_database_manager.dart';
 import 'package:kepleomax/core/data/files_repository.dart';
-import 'package:kepleomax/core/data/local_data_sources/local_chats_data_source.dart';
-import 'package:kepleomax/core/data/local_data_sources/local_messages_data_source.dart';
+import 'package:kepleomax/core/data/local_data_sources/chats_local_data_source.dart';
+import 'package:kepleomax/core/data/local_data_sources/messages_local_data_source.dart';
+import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.dart';
 import 'package:kepleomax/core/data/messenger_repository.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
@@ -149,11 +150,12 @@ List<_InitializationStep> _steps = [
         webSocket: dependencies.messagesWebSocket,
       );
       dependencies.messengerRepository = MessengerRepository(
-        messagesApi: MessagesApiDataSource(messagesApi: dependencies.messagesApi),
-        messagesLocal: MessagesLocalDataSource(database: dependencies.database),
-        chatsApi: ChatsApiDataSource(chatsApi: dependencies.chatsApi),
-        chatsLocal: chatsLocalDataSource,
         webSocket: dependencies.messagesWebSocket,
+        messagesApi: MessagesApiDataSource(messagesApi: dependencies.messagesApi),
+        chatsApi: ChatsApiDataSource(chatsApi: dependencies.chatsApi),
+        messagesLocal: MessagesLocalDataSource(database: dependencies.database),
+        chatsLocal: chatsLocalDataSource,
+        usersLocal: UsersLocalDataSource(database: dependencies.database),
       );
       dependencies.chatsRepository = ChatsRepository(
         chatsApi: dependencies.chatsApi,

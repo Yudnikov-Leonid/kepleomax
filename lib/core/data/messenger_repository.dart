@@ -3,13 +3,14 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:kepleomax/core/data/data_sources/chats_api_data_sources.dart';
 import 'package:kepleomax/core/data/data_sources/messages_api_data_sources.dart';
+import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 
-import 'local_data_sources/local_chats_data_source.dart';
-import 'local_data_sources/local_messages_data_source.dart';
+import 'local_data_sources/chats_local_data_source.dart';
+import 'local_data_sources/messages_local_data_source.dart';
 import 'models/chats_collection.dart';
 import 'models/messages_collection.dart';
 
@@ -32,11 +33,12 @@ abstract class IMessengerRepository {
 class MessengerRepository implements IMessengerRepository {
   final MessagesWebSocket _webSocket;
 
-  final IMessagesApiDataSource _messagesApi;
-  final IMessagesLocalDataSource _messagesLocal;
-
   final IChatsApiDataSource _chatsApi;
+  final IMessagesApiDataSource _messagesApi;
+
+  final IMessagesLocalDataSource _messagesLocal;
   final IChatsLocalDataSource _chatsLocal;
+  final IUsersLocalDataSource _usersLocal;
 
   final _messagesUpdatesController =
       StreamController<MessagesCollection>.broadcast();
@@ -46,15 +48,17 @@ class MessengerRepository implements IMessengerRepository {
 
   MessengerRepository({
     required MessagesWebSocket webSocket,
+    required IChatsApiDataSource chatsApi,
     required IMessagesApiDataSource messagesApi,
     required IMessagesLocalDataSource messagesLocal,
-    required IChatsApiDataSource chatsApi,
     required IChatsLocalDataSource chatsLocal,
+    required IUsersLocalDataSource usersLocal,
   }) : _webSocket = webSocket,
-       _messagesApi = messagesApi,
-       _messagesLocal = messagesLocal,
        _chatsApi = chatsApi,
-       _chatsLocal = chatsLocal {
+       _messagesApi = messagesApi,
+       _chatsLocal = chatsLocal,
+       _messagesLocal = messagesLocal,
+       _usersLocal = usersLocal {
     _webSocket.newMessageStream.listen(_onNewMessage, cancelOnError: false);
     _webSocket.readMessagesStream.listen(_onReadMessages, cancelOnError: false);
   }
@@ -70,9 +74,7 @@ class MessengerRepository implements IMessengerRepository {
       _emitMessagesCollection(MessagesCollection(messages: messages));
     }
 
-    if (_lastChatsCollection != null &&
-        !messageDto.isCurrentUser &&
-        !messageDto.isRead) {
+    if (_lastChatsCollection != null) {
       final chats = List<Chat>.from(_lastChatsCollection!.chats);
       final chat = chats.firstWhereOrNull((chat) => chat.id == messageDto.chatId);
       if (chat != null) {
@@ -82,7 +84,9 @@ class MessengerRepository implements IMessengerRepository {
           0,
           chat.copyWith(
             lastMessage: Message.fromDto(messageDto),
-            unreadCount: chat.unreadCount + 1,
+            unreadCount:
+                chat.unreadCount +
+                (!messageDto.isCurrentUser && !messageDto.isRead ? 1 : 0),
           ),
         );
         _emitChatsCollection(ChatsCollection(chats: chats));
@@ -145,6 +149,7 @@ class MessengerRepository implements IMessengerRepository {
       if (chat.lastMessage != null) {
         await _messagesLocal.insert(chat.lastMessage!);
       }
+      _usersLocal.insert(chat.otherUser);
     }
     _emitChatsCollection(
       ChatsCollection(

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:kepleomax/core/data/local_data_sources/local_chats_data_source.dart';
+import 'package:kepleomax/core/data/local_data_sources/chats_local_data_source.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_api.dart';
 import 'package:kepleomax/core/network/common/api_constants.dart';
@@ -62,7 +62,7 @@ class ChatsRepository implements IChatsRepository {
     }
 
     final data = res.data.data!;
-    _chatsLocal.insertChat(data);
+    _chatsLocal.insert(data);
     return Chat.fromDto(data, fromCache: false);
   }
 
