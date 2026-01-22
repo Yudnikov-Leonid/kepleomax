@@ -1,20 +1,21 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
-import 'package:kepleomax/core/data/data_sources/chats_data_sources.dart';
-import 'package:kepleomax/core/data/data_sources/messages_data_sources.dart';
-import 'package:kepleomax/core/data/local/local_database.dart';
+import 'package:kepleomax/core/data/data_sources/chats_api_data_sources.dart';
+import 'package:kepleomax/core/data/data_sources/messages_api_data_sources.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 
+import 'local_data_sources/local_chats_data_source.dart';
+import 'local_data_sources/local_messages_data_source.dart';
 import 'models/chats_collection.dart';
 import 'models/messages_collection.dart';
 
 const int _messagesPagingLimit = 15;
 
-abstract class IMessagesRepository {
+abstract class IMessengerRepository {
   /// api/db calls
   Future<void> loadChats({bool withCache = true});
 
@@ -28,9 +29,7 @@ abstract class IMessagesRepository {
   Stream<ChatsCollection> get chatsUpdatesStream;
 }
 
-class MessagesRepository implements IMessagesRepository {
-  final ILocalDatabase _localDatabase;
-
+class MessengerRepository implements IMessengerRepository {
   final MessagesWebSocket _webSocket;
 
   final IMessagesApiDataSource _messagesApi;
@@ -45,15 +44,13 @@ class MessagesRepository implements IMessagesRepository {
   MessagesCollection? _lastMessagesCollection;
   ChatsCollection? _lastChatsCollection;
 
-  MessagesRepository({
-    required ILocalDatabase localDatabase,
+  MessengerRepository({
     required MessagesWebSocket webSocket,
     required IMessagesApiDataSource messagesApi,
     required IMessagesLocalDataSource messagesLocal,
     required IChatsApiDataSource chatsApi,
     required IChatsLocalDataSource chatsLocal,
-  }) : _localDatabase = localDatabase,
-       _webSocket = webSocket,
+  }) : _webSocket = webSocket,
        _messagesApi = messagesApi,
        _messagesLocal = messagesLocal,
        _chatsApi = chatsApi,
@@ -63,7 +60,7 @@ class MessagesRepository implements IMessagesRepository {
   }
 
   void _onNewMessage(MessageDto messageDto) {
-    _messagesLocal.insert(message: messageDto);
+    _messagesLocal.insert(messageDto);
 
     if (_lastMessagesCollection != null) {
       final messages = <Message>[
@@ -94,7 +91,7 @@ class MessagesRepository implements IMessagesRepository {
   }
 
   void _onReadMessages(ReadMessagesUpdate update) {
-    _messagesLocal.readMessages(update: update);
+    _messagesLocal.readMessages(update);
 
     if (_lastMessagesCollection != null) {
       final messages = _lastMessagesCollection!.messages.map(
@@ -144,6 +141,11 @@ class MessagesRepository implements IMessagesRepository {
     //await Future.delayed(const Duration(seconds: 1));
     final chats = await _chatsApi.getChats();
     await _chatsLocal.clearAndInsertChats(chats);
+    for (final chat in chats) {
+      if (chat.lastMessage != null) {
+        await _messagesLocal.insert(chat.lastMessage!);
+      }
+    }
     _emitChatsCollection(
       ChatsCollection(
         chats: chats.map((chat) => Chat.fromDto(chat, fromCache: false)),
@@ -157,7 +159,7 @@ class MessagesRepository implements IMessagesRepository {
     /// add to the stream data from cache
     List<MessageDto> cache = [];
     if (withCache) {
-      cache = await _messagesLocal.getMessagesByChat(chatId: chatId);
+      cache = await _messagesLocal.getMessagesByChatId(chatId);
       _emitMessagesCollection(
         MessagesCollection(
           messages: cache.map(Message.fromDto),
@@ -178,9 +180,7 @@ class MessagesRepository implements IMessagesRepository {
     _emitMessagesCollection(
       MessagesCollection(messages: newList, maintainLoading: false),
     );
-    for (final message in apiMessagesDtos) {
-      _localDatabase.insertMessage(message);
-    }
+    _messagesLocal.insertAll(apiMessagesDtos);
   }
 
   Future<Iterable<Message>> _combineCacheAndApi(
@@ -205,14 +205,14 @@ class MessagesRepository implements IMessagesRepository {
         newList.length,
         messages.map(Message.fromDto),
       );
-      await _messagesLocal.removeWithIds(ids: removedMessages.map((m) => m.id));
+      await _messagesLocal.deleteAllByIds(removedMessages.map((m) => m.id));
     } else {
       final removedMessages = newList.sublist(firstIndex, lastIndex + 1);
       newList.replaceRange(firstIndex, lastIndex + 1, messages.map(Message.fromDto));
-      await _messagesLocal.removeWithIds(ids: removedMessages.map((m) => m.id));
+      await _messagesLocal.deleteAllByIds(removedMessages.map((m) => m.id));
     }
 
-    await _messagesLocal.insertAll(messages: messages);
+    await _messagesLocal.insertAll(messages);
     return newList;
   }
 

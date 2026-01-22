@@ -8,11 +8,13 @@ import 'package:kepleomax/core/auth/user_provider.dart';
 import 'package:kepleomax/core/data/auth_repository.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/connection_repository.dart';
-import 'package:kepleomax/core/data/data_sources/chats_data_sources.dart';
-import 'package:kepleomax/core/data/data_sources/messages_data_sources.dart';
+import 'package:kepleomax/core/data/data_sources/chats_api_data_sources.dart';
+import 'package:kepleomax/core/data/data_sources/messages_api_data_sources.dart';
+import 'package:kepleomax/core/data/db/local_database_manager.dart';
 import 'package:kepleomax/core/data/files_repository.dart';
-import 'package:kepleomax/core/data/local/local_database.dart';
-import 'package:kepleomax/core/data/messages_repository.dart';
+import 'package:kepleomax/core/data/local_data_sources/local_chats_data_source.dart';
+import 'package:kepleomax/core/data/local_data_sources/local_messages_data_source.dart';
+import 'package:kepleomax/core/data/messenger_repository.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
@@ -62,9 +64,8 @@ List<_InitializationStep> _steps = [
   _InitializationStep(
     name: 'local_db',
     call: (dependencies) async {
-      final db = LocalDatabase();
-      await db.init();
-      dependencies.localDatabase = db;
+      final db = await LocalDatabaseManager.getDatabase();
+      dependencies.database = db;
     },
   ),
 
@@ -109,7 +110,6 @@ List<_InitializationStep> _steps = [
         tokenProvider: dependencies.tokenProvider,
         userProvider: UserProvider(prefs: dependencies.sharedPreferences),
         prefs: dependencies.sharedPreferences,
-        localDatabase: dependencies.localDatabase,
       );
       await authController.init();
       dependencies.authController = authController;
@@ -129,6 +129,10 @@ List<_InitializationStep> _steps = [
   _InitializationStep(
     name: 'apis, repositories',
     call: (dependencies) {
+      final chatsLocalDataSource = ChatsLocalDataSource(
+        database: dependencies.database,
+      );
+
       dependencies.postApi = PostApi(dependencies.dio, flavor.baseUrl);
       dependencies.messagesApi = MessagesApi(dependencies.dio, flavor.baseUrl);
       dependencies.chatsApi = ChatsApi(dependencies.dio, flavor.baseUrl);
@@ -144,19 +148,16 @@ List<_InitializationStep> _steps = [
       dependencies.connectionRepository = ConnectionRepository(
         webSocket: dependencies.messagesWebSocket,
       );
-      dependencies.messagesRepository = MessagesRepository(
+      dependencies.messengerRepository = MessengerRepository(
         messagesApi: MessagesApiDataSource(messagesApi: dependencies.messagesApi),
-        messagesLocal: MessagesLocalDataSource(
-          localDatabase: dependencies.localDatabase,
-        ),
+        messagesLocal: MessagesLocalDataSource(database: dependencies.database),
         chatsApi: ChatsApiDataSource(chatsApi: dependencies.chatsApi),
-        chatsLocal: ChatsLocalDataSource(localDatabase: dependencies.localDatabase),
-        localDatabase: dependencies.localDatabase,
+        chatsLocal: chatsLocalDataSource,
         webSocket: dependencies.messagesWebSocket,
       );
       dependencies.chatsRepository = ChatsRepository(
         chatsApi: dependencies.chatsApi,
-        localChatsDatabase: dependencies.localDatabase,
+        chatsLocalDataSource: chatsLocalDataSource,
       );
     },
   ),
@@ -168,9 +169,14 @@ List<_InitializationStep> _steps = [
     },
   ),
 
-  _InitializationStep(name: 'global_settings', call: (_) {
-    VisibilityDetectorController.instance.updateInterval = Duration.zero;
-  })
+  _InitializationStep(
+    name: 'global_settings',
+    call: (_) {
+      VisibilityDetectorController.instance.updateInterval = const Duration(
+        milliseconds: 100,
+      );
+    },
+  ),
 ];
 
 class _InitializationStep {

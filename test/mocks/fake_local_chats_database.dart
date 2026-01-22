@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kepleomax/core/data/local/local_database.dart';
+import 'package:kepleomax/core/data/local/local_database_manager.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart';
 
 class FakeLocalChatsDatabase implements ILocalChatsDatabase {

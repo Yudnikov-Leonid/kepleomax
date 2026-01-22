@@ -26,6 +26,7 @@ import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:visibility_detector/visibility_detector.dart';
+import 'package:scrollview_observer/scrollview_observer.dart';
 
 part 'widgets/chat_bottom.dart';
 
@@ -56,7 +57,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final dp = Dependencies.of(context);
     _chatBloc = ChatBloc(
       chatsRepository: dp.chatsRepository,
-      messagesRepository: dp.messagesRepository,
+      messengerRepository: dp.messengerRepository,
       connectionRepository: dp.connectionRepository,
       chatId: widget.chatId,
     )..add(ChatEventInit(chatId: widget.chatId, otherUser: widget.otherUser));
@@ -121,12 +122,23 @@ class _Body extends StatefulWidget {
 class _BodyState extends State<_Body> {
   bool _isScreenActive = false;
   late final ChatBloc _chatBloc;
+  late final ListObserverController _observerController;
+  late final ChatScrollObserver _chatObserver;
 
   /// callbacks
   @override
   void initState() {
     _chatBloc = context.read<ChatBloc>();
     widget.scrollController.addListener(_onScrollListener);
+
+    _observerController = ListObserverController(controller: widget.scrollController)
+      ..cacheJumpIndexOffset = false;
+
+    _chatObserver = ChatScrollObserver(_observerController)
+      ..toRebuildScrollViewCallback = () {
+        // Here you can use other way to rebuild the specified listView instead of [setState]
+        setState(() {});
+      };
     super.initState();
   }
 
@@ -158,6 +170,10 @@ class _BodyState extends State<_Body> {
         if (oldState is ChatStateBase && newState is ChatStateBase) {
           final oldData = oldState.data;
           final newData = newState.data;
+          if (oldData.messages.length != newData.messages.length &&
+              oldData.messages.firstOrNull != newData.messages.firstOrNull) {
+            _chatObserver.standby();
+          }
           return oldData.isLoading != newData.isLoading ||
               !listEquals(oldData.messages, newData.messages) ||
               oldData.isAllMessagesLoaded != newData.isAllMessagesLoaded;
@@ -204,27 +220,39 @@ class _BodyState extends State<_Body> {
                             text: '\nNo messages here yet...\n\nWrite something\n',
                           ),
                         )
-                      : ListView.builder(
-                          key: Key('chat_scroll_view_${data.chatId}'),
-                          controller: widget.scrollController,
-                          padding: EdgeInsets.only(
-                            bottom: 4,
-                            top: data.isAllMessagesLoaded ? 4 : 30,
-                          ),
-                          reverse: true,
-                          itemCount: data.messages.length,
-                          itemBuilder: (context, i) => VisibilityDetector(
-                            /// to check visibility on every messagesList changes
-                            /// (like the change of some fromCache statuses)
-                            key: Key(
-                              'visibility_detector_$i-${DateTime.now().millisecondsSinceEpoch}',
+                      : ListViewObserver(
+                          controller: _observerController,
+                          autoTriggerObserveTypes: const [
+                            ObserverAutoTriggerObserveType.scrollEnd,
+                          ],
+                          triggerOnObserveType:
+                              ObserverTriggerOnObserveType.directly,
+                          child: ListView.builder(
+                            key: Key('chat_scroll_view_${data.chatId}'),
+                            controller: widget.scrollController,
+                            physics: ChatObserverClampingScrollPhysics(
+                              observer: _chatObserver,
                             ),
-                            onVisibilityChanged: (info) =>
-                                _onVisibilityChanged(info, data.messages[i]),
-                            child: _MessageWidget(
-                              key: Key('message_${data.messages[i].id}'),
-                              message: data.messages[i],
-                              user: data.otherUser ?? User.loading(),
+                            shrinkWrap: _chatObserver.isShrinkWrap,
+                            padding: EdgeInsets.only(
+                              bottom: 4,
+                              top: data.isAllMessagesLoaded ? 4 : 20,
+                            ),
+                            reverse: true,
+                            itemCount: data.messages.length,
+                            itemBuilder: (context, i) => VisibilityDetector(
+                              /// DateTime to check visibility on every messagesList changes
+                              /// (like the change of some fromCache statuses)
+                              key: Key(
+                                'visibility_detector_$i-${DateTime.now().millisecondsSinceEpoch}',
+                              ),
+                              onVisibilityChanged: (info) =>
+                                  _onVisibilityChanged(info, data.messages[i]),
+                              child: _MessageWidget(
+                                key: Key('message_${data.messages[i].id}'),
+                                message: data.messages[i],
+                                user: data.otherUser ?? User.loading(),
+                              ),
                             ),
                           ),
                         ),

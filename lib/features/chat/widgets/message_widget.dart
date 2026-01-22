@@ -1,7 +1,11 @@
 part of '../chat_screen.dart';
 
 class _MessageWidget extends StatelessWidget {
-  const _MessageWidget({required this.message, required this.user, super.key});
+  const _MessageWidget({
+    required this.message,
+    required this.user,
+    super.key,
+  });
 
   final Message message;
   final User user;
@@ -57,7 +61,9 @@ class _MessageWidget extends StatelessWidget {
             constraints: BoxConstraints(maxWidth: context.screenSize.width * 0.78),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: (_isCurrent ? KlmColors.currentUserBg : Colors.white).withGreen(message.fromCache ? 150 : 255),
+              color: (_isCurrent ? KlmColors.currentUserBg : Colors.white).withGreen(
+                message.fromCache ? 150 : 255,
+              ),
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(16),
                 topRight: const Radius.circular(16),

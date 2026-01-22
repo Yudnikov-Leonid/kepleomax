@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/connection_repository.dart';
-import 'package:kepleomax/core/data/messages_repository.dart';
+import 'package:kepleomax/core/data/messenger_repository.dart';
 import 'package:kepleomax/core/data/models/chats_collection.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:kepleomax/main.dart';
 
 class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
-  final IMessagesRepository _messagesRepository;
+  final IMessengerRepository _messengerRepository;
   final IConnectionRepository _connectionRepository;
   late ChatsData _data = ChatsData.initial();
   StreamSubscription? _chatsUpdatesSub;
@@ -20,18 +20,18 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
   final Duration callsTimeout;
 
   ChatsBloc({
-    required IMessagesRepository messagesRepository,
+    required IMessengerRepository messengerRepository,
     required IConnectionRepository connectionRepository,
     this.callsTimeout = const Duration(milliseconds: 500),
   })
-      : _messagesRepository = messagesRepository,
+      : _messengerRepository = messengerRepository,
         _connectionRepository = connectionRepository,
         super(ChatsStateBase.initial()) {
     _subConnectionState = _connectionRepository.connectionStateStream.listen(
           (isConnected) => add(ChatsEventConnectingChanged(isConnected)),
       cancelOnError: false,
     );
-    _chatsUpdatesSub = _chatsUpdatesSub = _messagesRepository.chatsUpdatesStream
+    _chatsUpdatesSub = _chatsUpdatesSub = _messengerRepository.chatsUpdatesStream
         .listen(
           (newList) {
         add(ChatsEventEmitChatsList(data: newList));
@@ -72,7 +72,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     emit(ChatsStateBase(data: _data));
 
     try {
-      await _messagesRepository.loadChats(withCache: event.withCache);
+      await _messengerRepository.loadChats(withCache: event.withCache);
     } catch (e, st) {
       /// TODO
       add(ChatsEventEmitError(error: e, stackTrace: st));

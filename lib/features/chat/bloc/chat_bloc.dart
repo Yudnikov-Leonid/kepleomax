@@ -5,7 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/connection_repository.dart';
-import 'package:kepleomax/core/data/messages_repository.dart';
+import 'package:kepleomax/core/data/messenger_repository.dart';
 import 'package:kepleomax/core/data/models/messages_collection.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
@@ -15,7 +15,7 @@ import 'package:rxdart/rxdart.dart';
 import 'chat_state.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
-  final IMessagesRepository _messagesRepository;
+  final IMessengerRepository _messengerRepository;
   final IChatsRepository _chatsRepository;
   final IConnectionRepository _connectionRepository;
   late ChatData _data = ChatData.initial();
@@ -24,15 +24,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   late StreamSubscription _chatUpdatesSub;
 
   ChatBloc({
-    required IMessagesRepository messagesRepository,
+    required IMessengerRepository messengerRepository,
     required IChatsRepository chatsRepository,
     required IConnectionRepository connectionRepository,
     required int chatId,
-  }) : _messagesRepository = messagesRepository,
+  }) : _messengerRepository = messengerRepository,
        _chatsRepository = chatsRepository,
        _connectionRepository = connectionRepository,
        super(ChatStateBase.initial()) {
-    _chatUpdatesSub = _messagesRepository.chatsUpdatesStream.listen((newList) {
+    _chatUpdatesSub = _messengerRepository.chatsUpdatesStream.listen((newList) {
       final currentChat = newList.chats.where((e) => e.id == chatId).firstOrNull;
       if (currentChat != null) {
         add(ChatEventChangeUnreadCount(newCount: currentChat.unreadCount));
@@ -42,7 +42,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       (isConnected) => add(ChatEventConnectingChanged(isConnected)),
       cancelOnError: false,
     );
-    _messagesUpdatesSub = _messagesRepository.messagesUpdatesStream.listen(
+    _messagesUpdatesSub = _messengerRepository.messagesUpdatesStream.listen(
       (data) {
         add(ChatEventEmitMessages(data: data));
       },
@@ -136,7 +136,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         _data = _data.copyWith(otherUser: chat!.otherUser);
       }
 
-      await _messagesRepository.loadMessages(
+      await _messengerRepository.loadMessages(
         chatId: chatId,
         withCache: event.withCache,
       );
@@ -272,7 +272,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     if (_data.isAllMessagesLoaded || _data.isLoading) return;
 
     try {
-      await _messagesRepository.loadMoreMessages(
+      await _messengerRepository.loadMoreMessages(
         chatId: _data.chatId,
         toMessageId: event.cachedMessageId,
       );

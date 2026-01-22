@@ -54,7 +54,7 @@ class _ChatScopeState extends State<ChatScope> {
     /// ChatsBloc should be provided here cause it's used in bottomNavBar
     return BlocProvider(
       create: (context) => ChatsBloc(
-        messagesRepository: Dependencies.of(context).messagesRepository,
+        messengerRepository: Dependencies.of(context).messengerRepository,
         connectionRepository: Dependencies.of(context).connectionRepository,
       )..add(const ChatsEventLoad(withCache: true)),
       child: BlocBuilder<ChatsBloc, ChatsState>(

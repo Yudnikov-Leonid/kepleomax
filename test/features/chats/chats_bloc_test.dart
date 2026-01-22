@@ -29,7 +29,7 @@ void main() {
       messagesRepository = FakeMessagesRepository();
       bloc = ChatsBloc(
         chatsRepository: chatsRepository,
-        messagesRepository: messagesRepository,
+        messengerRepository: messagesRepository,
         userId: 12,
         callsTimeout: Duration.zero,
       );

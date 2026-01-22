@@ -37,7 +37,7 @@ void main() {
       fakeMessagesRepository = FakeMessagesWebSocket();
       chatsRepository = ChatsRepository(
         chatsApi: fakeChatsApi,
-        localChatsDatabase: fakeLocalChatsDatabase,
+        chatsLocalDataSource: fakeLocalChatsDatabase,
         webSocket: fakeMessagesRepository,
       );
       streamIterator = StreamIterator(chatsRepository.chatsUpdatesStream);

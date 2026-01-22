@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:kepleomax/core/di/dependencies.dart';
+import 'package:kepleomax/core/data/db/local_database_manager.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -19,7 +19,7 @@ class SettingsScreen extends StatelessWidget {
               width: double.infinity,
               child: TextButton(
                 onPressed: () async {
-                  await Dependencies.of(context).localDatabase.reset();
+                  await LocalDatabaseManager.reset();
                   Fluttertoast.showToast(msg: 'The database is reset');
                 },
                 style: TextButton.styleFrom(shape: const LinearBorder()),
