@@ -1,60 +1,60 @@
 import 'dart:async';
 
 import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
+import 'package:kepleomax/core/data/connection_repository.dart';
 import 'package:kepleomax/core/data/messages_repository.dart';
-import 'package:kepleomax/core/models/message.dart';
+import 'package:kepleomax/core/data/models/messages_collection.dart';
 import 'package:kepleomax/core/models/user.dart';
-import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
-import 'package:kepleomax/core/notifications/notifications_service.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/main.dart';
+import 'package:rxdart/rxdart.dart';
 
 import 'chat_state.dart';
-
-const _pagingCount = 25;
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final IMessagesRepository _messagesRepository;
   final IChatsRepository _chatsRepository;
+  final IConnectionRepository _connectionRepository;
   late ChatData _data = ChatData.initial();
-  late StreamSubscription _newMessageSub;
-  late StreamSubscription _readMessagesSub;
+  late StreamSubscription _messagesUpdatesSub;
   late StreamSubscription _connectionStateSub;
   late StreamSubscription _chatUpdatesSub;
 
   ChatBloc({
     required IMessagesRepository messagesRepository,
     required IChatsRepository chatsRepository,
+    required IConnectionRepository connectionRepository,
     required int chatId,
   }) : _messagesRepository = messagesRepository,
        _chatsRepository = chatsRepository,
+       _connectionRepository = connectionRepository,
        super(ChatStateBase.initial()) {
-    _newMessageSub = _messagesRepository.newMessageStream.listen((message) {
-      add(ChatEventNewMessage(newMessage: message));
-    }, cancelOnError: false);
-    _readMessagesSub = _messagesRepository.readMessagesStream.listen((data) {
-      add(ChatEventReadMessagesUpdate(updates: data));
-    }, cancelOnError: false);
-    _connectionStateSub = _messagesRepository.connectionStateStream.listen(
-      (isConnected) => add(ChatEventConnectingChanged(isConnected)),
-      cancelOnError: false,
-    );
-    _chatUpdatesSub = _chatsRepository.chatsUpdatesStream.listen((newList) {
+    _chatUpdatesSub = _messagesRepository.chatsUpdatesStream.listen((newList) {
       final currentChat = newList.chats.where((e) => e.id == chatId).firstOrNull;
       if (currentChat != null) {
         add(ChatEventChangeUnreadCount(newCount: currentChat.unreadCount));
       }
     }, cancelOnError: false);
+    _connectionStateSub = _connectionRepository.connectionStateStream.listen(
+      (isConnected) => add(ChatEventConnectingChanged(isConnected)),
+      cancelOnError: false,
+    );
+    _messagesUpdatesSub = _messagesRepository.messagesUpdatesStream.listen(
+      (data) {
+        add(ChatEventEmitMessages(data: data));
+      },
+      onError: (e, st) {
+        add(ChatEventEmitError(error: e, stackTrace: st));
+      },
+      cancelOnError: false,
+    );
 
     on<ChatEvent>(
       (event, emit) => switch (event) {
-        ChatEventLoadCache event => _onLoadCache(event, emit),
         ChatEventLoad event => _onLoad(event, emit),
-        ChatEventLoadMore event => _onLoadMore(event, emit),
-        ChatEventNewMessage event => _onNewMessage(event, emit),
-        ChatEventReadMessagesUpdate event => _onReadMessagesUpdate(event, emit),
         ChatEventReadMessagesBeforeTime event => _onReadMessagesBeforeTime(
           event,
           emit,
@@ -63,21 +63,38 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       },
       transformer: sequential(),
     );
+    on<ChatEventLoadMore>(
+      _onLoadMore,
+      transformer: (events, mapper) => events
+          .throttle(
+            (_) => Stream.periodic(const Duration(milliseconds: 500)).take(1),
+            trailing: true,
+          )
+          .exhaustMap(mapper),
+    );
     on<ChatEventInit>(_onInit);
     on<ChatEventSendMessage>(_onSendMessage);
     on<ChatEventReadAllMessages>(_onReadAllMessages);
     on<ChatEventConnectingChanged>(_onConnectionChanged);
     on<ChatEventChangeUnreadCount>(_onChangeUnreadCount);
+    on<ChatEventEmitMessages>(_onEmitMessages);
+    on<ChatEventEmitError>(_onEmitError);
   }
 
   void _onInit(ChatEventInit event, Emitter<ChatState> emit) {
     _data = _data.copyWith(chatId: event.chatId, otherUser: event.otherUser);
     emit(ChatStateBase(data: _data));
-    
-    add(ChatEventLoadCache(chatId: event.chatId, otherUser: event.otherUser));
-    if (_messagesRepository.isConnected) {
-      add(ChatEventLoad(chatId: event.chatId, otherUser: event.otherUser));
-    }
+
+    add(
+      ChatEventLoad(
+        chatId: event.chatId,
+        otherUser: event.otherUser,
+        withCache: true,
+      ),
+    );
+    // if (_connectionRepository.isConnected) {
+    //   add(ChatEventLoad(chatId: event.chatId, otherUser: event.otherUser));
+    // }
   }
 
   /// cause can be called on init and on connect at the same time
@@ -85,14 +102,14 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   void _onLoad(ChatEventLoad event, Emitter<ChatState> emit) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    if (now - 300 < _lastTimeLoadWasCalled) {
+    if (now - 1000 < _lastTimeLoadWasCalled) {
       return;
     }
     _lastTimeLoadWasCalled = now;
 
     /// should set isConnected cause it can be called at init bloc
     _data = _data.copyWith(
-      isConnected: _messagesRepository.isConnected,
+      isConnected: _connectionRepository.isConnected,
       isLoading: true,
       isAllMessagesLoaded: false,
     );
@@ -119,192 +136,150 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         _data = _data.copyWith(otherUser: chat!.otherUser);
       }
 
-      final messages = await _messagesRepository.getMessages(
+      await _messagesRepository.loadMessages(
         chatId: chatId,
-        limit: _pagingCount,
-        offset: 0,
-      );
-      if (messages.length < _pagingCount) {
-        _data = _data.copyWith(isAllMessagesLoaded: true);
-      }
-
-      /// add unread messages line
-      final newList = _withUnreadMessages(messages);
-
-      _data = _data.copyWith(messages: newList);
-    } catch (e, st) {
-      logger.e(e, stackTrace: st);
-      emit(ChatStateMessage(message: e.userErrorMessage, isError: true));
-    } finally {
-      _data = _data.copyWith(isLoading: false);
-      emit(ChatStateBase(data: _data));
-    }
-  }
-
-  List<Message> _withUnreadMessages(List<Message> messages) {
-    if (messages.isEmpty) return [];
-
-    var newList = <Message>[];
-    bool isStopMessageFound = false;
-    for (int i = 0; i < messages.length; i++) {
-      if (messages[i].isCurrentUser) {
-        /// message of current user, unreadMessagesLine can't be above, so end the loop
-        newList.addAll(messages.sublist(i));
-        isStopMessageFound = true;
-        break;
-      }
-      if (messages[i].isRead) {
-        /// message of not current user is read. If it's first message, then
-        /// don't need the line. If it's not the first one, then add the line
-        if (i != 0) {
-          newList.add(Message.unreadMessages());
-        }
-        newList.addAll(messages.sublist(i));
-        isStopMessageFound = true;
-        break;
-      }
-
-      /// message of not current user that unread, go to the next one
-      newList.add(messages[i]);
-    }
-    if (!isStopMessageFound) {
-      /// means this is new chat with unread messages from other user
-      newList.add(Message.unreadMessages());
-    }
-
-    return newList;
-  }
-
-  void _onLoadCache(ChatEventLoadCache event, Emitter<ChatState> emit) async {
-    try {
-      print(
-        'ChatBloc onLoadCache: chatId: ${event.chatId}, otherUser: ${event.otherUser}',
-      );
-
-      /// set chatId
-      final int? chatId;
-      if (event.chatId == -1) {
-        chatId = (await _chatsRepository.getChatWithUserFromCache(
-          event.otherUser!.id,
-        ))?.id;
-      } else {
-        chatId = event.chatId;
-      }
-
-      /// get cache
-      final List<Message> cache = chatId == null || chatId == -1
-          ? []
-          : await _messagesRepository.getMessagesFromCache(chatId: chatId);
-
-      /// set otherUser
-      final User? otherUser;
-      if (event.otherUser == null) {
-        final chat = await _chatsRepository.getChatWithIdFromCache(chatId!);
-        otherUser = chat?.otherUser;
-      } else {
-        otherUser = event.otherUser;
-      }
-
-      print('ChatBloc loadCache, set chatId: $chatId, otherUser: $otherUser');
-      _data = _data.copyWith(
-        chatId: chatId ?? -1,
-        messages: _withUnreadMessages(cache),
-        otherUser: otherUser,
+        withCache: event.withCache,
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      emit(const ChatStateMessage(message: 'Failed to load cache', isError: true));
-    } finally {
-      emit(ChatStateBase(data: _data));
+      emit(ChatStateError(message: e.userErrorMessage));
+      return;
     }
   }
+
+  // List<Message> _withUnreadMessages(List<Message> messages) {
+  //   if (messages.isEmpty) return [];
+  //
+  //   var newList = <Message>[];
+  //   bool isStopMessageFound = false;
+  //   for (int i = 0; i < messages.length; i++) {
+  //     if (messages[i].isCurrentUser) {
+  //       /// message of current user, unreadMessagesLine can't be above, so end the loop
+  //       newList.addAll(messages.sublist(i));
+  //       isStopMessageFound = true;
+  //       break;
+  //     }
+  //     if (messages[i].isRead) {
+  //       /// message of not current user is read. If it's first message, then
+  //       /// don't need the line. If it's not the first one, then add the line
+  //       if (i != 0) {
+  //         newList.add(Message.unreadMessages());
+  //       }
+  //       newList.addAll(messages.sublist(i));
+  //       isStopMessageFound = true;
+  //       break;
+  //     }
+  //
+  //     /// message of not current user that unread, go to the next one
+  //     newList.add(messages[i]);
+  //   }
+  //   if (!isStopMessageFound) {
+  //     /// means this is new chat with unread messages from other user
+  //     newList.add(Message.unreadMessages());
+  //   }
+  //
+  //   return newList;
+  // }
+
+  // void _onLoadCache(ChatEventLoadCache event, Emitter<ChatState> emit) async {
+  //   try {
+  //     print(
+  //       'ChatBloc onLoadCache: chatId: ${event.chatId}, otherUser: ${event.otherUser}',
+  //     );
+  //
+  //     /// set chatId
+  //     final int? chatId;
+  //     if (event.chatId == -1) {
+  //       chatId = (await _chatsRepository.getChatWithUserFromCache(
+  //         event.otherUser!.id,
+  //       ))?.id;
+  //     } else {
+  //       chatId = event.chatId;
+  //     }
+  //
+  //     /// get cache
+  //     final List<Message> cache = chatId == null || chatId == -1
+  //         ? []
+  //         : await _messagesRepository.getMessagesFromCache(chatId: chatId);
+  //
+  //     /// set otherUser
+  //     final User? otherUser;
+  //     if (event.otherUser == null) {
+  //       final chat = await _chatsRepository.getChatWithIdFromCache(chatId!);
+  //       otherUser = chat?.otherUser;
+  //     } else {
+  //       otherUser = event.otherUser;
+  //     }
+  //
+  //     print('ChatBloc loadCache, set chatId: $chatId, otherUser: $otherUser');
+  //     _data = _data.copyWith(
+  //       chatId: chatId ?? -1,
+  //       messages: _withUnreadMessages(cache),
+  //       otherUser: otherUser,
+  //     );
+  //   } catch (e, st) {
+  //     logger.e(e, stackTrace: st);
+  //     emit(const ChatStateMessage(message: 'Failed to load cache', isError: true));
+  //   } finally {
+  //     emit(ChatStateBase(data: _data));
+  //   }
+  // }
 
   void _onReadMessagesBeforeTime(
     ChatEventReadMessagesBeforeTime event,
     Emitter<ChatState> emit,
   ) {
     if (_data.isLoading || !_data.isConnected) return;
-    _messagesRepository.readMessageBeforeTime(
+    _connectionRepository.readMessageBeforeTime(
       chatId: _data.chatId,
       time: event.time,
     );
   }
 
   void _onReadAllMessages(ChatEventReadAllMessages event, Emitter<ChatState> emit) {
-    _messagesRepository.readAllMessages(chatId: _data.chatId);
+    _connectionRepository.readAllMessages(chatId: _data.chatId);
   }
 
-  void _onReadMessagesUpdate(
-    ChatEventReadMessagesUpdate event,
-    Emitter<ChatState> emit,
-  ) {
-    if (_data.chatId != event.updates.chatId) return;
-
-    final updates = event.updates.messagesIds;
-    final newMessages = <Message>[];
-    for (final message in _data.messages) {
-      /// TODO optimize
-      if (updates.contains(message.id)) {
-        newMessages.add(message.copyWith(isRead: true));
-        NotificationService.instance.closeNotification(message.id);
-      } else {
-        newMessages.add(message);
-      }
-    }
-    _data = _data.copyWith(messages: newMessages);
-    emit(ChatStateBase(data: _data));
-  }
+  // void _onReadMessagesUpdate(
+  //   ChatEventReadMessagesUpdate event,
+  //   Emitter<ChatState> emit,
+  // ) {
+  //   if (_data.chatId != event.updates.chatId) return;
+  //
+  //   final updates = event.updates.messagesIds;
+  //   final newMessages = <Message>[];
+  //   for (final message in _data.messages) {
+  //     /// TODO optimize
+  //     if (updates.contains(message.id)) {
+  //       newMessages.add(message.copyWith(isRead: true));
+  //       NotificationService.instance.closeNotification(message.id);
+  //     } else {
+  //       newMessages.add(message);
+  //     }
+  //   }
+  //   _data = _data.copyWith(messages: newMessages);
+  //   emit(ChatStateBase(data: _data));
+  // }
 
   void _onSendMessage(ChatEventSendMessage event, Emitter<ChatState> emit) {
-    _messagesRepository.sendMessage(
+    _connectionRepository.sendMessage(
       message: event.message,
       recipientId: event.otherUserId,
     );
   }
 
-  void _onNewMessage(ChatEventNewMessage event, Emitter<ChatState> emit) {
-    if (_data.chatId == -1 && event.newMessage.senderId == _data.otherUser?.id) {
-      _data = _data.copyWith(chatId: event.newMessage.chatId);
-    }
-    if (event.newMessage.chatId == _data.chatId) {
-      _data = _data.copyWith(
-        chatId: event.newMessage.chatId,
-        messages: [event.newMessage, ..._data.messages],
-      );
-    }
-    emit(ChatStateBase(data: _data));
-  }
-
-  bool _isLoadingMore = false;
-  int _lastTimeLoadMoreCalled = 0;
-
   void _onLoadMore(ChatEventLoadMore event, Emitter<ChatState> emit) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    if (_lastTimeLoadMoreCalled + 500 > now) {
-      return;
-    }
-    _lastTimeLoadMoreCalled = now;
-
-    if (_data.isAllMessagesLoaded || _data.isLoading || _isLoadingMore) return;
-    _isLoadingMore = true;
+    if (_data.isAllMessagesLoaded || _data.isLoading) return;
 
     try {
-      final newMessages = await _messagesRepository.getMessages(
+      await _messagesRepository.loadMoreMessages(
         chatId: _data.chatId,
-        limit: _pagingCount,
-        offset: _data.messages.where((e) => e.id >= 0).length,
-      );
-
-      _data = _data.copyWith(
-        messages: [..._data.messages, ...newMessages],
-        isAllMessagesLoaded: newMessages.length < _pagingCount,
+        toMessageId: event.cachedMessageId,
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);
       emit(ChatStateMessage(message: e.userErrorMessage, isError: true));
       _data = _data.copyWith(isAllMessagesLoaded: true);
-    } finally {
-      _isLoadingMore = false;
       emit(ChatStateBase(data: _data));
     }
   }
@@ -319,20 +294,47 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     if (event.isConnected) {
       if (_data.chatId != -1 || _data.otherUser != null) {
-        add(ChatEventLoad(chatId: _data.chatId, otherUser: _data.otherUser));
+        add(
+          ChatEventLoad(
+            chatId: _data.chatId,
+            otherUser: _data.otherUser,
+            withCache: true,
+          ),
+        );
       }
     }
   }
 
-  void _onChangeUnreadCount(ChatEventChangeUnreadCount event, Emitter<ChatState> emit) {
+  void _onChangeUnreadCount(
+    ChatEventChangeUnreadCount event,
+    Emitter<ChatState> emit,
+  ) {
     _data = _data.copyWith(unreadCount: event.newCount);
+    emit(ChatStateBase(data: _data));
+  }
+
+  void _onEmitMessages(ChatEventEmitMessages event, Emitter<ChatState> emit) {
+    _data = _data.copyWith(
+      messages: event.data.messages.toList(growable: false),
+      isLoading: event.data.maintainLoading,
+    );
+    if (event.data.allMessagesLoaded != null) {
+      _data = _data.copyWith(isAllMessagesLoaded: event.data.allMessagesLoaded!);
+    }
+    emit(ChatStateBase(data: _data));
+  }
+
+  void _onEmitError(ChatEventEmitError event, Emitter<ChatState> emit) {
+    final e = event.error;
+    final st = event.stackTrace;
+    logger.e(e, stackTrace: st);
+    emit(ChatStateMessage(message: e.userErrorMessage, isError: true));
     emit(ChatStateBase(data: _data));
   }
 
   @override
   Future<void> close() {
-    _newMessageSub.cancel();
-    _readMessagesSub.cancel();
+    _messagesUpdatesSub.cancel();
     _connectionStateSub.cancel();
     _chatUpdatesSub.cancel();
     return super.close();
@@ -352,19 +354,33 @@ class ChatEventInit implements ChatEvent {
 class ChatEventLoad implements ChatEvent {
   final int chatId;
   final User? otherUser;
+  final bool withCache;
 
-  const ChatEventLoad({required this.chatId, required this.otherUser});
+  const ChatEventLoad({
+    required this.chatId,
+    required this.otherUser,
+    required this.withCache,
+  });
 }
 
-class ChatEventLoadCache implements ChatEvent {
-  final int chatId;
-  final User? otherUser;
+class ChatEventEmitMessages implements ChatEvent {
+  final MessagesCollection data;
 
-  const ChatEventLoadCache({required this.chatId, required this.otherUser});
+  const ChatEventEmitMessages({required this.data});
+}
+
+class ChatEventEmitError implements ChatEvent {
+  final Object error;
+  final StackTrace stackTrace;
+
+  const ChatEventEmitError({required this.error, required this.stackTrace});
 }
 
 class ChatEventLoadMore implements ChatEvent {
-  const ChatEventLoadMore();
+  /// to load more if list was significantly scrolled on top
+  final int? cachedMessageId;
+
+  const ChatEventLoadMore({required this.cachedMessageId});
 }
 
 class ChatEventConnectingChanged implements ChatEvent {
@@ -373,23 +389,11 @@ class ChatEventConnectingChanged implements ChatEvent {
   const ChatEventConnectingChanged(this.isConnected);
 }
 
-class ChatEventNewMessage implements ChatEvent {
-  final Message newMessage;
-
-  const ChatEventNewMessage({required this.newMessage});
-}
-
 class ChatEventSendMessage implements ChatEvent {
   final String message;
   final int otherUserId;
 
   const ChatEventSendMessage({required this.message, required this.otherUserId});
-}
-
-class ChatEventReadMessagesUpdate implements ChatEvent {
-  final ReadMessagesUpdate updates;
-
-  const ChatEventReadMessagesUpdate({required this.updates});
 }
 
 class ChatEventReadAllMessages implements ChatEvent {

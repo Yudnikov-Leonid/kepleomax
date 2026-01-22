@@ -57,7 +57,7 @@ class ChatDto extends Equatable {
     otherUser: UserDto.fromJson(jsonDecode(json['other_user'])),
     lastMessage: json['last_message'] == null
         ? null
-        : MessageDto.fromJson(jsonDecode(json['last_message'])),
+        : MessageDto.fromJson(jsonDecode(json['last_message']), fromCache: true),
     unreadCount: json['unread_count'],
   );
 

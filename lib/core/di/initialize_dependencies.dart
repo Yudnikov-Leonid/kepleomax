@@ -7,6 +7,9 @@ import 'package:kepleomax/core/auth/auth_controller.dart';
 import 'package:kepleomax/core/auth/user_provider.dart';
 import 'package:kepleomax/core/data/auth_repository.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
+import 'package:kepleomax/core/data/connection_repository.dart';
+import 'package:kepleomax/core/data/data_sources/chats_data_sources.dart';
+import 'package:kepleomax/core/data/data_sources/messages_data_sources.dart';
 import 'package:kepleomax/core/data/files_repository.dart';
 import 'package:kepleomax/core/data/local/local_database.dart';
 import 'package:kepleomax/core/data/messages_repository.dart';
@@ -28,6 +31,7 @@ import 'package:kepleomax/firebase_options.dart';
 import 'package:kepleomax/main.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 Future<Dependencies> initializeDependencies() async {
   final dp = Dependencies();
@@ -64,6 +68,7 @@ List<_InitializationStep> _steps = [
     },
   ),
 
+  /// TODO apis are here and in the 'apis, repositories' step, it's not good
   _InitializationStep(
     name: 'dio, authController',
     call: (dependencies) async {
@@ -130,21 +135,27 @@ List<_InitializationStep> _steps = [
       dependencies.messagesWebSocket = MessagesWebSocket(
         baseUrl: flavor.baseUrl,
         tokenProvider: dependencies.tokenProvider,
-        localDatabase: dependencies.localDatabase,
       );
 
       dependencies.filesRepository = FilesRepository(
         filesApi: dependencies.filesApi,
       );
       dependencies.postRepository = PostRepository(postApi: dependencies.postApi);
+      dependencies.connectionRepository = ConnectionRepository(
+        webSocket: dependencies.messagesWebSocket,
+      );
       dependencies.messagesRepository = MessagesRepository(
-        messagesApi: dependencies.messagesApi,
-        messagesWebSocket: dependencies.messagesWebSocket,
+        messagesApi: MessagesApiDataSource(messagesApi: dependencies.messagesApi),
+        messagesLocal: MessagesLocalDataSource(
+          localDatabase: dependencies.localDatabase,
+        ),
+        chatsApi: ChatsApiDataSource(chatsApi: dependencies.chatsApi),
+        chatsLocal: ChatsLocalDataSource(localDatabase: dependencies.localDatabase),
         localDatabase: dependencies.localDatabase,
+        webSocket: dependencies.messagesWebSocket,
       );
       dependencies.chatsRepository = ChatsRepository(
         chatsApi: dependencies.chatsApi,
-        webSocket: dependencies.messagesWebSocket,
         localChatsDatabase: dependencies.localDatabase,
       );
     },
@@ -156,6 +167,10 @@ List<_InitializationStep> _steps = [
       await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     },
   ),
+
+  _InitializationStep(name: 'global_settings', call: (_) {
+    VisibilityDetectorController.instance.updateInterval = Duration.zero;
+  })
 ];
 
 class _InitializationStep {

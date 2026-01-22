@@ -1,10 +1,14 @@
 part of '../chat_screen.dart';
 
 class _ReadButton extends StatefulWidget {
-  const _ReadButton({required ScrollController scrollController, super.key})
-    : _scrollController = scrollController;
+  const _ReadButton({
+    required ScrollController scrollController,
+    required this.chatId,
+    super.key,
+  }) : _scrollController = scrollController;
 
   final ScrollController _scrollController;
+  final int chatId;
 
   @override
   State<_ReadButton> createState() => _ReadButtonState();
@@ -39,26 +43,27 @@ class _ReadButtonState extends State<_ReadButton> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ChatBloc, ChatState>(
+    return BlocBuilder<ChatsBloc, ChatsState>(
       buildWhen: (oldState, newState) {
-        if (newState is! ChatStateBase) return false;
+        if (newState is! ChatsStateBase) return false;
 
-        if (oldState is! ChatStateBase) return true;
+        if (oldState is! ChatsStateBase) return true;
 
         return oldState.data != newState.data;
       },
       builder: (context, state) {
-        if (state is! ChatStateBase) return const SizedBox();
+        if (state is! ChatsStateBase) return const SizedBox();
 
         final data = state.data;
-        if (state.data.messages.isEmpty) return const SizedBox();
-        final allMessagesIsRead =
-            data.messages.first.isCurrentUser || data.messages.first.isRead;
+        final unreadCount =
+            data.chats
+                .firstWhereOrNull((chat) => chat.id == widget.chatId)
+                ?.unreadCount ??
+            0;
         final isScrolledUp = widget._scrollController.positions.length == 1
             ? widget._scrollController.offset > _offsetToShow
             : false;
-
-        if (allMessagesIsRead && !isScrolledUp) {
+        if (unreadCount <= 0 && !isScrolledUp) {
           return const SizedBox();
         }
 
@@ -81,7 +86,7 @@ class _ReadButtonState extends State<_ReadButton> {
                           duration: const Duration(milliseconds: 200),
                           curve: Curves.easeOut,
                         );
-                        if (!allMessagesIsRead) {
+                        if (unreadCount > 0) {
                           context.read<ChatBloc>().add(
                             const ChatEventReadAllMessages(),
                           );
@@ -92,7 +97,7 @@ class _ReadButtonState extends State<_ReadButton> {
                   child: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
                 ),
               ),
-              if (!allMessagesIsRead)
+              if (unreadCount > 0)
                 Positioned(
                   top: -14,
                   child: Container(
@@ -104,7 +109,7 @@ class _ReadButtonState extends State<_ReadButton> {
                     padding: const EdgeInsets.all(3),
                     child: Center(
                       child: Text(
-                        data.messages.where((e) => !e.isRead).length.toString(),
+                        unreadCount.toString(),
                         style: context.textTheme.bodyLarge?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w500,

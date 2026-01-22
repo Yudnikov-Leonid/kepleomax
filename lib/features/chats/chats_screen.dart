@@ -66,7 +66,6 @@ class _Body extends StatelessWidget {
         if (state is! ChatsStateBase) return const SizedBox();
 
         final data = state.data;
-        print('MyLog ChatsRepository emitChatsList rebuild, totalUnreadCount: ${data.totalUnreadCount}');
         if (data.isLoading && data.chats.isEmpty) {
           return RefreshIndicator(
             onRefresh: () async {

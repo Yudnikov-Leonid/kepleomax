@@ -13,13 +13,15 @@ abstract class Chat with _$Chat {
     required int id,
     required User otherUser,
     required Message? lastMessage,
+    required bool fromCache,
     required int unreadCount,
   }) = _Chat;
 
-  factory Chat.fromDto(ChatDto dto) => Chat(
+  factory Chat.fromDto(ChatDto dto, {required fromCache}) => Chat(
     id: dto.id,
     otherUser: User.fromDto(dto.otherUser),
     lastMessage: dto.lastMessage == null ? null : Message.fromDto(dto.lastMessage!),
+    fromCache: fromCache,
     unreadCount: dto.unreadCount,
   );
 
@@ -30,6 +32,11 @@ abstract class Chat with _$Chat {
     unreadCount: unreadCount,
   );
 
-  factory Chat.loading() =>
-      Chat(id: -1, otherUser: User.loading(), lastMessage: null, unreadCount: 1);
+  factory Chat.loading() => Chat(
+    id: -1,
+    otherUser: User.loading(),
+    fromCache: false,
+    lastMessage: null,
+    unreadCount: 1,
+  );
 }

@@ -10,16 +10,16 @@ abstract class ILocalMessagesDatabase {
   Future<List<MessageDto>> getMessagesByChatId(
     int chatId, {
     int limit = 25,
-    int offset = 0,
+    int? cursor,
   });
 
-  Future<void> insertMessage(MessageDto message, {bool updateChats = true});
+  Future<void> insertMessage(MessageDto message);
 
   Future<void> readMessages(ReadMessagesUpdate data);
 
   Future<void> updateMessage(MessageDto message);
 
-  Future<void> deleteMessage(MessageDto message);
+  Future<void> deleteMessageById(int id);
 }
 
 abstract class ILocalChatsDatabase {
@@ -27,9 +27,13 @@ abstract class ILocalChatsDatabase {
 
   Future<ChatDto?> getChat(int chatId);
 
-  Future<void> clearAndInsertChats(List<ChatDto> chats);
+  Future<void> clearAndInsertChats(Iterable<ChatDto> chats);
 
   Future<void> insertChat(ChatDto chat);
+
+  Future<void> increaseUnreadCountBy1(int chatId);
+
+  Future<void> decreaseUnreadCount(int chatId, int amount);
 
   Future<void> updateChat(ChatDto chat);
 }
@@ -111,7 +115,6 @@ class LocalDatabase implements ILocalDatabase {
       if (lastMessage.isNotEmpty) {
         chat = Map.from(chat);
         chat['last_message'] = jsonEncode(lastMessage[0]);
-        print('MyLog addLastMessageString: ${chat['last_message']}');
       }
       result.add(ChatDto.fromLocalJson(chat));
     }
@@ -122,12 +125,12 @@ class LocalDatabase implements ILocalDatabase {
   }
 
   @override
-  Future<void> clearAndInsertChats(List<ChatDto> chats) async {
+  Future<void> clearAndInsertChats(Iterable<ChatDto> chats) async {
     await _db.delete('chats');
     for (final chat in chats) {
       _db.insert('chats', chat.toLocalJson());
       if (chat.lastMessage != null) {
-        insertMessage(chat.lastMessage!, updateChats: false);
+        insertMessage(chat.lastMessage!);
       }
     }
   }
@@ -138,6 +141,22 @@ class LocalDatabase implements ILocalDatabase {
       'chats',
       chat.toLocalJson(),
       conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  @override
+  Future<void> increaseUnreadCountBy1(int chatId) async {
+    await _db.rawUpdate(
+      'UPDATE chats SET unread_count = unread_count + 1 WHERE id = ?',
+      [chatId],
+    );
+  }
+
+  @override
+  Future<void> decreaseUnreadCount(int chatId, int amount) async {
+    await _db.rawUpdate(
+      'UPDATE chats SET unread_count = unread_count - ? WHERE id = ?',
+      [amount, chatId],
     );
   }
 
@@ -156,44 +175,25 @@ class LocalDatabase implements ILocalDatabase {
   Future<List<MessageDto>> getMessagesByChatId(
     int chatId, {
     int limit = 25,
-    int offset = 0,
+    int? cursor,
   }) async {
     final query = await _db.query(
       'messages',
       where: r'chat_id = ?',
       whereArgs: [chatId],
       orderBy: 'created_at DESC',
-      limit: limit,
-      offset: offset,
+      // limit: limit, // TODO
+      // offset: offset,
     );
-    return query.map(MessageDto.fromJson).toList();
+    return query.map((m) => MessageDto.fromJson(m, fromCache: true)).toList();
   }
 
   @override
-  Future<void> insertMessage(MessageDto message, {bool updateChats = true}) async {
+  Future<void> insertMessage(MessageDto message) async {
     final json = Map.of(message.toLocalJson());
     json['row_updated_at'] = DateTime.now().millisecondsSinceEpoch;
 
-    /// if message is already exist, we have changed unread_count before, don't need to do this again
-    final doesMessageAlreadyExists = (await _db.query(
-      'messages',
-      where: 'id = ?',
-      whereArgs: [message.id],
-    )).isNotEmpty;
-    print(
-      'MyLog insertMessage: $json, doesMessageAlreadyExists: $doesMessageAlreadyExists',
-    );
     await _db.insert('messages', json, conflictAlgorithm: ConflictAlgorithm.replace);
-    if (updateChats &&
-        !message.isCurrentUser &&
-        !message.isRead &&
-        !doesMessageAlreadyExists) {
-      print('MyLog increase unreadCount of ${message.chatId} by 1');
-      await _db.rawUpdate(
-        'UPDATE chats SET unread_count = unread_count + 1 WHERE id = ?',
-        [message.chatId],
-      );
-    }
   }
 
   @override
@@ -201,20 +201,11 @@ class LocalDatabase implements ILocalDatabase {
     for (final id in data.messagesIds) {
       await _db.update(
         'messages',
-        {'is_read': 1},
+        // TODO make row_updated_at better way
+        {'is_read': 1, 'row_updated_at': DateTime.now().millisecondsSinceEpoch},
         where: r'id = ?',
         whereArgs: [id],
       );
-
-      if (!data.isCurrentUser) {
-        print(
-          'MyLog decrease unreadCount of ${data.chatId} by ${data.messagesIds.length}',
-        );
-        await _db.rawUpdate(
-          'UPDATE chats SET unread_count = unread_count - ? WHERE id = ?',
-          [data.messagesIds.length, data.chatId],
-        );
-      }
     }
   }
 
@@ -224,7 +215,7 @@ class LocalDatabase implements ILocalDatabase {
   }
 
   @override
-  Future<void> deleteMessage(MessageDto message) async {
-    await _db.delete('messages', where: r'id = ?', whereArgs: [message.id]);
+  Future<void> deleteMessageById(int id) async {
+    await _db.delete('messages', where: r'id = ?', whereArgs: [id]);
   }
 }

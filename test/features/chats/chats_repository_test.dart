@@ -54,7 +54,7 @@ void main() {
           Response(requestOptions: RequestOptions(), statusCode: 200),
         ),
       );
-      var actual = await chatsRepository.getChats();
+      var actual = await chatsRepository.loadChats();
       var expected = [Chat.fromDto(_chatDto1)];
       expect(actual, expected);
       fakeLocalChatsDatabase.checkClearAndInsertChatsCalledTimes(1);
@@ -68,7 +68,7 @@ void main() {
         ),
       );
       expect(
-        () async => await chatsRepository.getChats(),
+        () async => await chatsRepository.loadChats(),
         throwsA(
           predicate(
             (e) => e is Exception && e.toString() == 'Exception: error message',
@@ -84,7 +84,7 @@ void main() {
         ),
       );
       expect(
-        () async => await chatsRepository.getChats(),
+        () async => await chatsRepository.loadChats(),
         throwsA(
           predicate(
             (e) =>

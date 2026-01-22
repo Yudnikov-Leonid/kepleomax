@@ -35,7 +35,7 @@ class FakeMessagesRepository implements IMessagesRepository {
   Stream<OnlineStatusUpdate> get onlineStatusUpdateStream => throw UnimplementedError();
 
   @override
-  Future<List<Message>> getMessages({
+  Future<List<Message>> loadMessages({
     required int chatId,
     required int limit,
     required int offset,

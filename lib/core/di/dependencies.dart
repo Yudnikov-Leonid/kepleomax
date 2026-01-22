@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
 import 'package:kepleomax/core/data/auth_repository.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
+import 'package:kepleomax/core/data/connection_repository.dart';
 import 'package:kepleomax/core/data/files_repository.dart';
 import 'package:kepleomax/core/data/messages_repository.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
@@ -45,16 +46,16 @@ class Dependencies {
   late final IUserRepository userRepository;
   late final IPostRepository postRepository;
   late final IFilesRepository filesRepository;
+  late final IConnectionRepository connectionRepository;
   late final IMessagesRepository messagesRepository;
   late final IChatsRepository chatsRepository;
-  late final LocalDatabase localDatabase;
+  late final LocalDatabase localDatabase; // TODO make ILocalDatabase
 
   Widget inject({required Widget child}) =>
       InheritedDependencies(dependencies: this, child: child);
 
-  static Dependencies of(BuildContext context) => context
-      .getInheritedWidgetOfExactType<InheritedDependencies>()!
-      .dependencies;
+  static Dependencies of(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<InheritedDependencies>()!.dependencies;
 }
 
 class InheritedDependencies extends InheritedWidget {

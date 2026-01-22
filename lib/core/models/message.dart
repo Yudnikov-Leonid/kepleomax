@@ -9,10 +9,11 @@ abstract class Message with _$Message {
 
   const factory Message({
     required int id,
+    required int chatId,
     required int senderId,
     required bool isCurrentUser,
     required String message,
-    required int chatId,
+    required bool fromCache,
     required bool isRead,
     required int createdAt,
     required int? editedAt,
@@ -22,6 +23,7 @@ abstract class Message with _$Message {
     id: -3,
     senderId: -1,
     isCurrentUser: false,
+    fromCache: false,
     message: '---------------------------',
     chatId: -1,
     isRead: true,
@@ -35,6 +37,7 @@ abstract class Message with _$Message {
     senderId: dto.senderId,
     isCurrentUser: dto.isCurrentUser,
     message: dto.message,
+    fromCache: dto.fromCache,
     isRead: dto.isRead,
     createdAt: dto.createdAt,
     editedAt: dto.editedAt,
@@ -51,6 +54,7 @@ abstract class Message with _$Message {
     isRead: isRead,
     createdAt: createdAt,
     editedAt: editedAt,
+    fromCache: fromCache,
   );
 
   /// used to display line in the ui
@@ -58,8 +62,9 @@ abstract class Message with _$Message {
     id: -2,
     //user: User.loading(),
     senderId: -1,
-    isCurrentUser: false,
+    fromCache: false,
     // TODO true or false to work properly?
+    isCurrentUser: false,
     message: '',
     chatId: -1,
 

@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'package:kepleomax/core/data/local/local_database.dart';
-import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/main.dart';
@@ -9,25 +7,19 @@ import 'package:socket_io_client/socket_io_client.dart';
 class MessagesWebSocket {
   final String _baseUrl;
   final TokenProvider _tokenProvider;
-  final ILocalMessagesDatabase _localDatabase;
 
-  MessagesWebSocket({
-    required String baseUrl,
-    required TokenProvider tokenProvider,
-    required ILocalMessagesDatabase localDatabase,
-  }) : _localDatabase = localDatabase,
-       _tokenProvider = tokenProvider,
-       _baseUrl = baseUrl;
+  MessagesWebSocket({required String baseUrl, required TokenProvider tokenProvider})
+    : _tokenProvider = tokenProvider,
+      _baseUrl = baseUrl;
 
   /// streams
-  final StreamController<Message> _messageController =
-      StreamController<Message>.broadcast();
+  final StreamController<MessageDto> _messageController =
+      StreamController.broadcast();
   final StreamController<ReadMessagesUpdate> _readMessagesController =
-      StreamController<ReadMessagesUpdate>.broadcast();
-  final StreamController<bool> _connectionController =
-      StreamController<bool>.broadcast();
+      StreamController.broadcast();
+  final StreamController<bool> _connectionController = StreamController.broadcast();
 
-  Stream<Message> get newMessageStream => _messageController.stream;
+  Stream<MessageDto> get newMessageStream => _messageController.stream;
 
   Stream<ReadMessagesUpdate> get readMessagesStream =>
       _readMessagesController.stream;
@@ -73,17 +65,13 @@ class MessagesWebSocket {
     });
     _socket!.on('new_message', (data) {
       logger.d('WebSocketLog new_message: $data');
-      final messageDto = MessageDto.fromJson(data);
-      _localDatabase.insertMessage(messageDto).whenComplete(() {
-        _messageController.add(Message.fromDto(messageDto));
-      });
+      final messageDto = MessageDto.fromJson(data, fromCache: false);
+      _messageController.add(messageDto);
     });
     _socket!.on('read_messages', (data) {
       logger.d('WebSocketLog read_messages: $data');
       final updates = ReadMessagesUpdate.fromJson(data);
-      _localDatabase.readMessages(updates).whenComplete(() {
-        _readMessagesController.add(updates);
-      });
+      _readMessagesController.add(updates);
     });
     _socket!.onError((error) {
       logger.e('WebSocketLog error: $error');

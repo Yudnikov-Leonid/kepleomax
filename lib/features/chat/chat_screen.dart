@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,8 +21,11 @@ import 'package:kepleomax/core/presentation/parse_time.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/features/chat/bloc/chat_bloc.dart';
 import 'package:kepleomax/features/chat/bloc/chat_state.dart';
+import 'package:kepleomax/features/chats/bloc/chats_bloc.dart';
+import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 part 'widgets/chat_bottom.dart';
 
@@ -49,9 +53,11 @@ class _ChatScreenState extends State<ChatScreen> {
   /// callbacks
   @override
   void initState() {
+    final dp = Dependencies.of(context);
     _chatBloc = ChatBloc(
-      chatsRepository: Dependencies.of(context).chatsRepository,
-      messagesRepository: Dependencies.of(context).messagesRepository,
+      chatsRepository: dp.chatsRepository,
+      messagesRepository: dp.messagesRepository,
+      connectionRepository: dp.connectionRepository,
       chatId: widget.chatId,
     )..add(ChatEventInit(chatId: widget.chatId, otherUser: widget.otherUser));
     super.initState();
@@ -77,15 +83,19 @@ class _ChatScreenState extends State<ChatScreen> {
             resizeToAvoidBottomInset: true,
             floatingActionButton: _ReadButton(
               scrollController: _scrollController,
+              chatId: widget.chatId,
               key: const Key('chat_read_button'),
             ),
             appBar: const _AppBar(key: Key('chat_appbar')),
             body: _Body(
-              chatBloc: _chatBloc,
               scrollController: _scrollController,
               onRetry: () {
                 _chatBloc.add(
-                  ChatEventLoad(chatId: widget.chatId, otherUser: widget.otherUser),
+                  ChatEventLoad(
+                    chatId: widget.chatId,
+                    otherUser: widget.otherUser,
+                    withCache: false,
+                  ),
                 );
               },
               key: const Key('chat_body'),
@@ -99,15 +109,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
 /// body
 class _Body extends StatefulWidget {
-  const _Body({
-    required this.scrollController,
-    required this.chatBloc,
-    required this.onRetry,
-    super.key,
-  });
+  const _Body({required this.scrollController, required this.onRetry, super.key});
 
   final ScrollController scrollController;
-  final ChatBloc chatBloc;
   final VoidCallback onRetry;
 
   @override
@@ -115,14 +119,13 @@ class _Body extends StatefulWidget {
 }
 
 class _BodyState extends State<_Body> {
-  /// int - messageId
-  final Map<int, (GlobalKey, Message)> _keys = {};
-  final Set<Message> _visibleMessages = {};
   bool _isScreenActive = false;
+  late final ChatBloc _chatBloc;
 
   /// callbacks
   @override
   void initState() {
+    _chatBloc = context.read<ChatBloc>();
     widget.scrollController.addListener(_onScrollListener);
     super.initState();
   }
@@ -181,24 +184,6 @@ class _BodyState extends State<_Body> {
         if (state is! ChatStateBase) return const SizedBox();
 
         final data = state.data;
-
-        /// not != but +1 cause it prevents scrolling on paging
-        /// TODO almost, except case when there's one new message
-        if (_keys.isNotEmpty && _keys.length + 1 == data.messages.length) {
-          /// if length of messages changes, need to maintain scrollPosition
-          _maintainScrollPos();
-        }
-        final oldKeys = Map.of(_keys);
-        _keys.clear();
-        for (final message in data.messages) {
-          _keys[message.id] = (oldKeys[message.id]?.$1 ?? GlobalKey(), message);
-        }
-        if (data.messages.isNotEmpty) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            /// to read new messages
-            _onScrollListener();
-          });
-        }
         return FocusDetector(
           key: Key('focus_detector_${data.chatId}'),
           onForegroundGained: () => _onResume(data.chatId),
@@ -224,14 +209,23 @@ class _BodyState extends State<_Body> {
                           controller: widget.scrollController,
                           padding: EdgeInsets.only(
                             bottom: 4,
-                            top: data.isAllMessagesLoaded ? 4 : 20,
+                            top: data.isAllMessagesLoaded ? 4 : 30,
                           ),
                           reverse: true,
                           itemCount: data.messages.length,
-                          itemBuilder: (context, i) => _MessageWidget(
-                            key: _keys[data.messages[i].id]!.$1,
-                            message: data.messages[i],
-                            user: data.otherUser ?? User.loading(),
+                          itemBuilder: (context, i) => VisibilityDetector(
+                            /// to check visibility on every messagesList changes
+                            /// (like the change of some fromCache statuses)
+                            key: Key(
+                              'visibility_detector_$i-${DateTime.now().millisecondsSinceEpoch}',
+                            ),
+                            onVisibilityChanged: (info) =>
+                                _onVisibilityChanged(info, data.messages[i]),
+                            child: _MessageWidget(
+                              key: Key('message_${data.messages[i].id}'),
+                              message: data.messages[i],
+                              user: data.otherUser ?? User.loading(),
+                            ),
                           ),
                         ),
                 ),
@@ -243,7 +237,7 @@ class _BodyState extends State<_Body> {
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeOut,
                   );
-                  context.read<ChatBloc>().add(
+                  _chatBloc.add(
                     ChatEventSendMessage(
                       message: message,
                       otherUserId: data.otherUser!.id,
@@ -260,72 +254,52 @@ class _BodyState extends State<_Body> {
     );
   }
 
+  void _onVisibilityChanged(VisibilityInfo info, Message message) {
+    if (_chatBloc.isClosed) return;
+
+    final isVisible = info.visibleFraction > 0.6;
+    if (!message.isRead &&
+        !message.isCurrentUser &&
+        !message.fromCache &&
+        isVisible) {
+      _chatBloc.add(ChatEventReadMessagesBeforeTime(time: message.createdAt));
+    }
+    if (message.fromCache) {
+      // print('MyLog2 visibleMessageFromCache: ${data.messages[i].message}');
+      _chatBloc.add(ChatEventLoadMore(cachedMessageId: message.id));
+    }
+  }
+
   /// listeners
   void _onScrollListener() {
     if (!widget.scrollController.hasClients || !_isScreenActive) return;
 
     if (widget.scrollController.offset >
-        widget.scrollController.position.maxScrollExtent - 100) {
-      widget.chatBloc.add(const ChatEventLoadMore());
-    }
-
-    if (_keys.isEmpty) return;
-
-    List<Message> newVisibleMessages = [];
-    double heightOffset = 0;
-    for (int i = 0; i < _keys.length; i++) {
-      final el = _keys.values.elementAt(i); // $1 - globalKey, $2 - message
-      if (el.$2.isCurrentUser || el.$2.isRead) break;
-
-      final renderBox = el.$1.currentContext?.findRenderObject() as RenderBox?;
-      if (renderBox == null) continue;
-      double widgetTop = renderBox.size.height;
-
-      double viewportTop = widget.scrollController.position.pixels;
-
-      widgetTop += heightOffset;
-      heightOffset += renderBox.size.height;
-
-      if (widgetTop >= viewportTop + 20) {
-        final isAdded = _visibleMessages.add(el.$2);
-        if (isAdded) {
-          newVisibleMessages.add(el.$2);
-          // print('newVisibleMessage: ${el.$2}');
-        }
-      } else {
-        final isRemoved = _visibleMessages.remove(el.$2);
-        if (isRemoved) {
-          // print('deletedVisibleMessage: ${el.$2}');
-        }
-      }
-    }
-    if (newVisibleMessages.isNotEmpty) {
-      widget.chatBloc.add(
-        ChatEventReadMessagesBeforeTime(time: newVisibleMessages[0].createdAt),
-      );
+        widget.scrollController.position.maxScrollExtent - 300) {
+      _chatBloc.add(const ChatEventLoadMore(cachedMessageId: null));
     }
   }
 
-  void _maintainScrollPos() {
-    if (!widget.scrollController.hasClients ||
-        widget.scrollController.offset == 0 ||
-        _keys.isEmpty)
-      return;
-
-    double currentOffset = widget.scrollController.offset;
-    widget.scrollController.jumpTo(currentOffset + 45);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      /// here new keys is already added
-      if (_keys.isEmpty) return;
-      final newMessageHeight =
-          (_keys.values.first.$1.currentContext!.findRenderObject() as RenderBox)
-              .size
-              .height;
-      if (newMessageHeight != 45) {
-        widget.scrollController.jumpTo(currentOffset + newMessageHeight);
-      }
-    });
-  }
+  // void _maintainScrollPos() {
+  //   if (!widget.scrollController.hasClients ||
+  //       widget.scrollController.offset == 0 ||
+  //       _keys.isEmpty)
+  //     return;
+  //
+  //   double currentOffset = widget.scrollController.offset;
+  //   widget.scrollController.jumpTo(currentOffset + 45);
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     /// here new keys is already added
+  //     if (_keys.isEmpty) return;
+  //     final newMessageHeight =
+  //         (_keys.values.first.$1.currentContext!.findRenderObject() as RenderBox)
+  //             .size
+  //             .height;
+  //     if (newMessageHeight != 45) {
+  //       widget.scrollController.jumpTo(currentOffset + newMessageHeight);
+  //     }
+  //   });
+  // }
 }
 
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
