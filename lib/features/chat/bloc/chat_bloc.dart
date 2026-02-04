@@ -7,6 +7,7 @@ import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/connection_repository.dart';
 import 'package:kepleomax/core/data/messenger_repository.dart';
 import 'package:kepleomax/core/data/models/messages_collection.dart';
+import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/main.dart';
@@ -266,8 +267,21 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onEmitMessages(ChatEventEmitMessages event, Emitter<ChatState> emit) {
+    final messages = event.data.messages.toList(growable: false);
+    final newMessage = <Message>[];
+    for (int i = 0; i < messages.length; i++) {
+      newMessage.add(messages[i]);
+      final createdAt1 = messages[i].createdAt;
+      final createdAt2 = messages.elementAtOrNull(i + 1)?.createdAt;
+      if (createdAt2 == null ||
+          createdAt1.day > createdAt2.day ||
+          createdAt1.month > createdAt2.month ||
+          createdAt1.year > createdAt2.year) {
+        newMessage.add(Message.date(createdAt1));
+      }
+    }
     _data = _data.copyWith(
-      messages: event.data.messages.toList(growable: false),
+      messages: newMessage,
       isLoading: event.data.maintainLoading,
     );
     if (event.data.allMessagesLoaded != null) {
@@ -356,7 +370,7 @@ class ChatEventReadAllMessages implements ChatEvent {
 }
 
 class ChatEventReadMessagesBeforeTime implements ChatEvent {
-  final int time;
+  final DateTime time;
 
   ChatEventReadMessagesBeforeTime({required this.time});
 }

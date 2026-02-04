@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Post {
 
- int get id; User get user; String get content; List<String> get images; int get likesCount; int get createdAt; bool get isMockLoadingPost; int? get updatedAt;
+ int get id; User get user; String get content; List<String> get images; int get likesCount; DateTime get createdAt; bool get isMockLoadingPost; DateTime? get updatedAt;
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $PostCopyWith<$Res>  {
   factory $PostCopyWith(Post value, $Res Function(Post) _then) = _$PostCopyWithImpl;
 @useResult
 $Res call({
- int id, User user, String content, List<String> images, int likesCount, int createdAt, bool isMockLoadingPost, int? updatedAt
+ int id, User user, String content, List<String> images, int likesCount, DateTime createdAt, bool isMockLoadingPost, DateTime? updatedAt
 });
 
 
@@ -70,9 +70,9 @@ as User,content: null == content ? _self.content : content // ignore: cast_nulla
 as String,images: null == images ? _self.images : images // ignore: cast_nullable_to_non_nullable
 as List<String>,likesCount: null == likesCount ? _self.likesCount : likesCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as int,isMockLoadingPost: null == isMockLoadingPost ? _self.isMockLoadingPost : isMockLoadingPost // ignore: cast_nullable_to_non_nullable
+as DateTime,isMockLoadingPost: null == isMockLoadingPost ? _self.isMockLoadingPost : isMockLoadingPost // ignore: cast_nullable_to_non_nullable
 as bool,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as int?,
+as DateTime?,
   ));
 }
 /// Create a copy of Post
@@ -166,7 +166,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  User user,  String content,  List<String> images,  int likesCount,  int createdAt,  bool isMockLoadingPost,  int? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  User user,  String content,  List<String> images,  int likesCount,  DateTime createdAt,  bool isMockLoadingPost,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Post() when $default != null:
 return $default(_that.id,_that.user,_that.content,_that.images,_that.likesCount,_that.createdAt,_that.isMockLoadingPost,_that.updatedAt);case _:
@@ -187,7 +187,7 @@ return $default(_that.id,_that.user,_that.content,_that.images,_that.likesCount,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  User user,  String content,  List<String> images,  int likesCount,  int createdAt,  bool isMockLoadingPost,  int? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  User user,  String content,  List<String> images,  int likesCount,  DateTime createdAt,  bool isMockLoadingPost,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Post():
 return $default(_that.id,_that.user,_that.content,_that.images,_that.likesCount,_that.createdAt,_that.isMockLoadingPost,_that.updatedAt);case _:
@@ -207,7 +207,7 @@ return $default(_that.id,_that.user,_that.content,_that.images,_that.likesCount,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  User user,  String content,  List<String> images,  int likesCount,  int createdAt,  bool isMockLoadingPost,  int? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  User user,  String content,  List<String> images,  int likesCount,  DateTime createdAt,  bool isMockLoadingPost,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Post() when $default != null:
 return $default(_that.id,_that.user,_that.content,_that.images,_that.likesCount,_that.createdAt,_that.isMockLoadingPost,_that.updatedAt);case _:
@@ -236,9 +236,9 @@ class _Post implements Post {
 }
 
 @override final  int likesCount;
-@override final  int createdAt;
+@override final  DateTime createdAt;
 @override@JsonKey() final  bool isMockLoadingPost;
-@override final  int? updatedAt;
+@override final  DateTime? updatedAt;
 
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
@@ -270,7 +270,7 @@ abstract mixin class _$PostCopyWith<$Res> implements $PostCopyWith<$Res> {
   factory _$PostCopyWith(_Post value, $Res Function(_Post) _then) = __$PostCopyWithImpl;
 @override @useResult
 $Res call({
- int id, User user, String content, List<String> images, int likesCount, int createdAt, bool isMockLoadingPost, int? updatedAt
+ int id, User user, String content, List<String> images, int likesCount, DateTime createdAt, bool isMockLoadingPost, DateTime? updatedAt
 });
 
 
@@ -295,9 +295,9 @@ as User,content: null == content ? _self.content : content // ignore: cast_nulla
 as String,images: null == images ? _self._images : images // ignore: cast_nullable_to_non_nullable
 as List<String>,likesCount: null == likesCount ? _self.likesCount : likesCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as int,isMockLoadingPost: null == isMockLoadingPost ? _self.isMockLoadingPost : isMockLoadingPost // ignore: cast_nullable_to_non_nullable
+as DateTime,isMockLoadingPost: null == isMockLoadingPost ? _self.isMockLoadingPost : isMockLoadingPost // ignore: cast_nullable_to_non_nullable
 as bool,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as int?,
+as DateTime?,
   ));
 }
 

@@ -7,6 +7,9 @@ part 'message.freezed.dart';
 abstract class Message with _$Message {
   const Message._();
 
+  static const unreadMessagesId = -2;
+  static const dateId = -3;
+
   const factory Message({
     required int id,
     required int chatId,
@@ -15,11 +18,11 @@ abstract class Message with _$Message {
     required String message,
     required bool fromCache,
     required bool isRead,
-    required int createdAt,
-    required int? editedAt,
+    required DateTime createdAt,
+    required DateTime? editedAt,
   }) = _Message;
 
-  factory Message.loading() => const Message(
+  factory Message.loading() => Message(
     id: -3,
     senderId: -1,
     isCurrentUser: false,
@@ -27,8 +30,8 @@ abstract class Message with _$Message {
     message: '---------------------------',
     chatId: -1,
     isRead: true,
-    createdAt: 0,
-    editedAt: 0,
+    createdAt: DateTime(10000),
+    editedAt: null,
   );
 
   factory Message.fromDto(MessageDto dto) => Message(
@@ -39,8 +42,10 @@ abstract class Message with _$Message {
     message: dto.message,
     fromCache: dto.fromCache,
     isRead: dto.isRead,
-    createdAt: dto.createdAt,
-    editedAt: dto.editedAt,
+    createdAt: DateTime.fromMillisecondsSinceEpoch(dto.createdAt),
+    editedAt: dto.editedAt == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(dto.editedAt!),
   );
 
   MessageDto toDto() => MessageDto(
@@ -52,25 +57,37 @@ abstract class Message with _$Message {
     //otherUserId: null,
     message: message,
     isRead: isRead,
-    createdAt: createdAt,
-    editedAt: editedAt,
+    createdAt: createdAt.millisecondsSinceEpoch,
+    editedAt: editedAt?.millisecondsSinceEpoch,
     fromCache: fromCache,
   );
 
+  /// TODO make it better
   /// used to display line in the ui
-  factory Message.unreadMessages() => const Message(
-    id: -2,
-    //user: User.loading(),
+  factory Message.unreadMessages() => Message(
+    id: unreadMessagesId,
     senderId: -1,
     fromCache: false,
     // TODO true or false to work properly?
     isCurrentUser: false,
     message: '',
     chatId: -1,
-
-    /// should be true so counter of unread messages works properly
+    // should be true so counter of unread messages works properly
     isRead: true,
-    createdAt: 0,
+    createdAt: DateTime(10000),
+    editedAt: null,
+  );
+
+  factory Message.date(DateTime dateTime) => Message(
+    id: dateId,
+    senderId: -1,
+    fromCache: false,
+    isCurrentUser: false,
+    message: '',
+    chatId: -1,
+    // should be true so counter of unread messages works properly
+    isRead: true,
+    createdAt: dateTime,
     editedAt: null,
   );
 }

@@ -63,6 +63,8 @@ class MessengerRepository implements IMessengerRepository {
     _webSocket.readMessagesStream.listen(_onReadMessages, cancelOnError: false);
   }
 
+  /// websocket listeners
+  // TODO make tests
   void _onNewMessage(MessageDto messageDto) {
     _messagesLocal.insert(messageDto);
 
@@ -94,6 +96,7 @@ class MessengerRepository implements IMessengerRepository {
     }
   }
 
+  // TODO make tests
   void _onReadMessages(ReadMessagesUpdate update) {
     _messagesLocal.readMessages(update);
 
@@ -104,19 +107,34 @@ class MessengerRepository implements IMessengerRepository {
       _emitMessagesCollection(MessagesCollection(messages: messages));
     }
 
-    if (_lastChatsCollection != null && !update.isCurrentUser) {
-      _chatsLocal.decreaseUnreadCount(update.chatId, update.messagesIds.length);
-      final chats = _lastChatsCollection!.chats.map(
-        (chat) => chat.id == update.chatId
-            ? chat.copyWith(
-                unreadCount: chat.unreadCount - update.messagesIds.length,
-              )
-            : chat,
-      );
-      _emitChatsCollection(ChatsCollection(chats: chats));
+    if (_lastChatsCollection != null) {
+      if (!update.isCurrentUser) {
+        _chatsLocal.decreaseUnreadCount(update.chatId, update.messagesIds.length);
+        final chats = _lastChatsCollection!.chats.map(
+          (chat) => chat.id == update.chatId
+              ? chat.copyWith(
+                  unreadCount: chat.unreadCount - update.messagesIds.length,
+                )
+              : chat,
+        );
+        _emitChatsCollection(ChatsCollection(chats: chats));
+      } else if (update.messagesIds.contains(
+        _lastChatsCollection!.chats
+            .firstWhereOrNull((c) => c.id == update.chatId)
+            ?.lastMessage
+            ?.id,
+      )) {
+        final chats = _lastChatsCollection!.chats.map(
+          (chat) => chat.id == update.chatId
+              ? chat.copyWith(lastMessage: chat.lastMessage!.copyWith(isRead: true))
+              : chat,
+        );
+        _emitChatsCollection(ChatsCollection(chats: chats));
+      }
     }
   }
 
+  /// emitters
   void _emitMessagesCollection(MessagesCollection collection) {
     _messagesUpdatesController.add(collection);
     _lastMessagesCollection = collection;
@@ -165,6 +183,8 @@ class MessengerRepository implements IMessengerRepository {
     List<MessageDto> cache = [];
     if (withCache) {
       cache = await _messagesLocal.getMessagesByChatId(chatId);
+
+      /// TODO add unreadMessages
       _emitMessagesCollection(
         MessagesCollection(
           messages: cache.map(Message.fromDto),
@@ -182,6 +202,8 @@ class MessengerRepository implements IMessengerRepository {
       cache.map(Message.fromDto),
       apiMessagesDtos,
     );
+
+    /// TODO add unreadMessages
     _emitMessagesCollection(
       MessagesCollection(messages: newList, maintainLoading: false),
     );
@@ -193,7 +215,7 @@ class MessengerRepository implements IMessengerRepository {
     Iterable<MessageDto> messages,
   ) async {
     if (cache.isEmpty) return messages.map(Message.fromDto);
-    
+
     final newList = List<Message>.from(cache);
 
     final firstIndex = newList.indexWhere((e) => e.id == messages.first.id);
@@ -247,7 +269,9 @@ class MessengerRepository implements IMessengerRepository {
       cursor: messages.lastWhere((e) => !e.fromCache).id,
     );
     if (newMessagesDtos.isEmpty) {
-      print('MyLog newMessagesDtos is empty, chatId: $chatId, toMessageId: $toMessageId, limit: $newLimit');
+      print(
+        'MyLog newMessagesDtos is empty, chatId: $chatId, toMessageId: $toMessageId, limit: $newLimit',
+      );
       _emitMessagesCollection(
         MessagesCollection(
           messages: messages,
@@ -260,7 +284,9 @@ class MessengerRepository implements IMessengerRepository {
 
     final newList = await _combineCacheAndApi(messages, newMessagesDtos);
 
-    print('MyLog, newLimit: $newLimit, newMessagesLength: ${newMessagesDtos.length}');
+    print(
+      'MyLog, newLimit: $newLimit, newMessagesLength: ${newMessagesDtos.length}',
+    );
     _emitMessagesCollection(
       MessagesCollection(
         messages: newList,

@@ -11,7 +11,7 @@ abstract class IConnectionRepository {
 
   void readAllMessages({required int chatId});
 
-  void readMessageBeforeTime({required int chatId, required int time});
+  void readMessageBeforeTime({required int chatId, required DateTime time});
 
   Stream<bool> get connectionStateStream;
 
@@ -45,7 +45,7 @@ class ConnectionRepository implements IConnectionRepository {
       _webSocket.readAllMessages(chatId: chatId);
 
   @override
-  void readMessageBeforeTime({required int chatId, required int time}) =>
+  void readMessageBeforeTime({required int chatId, required DateTime time}) =>
       _webSocket.readMessageBeforeTime(chatId: chatId, time: time);
 
   @override

@@ -130,9 +130,9 @@ class MessagesWebSocket {
     }
   }
 
-  void readMessageBeforeTime({required int chatId, required int time}) {
+  void readMessageBeforeTime({required int chatId, required DateTime time}) {
     if (_socket?.connected ?? false) {
-      _socket!.emit('read_before_time', {'chat_id': chatId, 'time': time});
+      _socket!.emit('read_before_time', {'chat_id': chatId, 'time': time.millisecondsSinceEpoch});
     }
   }
 }

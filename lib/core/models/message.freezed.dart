@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Message {
 
- int get id; int get chatId; int get senderId; bool get isCurrentUser; String get message; bool get fromCache; bool get isRead; int get createdAt; int? get editedAt;
+ int get id; int get chatId; int get senderId; bool get isCurrentUser; String get message; bool get fromCache; bool get isRead; DateTime get createdAt; DateTime? get editedAt;
 /// Create a copy of Message
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $MessageCopyWith<$Res>  {
   factory $MessageCopyWith(Message value, $Res Function(Message) _then) = _$MessageCopyWithImpl;
 @useResult
 $Res call({
- int id, int chatId, int senderId, bool isCurrentUser, String message, bool fromCache, bool isRead, int createdAt, int? editedAt
+ int id, int chatId, int senderId, bool isCurrentUser, String message, bool fromCache, bool isRead, DateTime createdAt, DateTime? editedAt
 });
 
 
@@ -72,8 +72,8 @@ as bool,message: null == message ? _self.message : message // ignore: cast_nulla
 as String,fromCache: null == fromCache ? _self.fromCache : fromCache // ignore: cast_nullable_to_non_nullable
 as bool,isRead: null == isRead ? _self.isRead : isRead // ignore: cast_nullable_to_non_nullable
 as bool,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as int,editedAt: freezed == editedAt ? _self.editedAt : editedAt // ignore: cast_nullable_to_non_nullable
-as int?,
+as DateTime,editedAt: freezed == editedAt ? _self.editedAt : editedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -158,7 +158,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int chatId,  int senderId,  bool isCurrentUser,  String message,  bool fromCache,  bool isRead,  int createdAt,  int? editedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int chatId,  int senderId,  bool isCurrentUser,  String message,  bool fromCache,  bool isRead,  DateTime createdAt,  DateTime? editedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Message() when $default != null:
 return $default(_that.id,_that.chatId,_that.senderId,_that.isCurrentUser,_that.message,_that.fromCache,_that.isRead,_that.createdAt,_that.editedAt);case _:
@@ -179,7 +179,7 @@ return $default(_that.id,_that.chatId,_that.senderId,_that.isCurrentUser,_that.m
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int chatId,  int senderId,  bool isCurrentUser,  String message,  bool fromCache,  bool isRead,  int createdAt,  int? editedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int chatId,  int senderId,  bool isCurrentUser,  String message,  bool fromCache,  bool isRead,  DateTime createdAt,  DateTime? editedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Message():
 return $default(_that.id,_that.chatId,_that.senderId,_that.isCurrentUser,_that.message,_that.fromCache,_that.isRead,_that.createdAt,_that.editedAt);case _:
@@ -199,7 +199,7 @@ return $default(_that.id,_that.chatId,_that.senderId,_that.isCurrentUser,_that.m
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int chatId,  int senderId,  bool isCurrentUser,  String message,  bool fromCache,  bool isRead,  int createdAt,  int? editedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int chatId,  int senderId,  bool isCurrentUser,  String message,  bool fromCache,  bool isRead,  DateTime createdAt,  DateTime? editedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Message() when $default != null:
 return $default(_that.id,_that.chatId,_that.senderId,_that.isCurrentUser,_that.message,_that.fromCache,_that.isRead,_that.createdAt,_that.editedAt);case _:
@@ -224,8 +224,8 @@ class _Message extends Message {
 @override final  String message;
 @override final  bool fromCache;
 @override final  bool isRead;
-@override final  int createdAt;
-@override final  int? editedAt;
+@override final  DateTime createdAt;
+@override final  DateTime? editedAt;
 
 /// Create a copy of Message
 /// with the given fields replaced by the non-null parameter values.
@@ -257,7 +257,7 @@ abstract mixin class _$MessageCopyWith<$Res> implements $MessageCopyWith<$Res> {
   factory _$MessageCopyWith(_Message value, $Res Function(_Message) _then) = __$MessageCopyWithImpl;
 @override @useResult
 $Res call({
- int id, int chatId, int senderId, bool isCurrentUser, String message, bool fromCache, bool isRead, int createdAt, int? editedAt
+ int id, int chatId, int senderId, bool isCurrentUser, String message, bool fromCache, bool isRead, DateTime createdAt, DateTime? editedAt
 });
 
 
@@ -284,8 +284,8 @@ as bool,message: null == message ? _self.message : message // ignore: cast_nulla
 as String,fromCache: null == fromCache ? _self.fromCache : fromCache // ignore: cast_nullable_to_non_nullable
 as bool,isRead: null == isRead ? _self.isRead : isRead // ignore: cast_nullable_to_non_nullable
 as bool,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as int,editedAt: freezed == editedAt ? _self.editedAt : editedAt // ignore: cast_nullable_to_non_nullable
-as int?,
+as DateTime,editedAt: freezed == editedAt ? _self.editedAt : editedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

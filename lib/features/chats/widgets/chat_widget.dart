@@ -72,7 +72,7 @@ class _ChatWidget extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              ' • ${ParseTime.unixTimeToPassTimeSlim(chat.lastMessage!.createdAt)}',
+                              ' • ${ParseTime.toPassTimeSlim(chat.lastMessage!.createdAt)}',
                               style: context.textTheme.bodyLarge?.copyWith(
                                 color: Colors.grey,
                               ),
