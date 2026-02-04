@@ -52,6 +52,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       cancelOnError: false,
     );
 
+    /// TODO why there is ChatEventReadMessagesBeforeTime here?
     on<ChatEvent>(
       (event, emit) => switch (event) {
         ChatEventLoad event => _onLoad(event, emit),
@@ -115,20 +116,33 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     );
     emit(ChatStateBase(data: _data));
 
-    int chatId = event.chatId;
     try {
+      int chatId = event.chatId;
+
       /// either chatId == -1 and we have otherUser, or otherUser == null and we have chatId
-      if (event.chatId == -1) {
-        final chat = await _chatsRepository.getChatWithUser(event.otherUser!.id);
-        if (chat == null) {
+      if (chatId == -1) {
+        /// if someday the logic will be changed so chatId will be able to change, this is a potential bug spot
+        /// cause if we have cache, we don't check actual data from api BUT now everytime when chats are
+        /// loaded, cache be cleared and new chats are stored there. So if chatId will be changed
+        /// cache will be updated after next LoadChatsEvent() in chats_bloc
+        final cachedChat = await _chatsRepository.getChatWithUserFromCache(
+          event.otherUser!.id,
+        );
+        if (cachedChat != null) {
+          chatId = cachedChat.id;
+        } else {
+          final chat = await _chatsRepository.getChatWithUser(event.otherUser!.id);
+          chatId = chat?.id ?? -1;
+        }
+
+        if (chatId == -1) {
           /// it's new chat with new user
           _data = _data.copyWith(chatId: -1, isLoading: false, messages: []);
           emit(ChatStateBase(data: _data));
           return;
         } else {
           /// it's existing chat with otherUser, but was opened not from chat page
-          chatId = chat.id;
-          _data = _data.copyWith(chatId: chat.id);
+          _data = _data.copyWith(chatId: chatId);
         }
       } else if (event.otherUser == null) {
         /// chat was opened from notification
@@ -136,14 +150,18 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         _data = _data.copyWith(otherUser: chat!.otherUser);
       }
 
+      print(
+        'MyLog loadMessages with chatId: $chatId, withCache: ${event.withCache}',
+      );
       await _messengerRepository.loadMessages(
         chatId: chatId,
         withCache: event.withCache,
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);
-      emit(ChatStateError(message: e.userErrorMessage));
-      return;
+      emit(ChatStateMessage(message: e.userErrorMessage, isError: true));
+      _data = _data.copyWith(isLoading: false);
+      emit(ChatStateBase(data: _data));
     }
   }
 
@@ -181,50 +199,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   //   return newList;
   // }
 
-  // void _onLoadCache(ChatEventLoadCache event, Emitter<ChatState> emit) async {
-  //   try {
-  //     print(
-  //       'ChatBloc onLoadCache: chatId: ${event.chatId}, otherUser: ${event.otherUser}',
-  //     );
-  //
-  //     /// set chatId
-  //     final int? chatId;
-  //     if (event.chatId == -1) {
-  //       chatId = (await _chatsRepository.getChatWithUserFromCache(
-  //         event.otherUser!.id,
-  //       ))?.id;
-  //     } else {
-  //       chatId = event.chatId;
-  //     }
-  //
-  //     /// get cache
-  //     final List<Message> cache = chatId == null || chatId == -1
-  //         ? []
-  //         : await _messagesRepository.getMessagesFromCache(chatId: chatId);
-  //
-  //     /// set otherUser
-  //     final User? otherUser;
-  //     if (event.otherUser == null) {
-  //       final chat = await _chatsRepository.getChatWithIdFromCache(chatId!);
-  //       otherUser = chat?.otherUser;
-  //     } else {
-  //       otherUser = event.otherUser;
-  //     }
-  //
-  //     print('ChatBloc loadCache, set chatId: $chatId, otherUser: $otherUser');
-  //     _data = _data.copyWith(
-  //       chatId: chatId ?? -1,
-  //       messages: _withUnreadMessages(cache),
-  //       otherUser: otherUser,
-  //     );
-  //   } catch (e, st) {
-  //     logger.e(e, stackTrace: st);
-  //     emit(const ChatStateMessage(message: 'Failed to load cache', isError: true));
-  //   } finally {
-  //     emit(ChatStateBase(data: _data));
-  //   }
-  // }
-
   void _onReadMessagesBeforeTime(
     ChatEventReadMessagesBeforeTime event,
     Emitter<ChatState> emit,
@@ -239,27 +213,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   void _onReadAllMessages(ChatEventReadAllMessages event, Emitter<ChatState> emit) {
     _connectionRepository.readAllMessages(chatId: _data.chatId);
   }
-
-  // void _onReadMessagesUpdate(
-  //   ChatEventReadMessagesUpdate event,
-  //   Emitter<ChatState> emit,
-  // ) {
-  //   if (_data.chatId != event.updates.chatId) return;
-  //
-  //   final updates = event.updates.messagesIds;
-  //   final newMessages = <Message>[];
-  //   for (final message in _data.messages) {
-  //     /// TODO optimize
-  //     if (updates.contains(message.id)) {
-  //       newMessages.add(message.copyWith(isRead: true));
-  //       NotificationService.instance.closeNotification(message.id);
-  //     } else {
-  //       newMessages.add(message);
-  //     }
-  //   }
-  //   _data = _data.copyWith(messages: newMessages);
-  //   emit(ChatStateBase(data: _data));
-  // }
 
   void _onSendMessage(ChatEventSendMessage event, Emitter<ChatState> emit) {
     _connectionRepository.sendMessage(
@@ -288,7 +241,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     ChatEventConnectingChanged event,
     Emitter<ChatState> emit,
   ) {
-    print('ChatBloc connectionChanged: ${event.isConnected}');
     _data = _data.copyWith(isConnected: event.isConnected);
     emit(ChatStateBase(data: _data));
 
@@ -360,7 +312,10 @@ class ChatEventLoad implements ChatEvent {
     required this.chatId,
     required this.otherUser,
     required this.withCache,
-  });
+  }) : assert(
+         otherUser != null || chatId != -1,
+         "otherUser and chatId can't be empty at the same time",
+       );
 }
 
 class ChatEventEmitMessages implements ChatEvent {

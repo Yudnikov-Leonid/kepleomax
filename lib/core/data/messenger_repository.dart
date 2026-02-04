@@ -192,12 +192,14 @@ class MessengerRepository implements IMessengerRepository {
     Iterable<Message> cache,
     Iterable<MessageDto> messages,
   ) async {
+    if (cache.isEmpty) return messages.map(Message.fromDto);
+    
     final newList = List<Message>.from(cache);
 
     final firstIndex = newList.indexWhere((e) => e.id == messages.first.id);
     final lastIndex = newList.indexWhere((e) => e.id == messages.last.id);
 
-    print('MyLog firstIndex: $firstIndex, lastIndex: $lastIndex');
+    //print('MyLog firstIndex: $firstIndex, lastIndex: $lastIndex');
 
     /// todo handle -1
     if (firstIndex == -1 && lastIndex == -1) {
@@ -244,8 +246,8 @@ class MessengerRepository implements IMessengerRepository {
       limit: newLimit,
       cursor: messages.lastWhere((e) => !e.fromCache).id,
     );
-    final newMessages = newMessagesDtos.map(Message.fromDto);
-    if (newMessages.isEmpty) {
+    if (newMessagesDtos.isEmpty) {
+      print('MyLog newMessagesDtos is empty, chatId: $chatId, toMessageId: $toMessageId, limit: $newLimit');
       _emitMessagesCollection(
         MessagesCollection(
           messages: messages,
@@ -258,12 +260,12 @@ class MessengerRepository implements IMessengerRepository {
 
     final newList = await _combineCacheAndApi(messages, newMessagesDtos);
 
-    print('MyLog, newLimit: $newLimit, newMessagesLength: ${newMessages.length}');
+    print('MyLog, newLimit: $newLimit, newMessagesLength: ${newMessagesDtos.length}');
     _emitMessagesCollection(
       MessagesCollection(
         messages: newList,
         maintainLoading: false,
-        allMessagesLoaded: newLimit > newMessages.length,
+        allMessagesLoaded: newLimit > newMessagesDtos.length,
       ),
     );
   }

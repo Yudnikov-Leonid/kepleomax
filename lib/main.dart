@@ -9,7 +9,11 @@ import 'core/di/initialize_dependencies.dart';
 import 'core/flavor/flavor.dart';
 
 final Logger logger = Logger(
-  printer: PrettyPrinter(noBoxingByDefault: true, methodCount: 10),
+  printer: PrettyPrinter(
+    noBoxingByDefault: true,
+    methodCount: 10,
+    errorMethodCount: 10,
+  ),
 );
 
 late Flavor flavor;

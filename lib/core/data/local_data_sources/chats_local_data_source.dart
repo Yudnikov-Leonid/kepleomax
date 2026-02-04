@@ -40,8 +40,9 @@ class ChatsLocalDataSource implements IChatsLocalDataSource {
       where: 'id = ?',
       whereArgs: [query.first['other_user_id']],
     );
-    if (otherUser.isEmpty)
-      throw Exception('otherUser in cache not found'); //todo what to return?
+    if (otherUser.isEmpty) {
+      throw Exception('otherUser in cache not found');
+    }
     final newJson = Map<String, dynamic>.from(query.first);
     newJson['other_user_id'] = null;
     newJson['other_user'] = otherUser.firstOrNull;
@@ -72,8 +73,9 @@ class ChatsLocalDataSource implements IChatsLocalDataSource {
         where: 'id = ?',
         whereArgs: [chat['other_user_id']],
       );
-      if (otherUser.isEmpty)
-        throw Exception('otherUser in cache not found'); //todo what to return?
+      if (otherUser.isEmpty) {
+        throw Exception('otherUser in cache not found');
+      }
       chat['other_user_id'] = null;
       chat['other_user'] = otherUser.first;
 
