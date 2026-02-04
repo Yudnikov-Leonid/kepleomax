@@ -6,6 +6,9 @@ import 'package:kepleomax/core/data/auth_repository.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/connection_repository.dart';
 import 'package:kepleomax/core/data/files_repository.dart';
+import 'package:kepleomax/core/data/local_data_sources/chats_local_data_source.dart';
+import 'package:kepleomax/core/data/local_data_sources/messages_local_data_source.dart';
+import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.dart';
 import 'package:kepleomax/core/data/messenger_repository.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
@@ -41,6 +44,10 @@ class Dependencies {
   late final MessagesApi messagesApi;
   late final ChatsApi chatsApi;
   late final MessagesWebSocket messagesWebSocket;
+
+  late final IUsersLocalDataSource usersLocalDataSource;
+  late final IMessagesLocalDataSource messagesLocalDataSource;
+  late final IChatsLocalDataSource chatsLocalDataSource;
 
   late final IAuthRepository authRepository;
   late final IUserRepository userRepository;

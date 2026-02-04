@@ -4,6 +4,8 @@ import 'package:sqflite/sqflite.dart';
 abstract class IUsersLocalDataSource {
   Future<void> insert(UserDto user);
 
+  Future<void> insertAll(Iterable<UserDto> users);
+
   Future<UserDto?> getUserById(int id);
 }
 
@@ -21,6 +23,19 @@ class UsersLocalDataSource implements IUsersLocalDataSource {
       user.toLocalJson(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
+
+  @override
+  Future<void> insertAll(Iterable<UserDto> users) async {
+    await _database.transaction((ts) async {
+      for (final user in users) {
+        await ts.insert(
+          'users',
+          user.toLocalJson(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+    });
   }
 
   @override

@@ -109,7 +109,7 @@ class ChatsLocalDataSource implements IChatsLocalDataSource {
   @override
   Future<void> clearAndInsertChats(Iterable<ChatDto> chats) async {
     await _database.delete('chats');
-    _database.transaction((transaction) async {
+    await _database.transaction((transaction) async {
       for (final chat in chats) {
         await transaction.insert('chats', chat.toLocalJson());
       }

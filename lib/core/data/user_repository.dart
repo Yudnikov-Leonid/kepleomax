@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/models/user_profile.dart';
 import 'package:kepleomax/core/network/apis/files/files_api.dart';
@@ -31,14 +32,17 @@ class UserRepository implements IUserRepository {
   final UserApi _userApi;
   final ProfileApi _profileApi;
   final FilesApi _filesApi;
+  final IUsersLocalDataSource _usersLocalDataSource;
 
   UserRepository({
     required ProfileApi profileApi,
     required FilesApi filesApi,
     required UserApi userApi,
+    required IUsersLocalDataSource usersLocalDataSource,
   }) : _userApi = userApi,
        _profileApi = profileApi,
-       _filesApi = filesApi;
+       _filesApi = filesApi,
+       _usersLocalDataSource = usersLocalDataSource;
 
   @override
   Future<User> getUser({required int userId}) async {
@@ -50,7 +54,9 @@ class UserRepository implements IUserRepository {
       );
     }
 
-    return User.fromDto(res.data.data!);
+    final dto = res.data.data!;
+    _usersLocalDataSource.insert(dto).ignore();
+    return User.fromDto(dto);
   }
 
   @override
@@ -139,7 +145,9 @@ class UserRepository implements IUserRepository {
       );
     }
 
-    return res.data.data.map(User.fromDto).toList();
+    final dtos = res.data.data;
+    _usersLocalDataSource.insertAll(dtos).ignore();
+    return dtos.map(User.fromDto).toList();
   }
 
   @override

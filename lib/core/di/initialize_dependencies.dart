@@ -67,6 +67,9 @@ List<_InitializationStep> _steps = [
     call: (dependencies) async {
       final db = await LocalDatabaseManager.getDatabase();
       dependencies.database = db;
+      dependencies.usersLocalDataSource = UsersLocalDataSource(database: db);
+      dependencies.messagesLocalDataSource = MessagesLocalDataSource(database: db);
+      dependencies.chatsLocalDataSource = ChatsLocalDataSource(database: db);
     },
   ),
 
@@ -104,6 +107,7 @@ List<_InitializationStep> _steps = [
         profileApi: dependencies.profileApi,
         filesApi: dependencies.filesApi,
         userApi: dependencies.userApi,
+        usersLocalDataSource: dependencies.usersLocalDataSource,
       );
       final authController = AuthController(
         authRepository: dependencies.authRepository,
@@ -130,10 +134,6 @@ List<_InitializationStep> _steps = [
   _InitializationStep(
     name: 'apis, repositories',
     call: (dependencies) {
-      final chatsLocalDataSource = ChatsLocalDataSource(
-        database: dependencies.database,
-      );
-
       dependencies.postApi = PostApi(dependencies.dio, flavor.baseUrl);
       dependencies.messagesApi = MessagesApi(dependencies.dio, flavor.baseUrl);
       dependencies.chatsApi = ChatsApi(dependencies.dio, flavor.baseUrl);
@@ -153,13 +153,13 @@ List<_InitializationStep> _steps = [
         webSocket: dependencies.messagesWebSocket,
         messagesApi: MessagesApiDataSource(messagesApi: dependencies.messagesApi),
         chatsApi: ChatsApiDataSource(chatsApi: dependencies.chatsApi),
-        messagesLocal: MessagesLocalDataSource(database: dependencies.database),
-        chatsLocal: chatsLocalDataSource,
-        usersLocal: UsersLocalDataSource(database: dependencies.database),
+        messagesLocal: dependencies.messagesLocalDataSource,
+        chatsLocal: dependencies.chatsLocalDataSource,
+        usersLocal: dependencies.usersLocalDataSource,
       );
       dependencies.chatsRepository = ChatsRepository(
         chatsApi: dependencies.chatsApi,
-        chatsLocalDataSource: chatsLocalDataSource,
+        chatsLocalDataSource: dependencies.chatsLocalDataSource,
       );
     },
   ),
