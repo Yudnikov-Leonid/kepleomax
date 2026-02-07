@@ -76,6 +76,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     );
     on<ChatEventInit>(_onInit);
     on<ChatEventSendMessage>(_onSendMessage);
+    on<ChatEventDeleteMessage>(_onDeleteMessage);
     on<ChatEventReadAllMessages>(_onReadAllMessages);
     on<ChatEventConnectingChanged>(_onConnectionChanged);
     on<ChatEventChangeUnreadCount>(_onChangeUnreadCount);
@@ -217,9 +218,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   void _onSendMessage(ChatEventSendMessage event, Emitter<ChatState> emit) {
     _connectionRepository.sendMessage(
-      message: event.message,
-      recipientId: event.otherUserId,
+      messageBody: event.messageBody,
+      recipientId: _data.otherUser!.id,
     );
+  }
+
+  void _onDeleteMessage(ChatEventDeleteMessage event, Emitter<ChatState> emit) {
+    _connectionRepository.deleteMessage(messageId: event.messageId);
   }
 
   void _onLoadMore(ChatEventLoadMore event, Emitter<ChatState> emit) async {
@@ -359,10 +364,15 @@ class ChatEventConnectingChanged implements ChatEvent {
 }
 
 class ChatEventSendMessage implements ChatEvent {
-  final String message;
-  final int otherUserId;
+  final String messageBody;
 
-  const ChatEventSendMessage({required this.message, required this.otherUserId});
+  const ChatEventSendMessage({required this.messageBody});
+}
+
+class ChatEventDeleteMessage implements ChatEvent {
+  final int messageId;
+
+  ChatEventDeleteMessage({required this.messageId});
 }
 
 class ChatEventReadAllMessages implements ChatEvent {

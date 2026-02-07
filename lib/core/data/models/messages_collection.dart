@@ -1,15 +1,16 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kepleomax/core/models/message.dart';
 
-class MessagesCollection {
-  final Iterable<Message> messages;
+part 'messages_collection.freezed.dart';
 
-  /// if get messages from cache, loading still have to be visible
-  final bool maintainLoading;
-  final bool? allMessagesLoaded;
+@freezed
+abstract class MessagesCollection with _$MessagesCollection {
+  const factory MessagesCollection({
+    required int chatId,
+    required Iterable<Message> messages,
 
-  MessagesCollection({
-    required this.messages,
-    this.maintainLoading = false,
-    this.allMessagesLoaded,
-  });
+    /// if get messages from cache, loading still have to be visible
+    @Default(false) bool maintainLoading,
+    bool? allMessagesLoaded,
+  }) = _MessagesCollection;
 }

@@ -111,7 +111,11 @@ class ChatsLocalDataSource implements IChatsLocalDataSource {
     await _database.delete('chats');
     await _database.transaction((transaction) async {
       for (final chat in chats) {
-        await transaction.insert('chats', chat.toLocalJson());
+        await transaction.insert(
+          'chats',
+          chat.toLocalJson(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
       }
     });
   }

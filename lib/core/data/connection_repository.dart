@@ -7,7 +7,9 @@ abstract class IConnectionRepository {
 
   void reconnect({bool onlyIfNot = false});
 
-  void sendMessage({required String message, required int recipientId});
+  void sendMessage({required String messageBody, required int recipientId});
+
+  void deleteMessage({required int messageId});
 
   void readAllMessages({required int chatId});
 
@@ -37,8 +39,12 @@ class ConnectionRepository implements IConnectionRepository {
 
   /// ws sends
   @override
-  void sendMessage({required String message, required int recipientId}) =>
-      _webSocket.sendMessage(message: message.trim(), recipientId: recipientId);
+  void sendMessage({required String messageBody, required int recipientId}) =>
+      _webSocket.sendMessage(message: messageBody.trim(), recipientId: recipientId);
+
+  @override
+  void deleteMessage({required int messageId}) =>
+      _webSocket.deleteMessage(messageId: messageId);
 
   @override
   void readAllMessages({required int chatId}) =>

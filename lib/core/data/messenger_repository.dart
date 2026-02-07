@@ -8,6 +8,8 @@ import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
+import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
+import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
 
 import 'local_data_sources/chats_local_data_source.dart';
 import 'local_data_sources/messages_local_data_source.dart';
@@ -61,37 +63,41 @@ class MessengerRepository implements IMessengerRepository {
        _usersLocal = usersLocal {
     _webSocket.newMessageStream.listen(_onNewMessage, cancelOnError: false);
     _webSocket.readMessagesStream.listen(_onReadMessages, cancelOnError: false);
+    _webSocket.deletedMessageStream.listen(_onDeletedMessage, cancelOnError: false);
   }
 
-  /// websocket listeners
+  /// websocket listeners TODO need refactor, maybe put it in another class
   // TODO make tests
   void _onNewMessage(MessageDto messageDto) {
     _messagesLocal.insert(messageDto);
 
-    if (_lastMessagesCollection != null) {
-      final messages = <Message>[
+    if (_lastMessagesCollection != null &&
+        _lastMessagesCollection!.chatId == messageDto.chatId) {
+      final newList = <Message>[
         Message.fromDto(messageDto),
         ..._lastMessagesCollection!.messages,
       ];
-      _emitMessagesCollection(MessagesCollection(messages: messages));
+      _emitMessages(newList);
     }
 
     if (_lastChatsCollection != null) {
-      final chats = List<Chat>.from(_lastChatsCollection!.chats);
-      final chat = chats.firstWhereOrNull((chat) => chat.id == messageDto.chatId);
-      if (chat != null) {
-        _chatsLocal.increaseUnreadCountBy1(chat.id);
-        chats.remove(chat);
-        chats.insert(
+      final newChats = List<Chat>.from(_lastChatsCollection!.chats);
+      final affectedChat = newChats.firstWhereOrNull(
+        (chat) => chat.id == messageDto.chatId,
+      );
+      if (affectedChat != null) {
+        _chatsLocal.increaseUnreadCountBy1(affectedChat.id);
+        newChats.remove(affectedChat);
+        newChats.insert(
           0,
-          chat.copyWith(
+          affectedChat.copyWith(
             lastMessage: Message.fromDto(messageDto),
             unreadCount:
-                chat.unreadCount +
+                affectedChat.unreadCount +
                 (!messageDto.isCurrentUser && !messageDto.isRead ? 1 : 0),
           ),
         );
-        _emitChatsCollection(ChatsCollection(chats: chats));
+        _emitChatsCollection(ChatsCollection(chats: newChats));
       }
     }
   }
@@ -100,42 +106,91 @@ class MessengerRepository implements IMessengerRepository {
   void _onReadMessages(ReadMessagesUpdate update) {
     _messagesLocal.readMessages(update);
 
-    if (_lastMessagesCollection != null) {
-      final messages = _lastMessagesCollection!.messages.map(
+    if (_lastMessagesCollection != null &&
+        _lastMessagesCollection!.chatId == update.chatId) {
+      final newList = _lastMessagesCollection!.messages.map(
         (m) => update.messagesIds.contains(m.id) ? m.copyWith(isRead: true) : m,
       );
-      _emitMessagesCollection(MessagesCollection(messages: messages));
+      _emitMessages(newList);
     }
 
     if (_lastChatsCollection != null) {
       if (!update.isCurrentUser) {
         _chatsLocal.decreaseUnreadCount(update.chatId, update.messagesIds.length);
-        final chats = _lastChatsCollection!.chats.map(
+        final newList = _lastChatsCollection!.chats.map(
           (chat) => chat.id == update.chatId
               ? chat.copyWith(
                   unreadCount: chat.unreadCount - update.messagesIds.length,
                 )
               : chat,
         );
-        _emitChatsCollection(ChatsCollection(chats: chats));
+        _emitChatsCollection(ChatsCollection(chats: newList));
       } else if (update.messagesIds.contains(
         _lastChatsCollection!.chats
             .firstWhereOrNull((c) => c.id == update.chatId)
             ?.lastMessage
             ?.id,
       )) {
-        final chats = _lastChatsCollection!.chats.map(
+        final newList = _lastChatsCollection!.chats.map(
           (chat) => chat.id == update.chatId
               ? chat.copyWith(lastMessage: chat.lastMessage!.copyWith(isRead: true))
               : chat,
         );
-        _emitChatsCollection(ChatsCollection(chats: chats));
+        _emitChatsCollection(ChatsCollection(chats: newList));
+      }
+    }
+  }
+
+  /// TODO make test
+  void _onDeletedMessage(DeletedMessageUpdate update) {
+    _messagesLocal.deleteById(update.deletedMessage.id);
+
+    if (_lastMessagesCollection != null &&
+        _lastMessagesCollection!.chatId == update.chatId) {
+      final newList = _lastMessagesCollection!.messages.where(
+        (m) => m.id != update.deletedMessage.id,
+      );
+      _emitMessages(newList);
+    }
+
+    if (_lastChatsCollection != null) {
+      final newChats = List<Chat>.from(_lastChatsCollection!.chats);
+      final affectedChatIndex = newChats.indexWhere(
+        (chat) => chat.id == update.chatId,
+      );
+      if (affectedChatIndex != -1) {
+        final decreaseUnreadCount =
+            !update.deletedMessage.isCurrentUser && !update.deletedMessage.isRead;
+        final newUnreadCount =
+            newChats[affectedChatIndex].unreadCount - (decreaseUnreadCount ? 1 : 0);
+        if (update.newLastMessage != null) {
+          newChats[affectedChatIndex] = newChats[affectedChatIndex].copyWith(
+            lastMessage: Message.fromDto(update.newLastMessage!),
+            unreadCount: newUnreadCount,
+          );
+        } else {
+          newChats[affectedChatIndex] = newChats[affectedChatIndex].copyWith(
+            unreadCount: newUnreadCount,
+          );
+        }
+        newChats.sort(
+          (a, b) =>
+              (b.lastMessage?.createdAt.millisecondsSinceEpoch ?? 0) -
+              (a.lastMessage?.createdAt.millisecondsSinceEpoch ?? 0),
+        );
+        _emitChatsCollection(ChatsCollection(chats: newChats));
       }
     }
   }
 
   /// emitters
   void _emitMessagesCollection(MessagesCollection collection) {
+    _messagesUpdatesController.add(collection);
+    _lastMessagesCollection = collection;
+  }
+
+  void _emitMessages(Iterable<Message> messages) {
+    final collection = _lastMessagesCollection!.copyWith(messages: messages);
     _messagesUpdatesController.add(collection);
     _lastMessagesCollection = collection;
   }
@@ -188,6 +243,7 @@ class MessengerRepository implements IMessengerRepository {
       _emitMessagesCollection(
         MessagesCollection(
           messages: cache.map(Message.fromDto),
+          chatId: chatId,
           maintainLoading: true,
         ),
       );
@@ -205,7 +261,7 @@ class MessengerRepository implements IMessengerRepository {
 
     /// TODO add unreadMessages
     _emitMessagesCollection(
-      MessagesCollection(messages: newList, maintainLoading: false),
+      MessagesCollection(messages: newList, chatId: chatId, maintainLoading: false),
     );
     _messagesLocal.insertAll(apiMessagesDtos);
   }
@@ -250,7 +306,7 @@ class MessengerRepository implements IMessengerRepository {
     required int chatId,
     required int? toMessageId,
   }) async {
-    //await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 500));
     if (_lastMessagesCollection == null) return;
     final messages = _lastMessagesCollection!.messages;
     final messagesFromCache = messages.where((m) => m.fromCache).toList();
@@ -275,6 +331,7 @@ class MessengerRepository implements IMessengerRepository {
       _emitMessagesCollection(
         MessagesCollection(
           messages: messages,
+          chatId: chatId,
           maintainLoading: false,
           allMessagesLoaded: true,
         ),
@@ -290,6 +347,7 @@ class MessengerRepository implements IMessengerRepository {
     _emitMessagesCollection(
       MessagesCollection(
         messages: newList,
+        chatId: chatId,
         maintainLoading: false,
         allMessagesLoaded: newLimit > newMessagesDtos.length,
       ),

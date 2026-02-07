@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
+import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
 import 'package:kepleomax/main.dart';
 import 'package:socket_io_client/socket_io_client.dart';
+
+import 'models/read_messages_update.dart';
 
 class MessagesWebSocket {
   final String _baseUrl;
@@ -17,12 +20,16 @@ class MessagesWebSocket {
       StreamController.broadcast();
   final StreamController<ReadMessagesUpdate> _readMessagesController =
       StreamController.broadcast();
+  final StreamController<DeletedMessageUpdate> _deletedMessageController =
+      StreamController.broadcast();
   final StreamController<bool> _connectionController = StreamController.broadcast();
 
   Stream<MessageDto> get newMessageStream => _messageController.stream;
 
   Stream<ReadMessagesUpdate> get readMessagesStream =>
       _readMessagesController.stream;
+
+  Stream<DeletedMessageUpdate> get deletedMessageStream => _deletedMessageController.stream;
 
   Stream<bool> get connectionStateStream => _connectionController.stream;
 
@@ -63,16 +70,8 @@ class MessagesWebSocket {
     _socket!.onReconnect((_) async {
       logger.d('WebSocketLog Reconnect');
     });
-    _socket!.on('new_message', (data) {
-      logger.d('WebSocketLog new_message: $data');
-      final messageDto = MessageDto.fromJson(data, fromCache: false);
-      _messageController.add(messageDto);
-    });
-    _socket!.on('read_messages', (data) {
-      logger.d('WebSocketLog read_messages: $data');
-      final updates = ReadMessagesUpdate.fromJson(data);
-      _readMessagesController.add(updates);
-    });
+
+    /// errors events
     _socket!.onError((error) {
       logger.e('WebSocketLog error: $error');
     });
@@ -89,6 +88,23 @@ class MessagesWebSocket {
         _socket!.auth = {'token': 'Bearer $token'};
         _socket!.connect();
       }
+    });
+
+    /// logic events
+    _socket!.on('new_message', (data) {
+      logger.d('WebSocketLog new_message: $data');
+      final messageDto = MessageDto.fromJson(data, fromCache: false);
+      _messageController.add(messageDto);
+    });
+    _socket!.on('read_messages', (data) {
+      logger.d('WebSocketLog read_messages: $data');
+      final update = ReadMessagesUpdate.fromJson(data);
+      _readMessagesController.add(update);
+    });
+    _socket!.on('deleted_message', (data) {
+      logger.d('WebSocketLog deleted_message: $data');
+      final update = DeletedMessageUpdate.fromJson(data);
+      _deletedMessageController.add(update);
     });
   }
 
@@ -123,8 +139,13 @@ class MessagesWebSocket {
     }
   }
 
+  void deleteMessage({required int messageId}) {
+    if (_socket?.connected ?? false) {
+      _socket!.emit('delete_message', {'message_id': messageId});
+    }
+  }
+
   void readAllMessages({required int chatId}) {
-    print('WebSocketLog readAllMessages from chat: $chatId');
     if (_socket?.connected ?? false) {
       _socket!.emit('read_all', {'chat_id': chatId});
     }
@@ -132,38 +153,10 @@ class MessagesWebSocket {
 
   void readMessageBeforeTime({required int chatId, required DateTime time}) {
     if (_socket?.connected ?? false) {
-      _socket!.emit('read_before_time', {'chat_id': chatId, 'time': time.millisecondsSinceEpoch});
+      _socket!.emit('read_before_time', {
+        'chat_id': chatId,
+        'time': time.millisecondsSinceEpoch,
+      });
     }
   }
-}
-
-class ReadMessagesUpdate {
-  final int chatId;
-  final int senderId;
-  final bool isCurrentUser;
-  final List<int> messagesIds;
-
-  ReadMessagesUpdate({
-    required this.chatId,
-    required this.senderId,
-    required this.isCurrentUser,
-    required this.messagesIds,
-  });
-
-  factory ReadMessagesUpdate.fromJson(Map<String, dynamic> json) =>
-      ReadMessagesUpdate(
-        chatId: json['chat_id'],
-        senderId: json['sender_id'],
-        isCurrentUser: json['is_current_user'],
-        messagesIds: json['messages_ids']
-            .map<int>((id) => int.parse(id.toString()))
-            .toList(),
-      );
-}
-
-class OnlineStatusUpdate {
-  final int userId;
-  final bool newStatus;
-
-  OnlineStatusUpdate({required this.userId, required this.newStatus});
 }

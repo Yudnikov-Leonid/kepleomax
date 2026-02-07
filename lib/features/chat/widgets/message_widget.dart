@@ -1,10 +1,16 @@
 part of '../chat_screen.dart';
 
 class _MessageWidget extends StatelessWidget {
-  const _MessageWidget({required this.message, required this.user, super.key});
+  const _MessageWidget({
+    required this.message,
+    required this.user,
+    required this.onDelete,
+    super.key,
+  });
 
   final Message message;
   final User user;
+  final VoidCallback onDelete;
 
   bool get _isCurrent => message.isCurrentUser;
 
@@ -108,7 +114,7 @@ class _MessageWidget extends StatelessWidget {
                       children: [
                         Tooltip(
                           message: ParseTime.toPreciseDate(message.createdAt),
-                          triggerMode: TooltipTriggerMode.tap,
+                          triggerMode: TooltipTriggerMode.longPress,
                           preferBelow: false,
                           showDuration: const Duration(seconds: 5),
                           child: Text(
@@ -144,14 +150,13 @@ class _MessageWidget extends StatelessWidget {
 
   List<PopupMenuEntry> _items() {
     return [
-      _popupItem('Reply', Icons.reply, () {}),
+      if (!message.fromCache) _popupItem('Reply', Icons.reply, () {}),
       _popupItem('Copy', Icons.copy, () {
         Clipboard.setData(ClipboardData(text: message.message));
-        Fluttertoast.showToast(msg: 'Message is copied');
       }),
-      if (message.isCurrentUser) ...[
+      if (message.isCurrentUser && !message.fromCache) ...[
         _popupItem('Edit', Icons.edit, () {}),
-        _popupItem('Delete', Icons.delete, () {}, color: Colors.red),
+        _popupItem('Delete', Icons.delete, onDelete, color: Colors.red),
       ],
     ];
   }

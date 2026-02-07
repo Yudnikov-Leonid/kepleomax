@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:focus_detector/focus_detector.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/models/message.dart';
@@ -252,8 +251,15 @@ class _BodyState extends State<_Body> {
                                   _onVisibilityChanged(info, data.messages[i]),
                               child: _MessageWidget(
                                 key: Key('message_${data.messages[i].id}'),
-                                message: data.messages[i],
+                                onDelete: () {
+                                  _chatBloc.add(
+                                    ChatEventDeleteMessage(
+                                      messageId: data.messages[i].id,
+                                    ),
+                                  );
+                                },
                                 user: data.otherUser ?? User.loading(),
+                                message: data.messages[i],
                               ),
                             ),
                           ),
@@ -269,8 +275,7 @@ class _BodyState extends State<_Body> {
                   );
                   _chatBloc.add(
                     ChatEventSendMessage(
-                      message: message,
-                      otherUserId: data.otherUser!.id,
+                      messageBody: message,
                     ),
                   );
                 },

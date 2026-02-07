@@ -1,5 +1,5 @@
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
-import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
+import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
 import 'package:sqflite/sqflite.dart';
 
 abstract class IMessagesLocalDataSource {
@@ -77,14 +77,14 @@ class MessagesLocalDataSource implements IMessagesLocalDataSource {
 
   @override
   Future<void> deleteById(int id) async {
-    await _database.delete('messages', where: r'id = ?', whereArgs: [id]);
+    await _database.delete('messages', where: 'id = ?', whereArgs: [id]);
   }
 
   @override
   Future<void> deleteAllByIds(Iterable<int> ids) async {
     await _database.transaction((transaction) async {
       for (final id in ids) {
-        await transaction.delete('messages', where: r'id = ?', whereArgs: [id]);
+        await transaction.delete('messages', where: 'id = ?', whereArgs: [id]);
       }
     });
   }
