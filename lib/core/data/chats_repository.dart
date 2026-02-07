@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:kepleomax/core/data/local_data_sources/chats_local_data_source.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_api.dart';
-import 'package:kepleomax/core/network/common/api_constants.dart';
 
-abstract class IChatsRepository {
+
+abstract class ChatsRepository {
   /// api
   Future<Chat?> getChatWithUser(int otherUserId);
 
@@ -17,13 +17,13 @@ abstract class IChatsRepository {
   Future<Chat?> getChatWithIdFromCache(int chatId);
 }
 
-class ChatsRepository implements IChatsRepository {
+class ChatsRepositoryImpl implements ChatsRepository {
   final ChatsApi _chatsApi;
-  final IChatsLocalDataSource _chatsLocal;
+  final ChatsLocalDataSource _chatsLocal;
 
-  ChatsRepository({
+  ChatsRepositoryImpl({
     required ChatsApi chatsApi,
-    required IChatsLocalDataSource chatsLocalDataSource,
+    required ChatsLocalDataSource chatsLocalDataSource,
   }) : _chatsLocal = chatsLocalDataSource,
        _chatsApi = chatsApi;
 
@@ -31,8 +31,7 @@ class ChatsRepository implements IChatsRepository {
   @override
   Future<Chat?> getChatWithUser(int otherUserId) async {
     final res = await _chatsApi
-        .getChatWithUser(otherUserId: otherUserId)
-        .timeout(ApiConstants.timeout);
+        .getChatWithUser(otherUserId: otherUserId);
 
     if (res.response.statusCode == 404) {
       return null;
@@ -49,8 +48,7 @@ class ChatsRepository implements IChatsRepository {
   @override
   Future<Chat?> getChatWithId(int chatId) async {
     final res = await _chatsApi
-        .getChatWithId(chatId: chatId)
-        .timeout(ApiConstants.timeout);
+        .getChatWithId(chatId: chatId);
 
     if (res.response.statusCode == 404) {
       return null;

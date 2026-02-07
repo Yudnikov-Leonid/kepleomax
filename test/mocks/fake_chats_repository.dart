@@ -5,7 +5,7 @@ import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/models/user.dart';
 
-class FakeChatsRepository implements IChatsRepository {
+class FakeChatsRepository implements ChatsRepository {
   final _getChatsController = StreamController<List<Chat>>();
   late final _getChatsIterator = StreamIterator(_getChatsController.stream);
   final _getChatWithIdController = StreamController<Chat>();

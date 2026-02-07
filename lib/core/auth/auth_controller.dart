@@ -11,9 +11,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 
 class AuthController {
-  final IAuthRepository _authRepository;
-  final IUserRepository _userRepository;
-  final TokenProvider _tokenProvider;
+  final AuthRepository _authRepository;
+  final UserRepository _userRepository;
+  final TokenProviderImpl _tokenProvider;
   final UserProvider _userProvider;
   final SharedPreferences _prefs;
 
@@ -26,9 +26,9 @@ class AuthController {
   static const _fcmKey = 'fcm_key';
 
   AuthController({
-    required IAuthRepository authRepository,
-    required IUserRepository userRepository,
-    required TokenProvider tokenProvider,
+    required AuthRepository authRepository,
+    required UserRepository userRepository,
+    required TokenProviderImpl tokenProvider,
     required UserProvider userProvider,
     required SharedPreferences prefs,
   }) : _authRepository = authRepository,

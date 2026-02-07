@@ -10,8 +10,8 @@ import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:kepleomax/main.dart';
 
 class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
-  final IMessengerRepository _messengerRepository;
-  final IConnectionRepository _connectionRepository;
+  final MessengerRepository _messengerRepository;
+  final ConnectionRepository _connectionRepository;
   late ChatsData _data = ChatsData.initial();
   StreamSubscription? _chatsUpdatesSub;
   late StreamSubscription _subConnectionState;
@@ -20,8 +20,8 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
   final Duration callsTimeout;
 
   ChatsBloc({
-    required IMessengerRepository messengerRepository,
-    required IConnectionRepository connectionRepository,
+    required MessengerRepository messengerRepository,
+    required ConnectionRepository connectionRepository,
     this.callsTimeout = const Duration(milliseconds: 500),
   })
       : _messengerRepository = messengerRepository,

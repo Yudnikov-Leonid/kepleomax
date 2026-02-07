@@ -4,7 +4,7 @@ import 'package:kepleomax/core/data/messenger_repository.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 
-class FakeMessagesRepository implements IMessengerRepository {
+class FakeMessagesRepository implements MessengerRepository {
   final _connectionController = StreamController<bool>();
   final _readMessagesController = StreamController<ReadMessagesUpdate>();
   final _newMessagesController = StreamController<Message>();

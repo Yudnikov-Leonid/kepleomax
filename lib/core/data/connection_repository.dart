@@ -1,6 +1,6 @@
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 
-abstract class IConnectionRepository {
+abstract class ConnectionRepository {
   void initSocket();
 
   void disconnect();
@@ -20,10 +20,10 @@ abstract class IConnectionRepository {
   bool get isConnected;
 }
 
-class ConnectionRepository implements IConnectionRepository {
+class ConnectionRepositoryImpl implements ConnectionRepository {
   final MessagesWebSocket _webSocket;
 
-  ConnectionRepository({required MessagesWebSocket webSocket})
+  ConnectionRepositoryImpl({required MessagesWebSocket webSocket})
     : _webSocket = webSocket;
 
   /// callbacks
@@ -35,7 +35,7 @@ class ConnectionRepository implements IConnectionRepository {
 
   @override
   void reconnect({bool onlyIfNot = false}) =>
-      onlyIfNot ? _webSocket.connectIfNot() : _webSocket.reconnect();
+      onlyIfNot ? _webSocket.connectIfNot() : _webSocket.reinit();
 
   /// ws sends
   @override

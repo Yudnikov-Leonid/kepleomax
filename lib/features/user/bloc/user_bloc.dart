@@ -7,11 +7,11 @@ import 'package:kepleomax/features/user/bloc/user_states.dart';
 import 'package:kepleomax/main.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
-  final IUserRepository _userRepository;
+  final UserRepository _userRepository;
   final int _userId;
   late UserData _userData = UserData.initial();
 
-  UserBloc({required IUserRepository userRepository, required int userId})
+  UserBloc({required UserRepository userRepository, required int userId})
     : _userRepository = userRepository,
       _userId = userId,
       super(UserStateBase.initial()) {

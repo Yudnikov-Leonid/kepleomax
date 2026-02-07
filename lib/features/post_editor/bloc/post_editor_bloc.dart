@@ -16,12 +16,12 @@ const imagesCountLimit = 5;
 
 class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
   late PostEditorData _data = PostEditorData.initial();
-  final IPostRepository _repository;
-  final IFilesRepository _filesRepository;
+  final PostRepository _repository;
+  final FilesRepository _filesRepository;
 
   PostEditorBloc({
-    required IPostRepository postRepository,
-    required IFilesRepository filesRepository,
+    required PostRepository postRepository,
+    required FilesRepository filesRepository,
   }) : _repository = postRepository,
        _filesRepository = filesRepository,
        super(PostEditorStateBase.initial()) {

@@ -18,7 +18,7 @@ import 'models/messages_collection.dart';
 
 const int _messagesPagingLimit = 15;
 
-abstract class IMessengerRepository {
+abstract class MessengerRepository {
   /// api/db calls
   Future<void> loadChats({bool withCache = true});
 
@@ -32,15 +32,15 @@ abstract class IMessengerRepository {
   Stream<ChatsCollection> get chatsUpdatesStream;
 }
 
-class MessengerRepository implements IMessengerRepository {
+class MessengerRepositoryImpl implements MessengerRepository {
   final MessagesWebSocket _webSocket;
 
-  final IChatsApiDataSource _chatsApi;
-  final IMessagesApiDataSource _messagesApi;
+  final ChatsApiDataSource _chatsApi;
+  final MessagesApiDataSource _messagesApi;
 
-  final IMessagesLocalDataSource _messagesLocal;
-  final IChatsLocalDataSource _chatsLocal;
-  final IUsersLocalDataSource _usersLocal;
+  final MessagesLocalDataSource _messagesLocal;
+  final ChatsLocalDataSource _chatsLocal;
+  final UsersLocalDataSource _usersLocal;
 
   final _messagesUpdatesController =
       StreamController<MessagesCollection>.broadcast();
@@ -48,13 +48,13 @@ class MessengerRepository implements IMessengerRepository {
   MessagesCollection? _lastMessagesCollection;
   ChatsCollection? _lastChatsCollection;
 
-  MessengerRepository({
+  MessengerRepositoryImpl({
     required MessagesWebSocket webSocket,
-    required IChatsApiDataSource chatsApi,
-    required IMessagesApiDataSource messagesApi,
-    required IMessagesLocalDataSource messagesLocal,
-    required IChatsLocalDataSource chatsLocal,
-    required IUsersLocalDataSource usersLocal,
+    required ChatsApiDataSource chatsApi,
+    required MessagesApiDataSource messagesApi,
+    required MessagesLocalDataSource messagesLocal,
+    required ChatsLocalDataSource chatsLocal,
+    required UsersLocalDataSource usersLocal,
   }) : _webSocket = webSocket,
        _chatsApi = chatsApi,
        _messagesApi = messagesApi,

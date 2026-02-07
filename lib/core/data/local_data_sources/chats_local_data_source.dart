@@ -4,7 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart';
 import 'package:sqflite/sqflite.dart';
 
-abstract class IChatsLocalDataSource {
+abstract class ChatsLocalDataSource {
   Future<List<ChatDto>> getChats();
 
   Future<ChatDto?> getChat(int chatId);
@@ -20,10 +20,10 @@ abstract class IChatsLocalDataSource {
   Future<void> decreaseUnreadCount(int chatId, int amount);
 }
 
-class ChatsLocalDataSource implements IChatsLocalDataSource {
+class ChatsLocalDataSourceImpl implements ChatsLocalDataSource {
   final Database _database;
 
-  ChatsLocalDataSource({required Database database}) : _database = database;
+  ChatsLocalDataSourceImpl({required Database database}) : _database = database;
 
   @override
   Future<ChatDto?> getChat(int chatId) async {

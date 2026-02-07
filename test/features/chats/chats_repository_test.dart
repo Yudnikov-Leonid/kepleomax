@@ -21,7 +21,7 @@ import '../../mocks/fake_messages_web_socket.dart';
 
 void main() {
   group('chats_repository_test', () {
-    late ChatsRepository chatsRepository;
+    late ChatsRepositoryImpl chatsRepository;
     late FakeChatsApi fakeChatsApi;
     late FakeLocalChatsDatabase fakeLocalChatsDatabase;
     late FakeMessagesWebSocket fakeMessagesRepository;
@@ -35,7 +35,7 @@ void main() {
       fakeChatsApi = FakeChatsApi();
       fakeLocalChatsDatabase = FakeLocalChatsDatabase();
       fakeMessagesRepository = FakeMessagesWebSocket();
-      chatsRepository = ChatsRepository(
+      chatsRepository = ChatsRepositoryImpl(
         chatsApi: fakeChatsApi,
         chatsLocalDataSource: fakeLocalChatsDatabase,
         webSocket: fakeMessagesRepository,

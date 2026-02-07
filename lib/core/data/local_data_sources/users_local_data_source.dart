@@ -1,7 +1,7 @@
 import 'package:kepleomax/core/network/common/user_dto.dart';
 import 'package:sqflite/sqflite.dart';
 
-abstract class IUsersLocalDataSource {
+abstract class UsersLocalDataSource {
   Future<void> insert(UserDto user);
 
   Future<void> insertAll(Iterable<UserDto> users);
@@ -9,10 +9,10 @@ abstract class IUsersLocalDataSource {
   Future<UserDto?> getUserById(int id);
 }
 
-class UsersLocalDataSource implements IUsersLocalDataSource {
+class UsersLocalDataSourceImpl implements UsersLocalDataSource {
   final Database _database;
 
-  UsersLocalDataSource({required Database database}) : _database = database;
+  UsersLocalDataSourceImpl({required Database database}) : _database = database;
 
   @override
   Future<void> insert(UserDto user) async {

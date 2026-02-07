@@ -10,14 +10,14 @@ import 'package:kepleomax/main.dart';
 const int _pagingLimit = 5;
 
 class PostListBloc extends Bloc<PostListEvent, PostListState> {
-  final IPostRepository _postRepository;
+  final PostRepository _postRepository;
 
   late PostListData _data = PostListData.initial();
   final int? _userId;
   int _loadTime = 0;
 
   PostListBloc({
-    required IPostRepository postRepository,
+    required PostRepository postRepository,
     required int? userId,
   }) : _postRepository = postRepository,
        _userId = userId,

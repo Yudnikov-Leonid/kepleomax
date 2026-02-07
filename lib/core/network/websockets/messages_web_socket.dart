@@ -7,13 +7,46 @@ import 'package:socket_io_client/socket_io_client.dart';
 
 import 'models/read_messages_update.dart';
 
-class MessagesWebSocket {
-  final String _baseUrl;
-  final TokenProvider _tokenProvider;
+abstract class MessagesWebSocket {
+  /// streams
+  Stream<MessageDto> get newMessageStream;
 
-  MessagesWebSocket({required String baseUrl, required TokenProvider tokenProvider})
-    : _tokenProvider = tokenProvider,
-      _baseUrl = baseUrl;
+  Stream<ReadMessagesUpdate> get readMessagesStream;
+
+  Stream<DeletedMessageUpdate> get deletedMessageStream;
+
+  Stream<bool> get connectionStateStream;
+
+  /// manage
+  Future<void> init();
+
+  void reinit();
+
+  void connectIfNot();
+
+  void disconnect();
+
+  bool get isConnected;
+
+  /// events
+  void sendMessage({required String message, required int recipientId});
+
+  void deleteMessage({required int messageId});
+
+  void readAllMessages({required int chatId});
+
+  void readMessageBeforeTime({required int chatId, required DateTime time});
+}
+
+class MessagesWebSocketImpl implements MessagesWebSocket {
+  final String _baseUrl;
+  final TokenProviderImpl _tokenProvider;
+
+  MessagesWebSocketImpl({
+    required String baseUrl,
+    required TokenProviderImpl tokenProvider,
+  }) : _tokenProvider = tokenProvider,
+       _baseUrl = baseUrl;
 
   /// streams
   final StreamController<MessageDto> _messageController =
@@ -29,14 +62,15 @@ class MessagesWebSocket {
   Stream<ReadMessagesUpdate> get readMessagesStream =>
       _readMessagesController.stream;
 
-  Stream<DeletedMessageUpdate> get deletedMessageStream => _deletedMessageController.stream;
+  Stream<DeletedMessageUpdate> get deletedMessageStream =>
+      _deletedMessageController.stream;
 
   Stream<bool> get connectionStateStream => _connectionController.stream;
 
   /// socket
   Socket? _socket;
 
-  void init() async {
+  Future<void> init() async {
     logger.d('WebSocketLog! init, _socket != null: ${_socket != null}');
     if (_socket != null) {
       _socket!.disconnect();
@@ -108,10 +142,10 @@ class MessagesWebSocket {
     });
   }
 
-  void reconnect() {
+  Future<void> reinit() async {
     logger.d('WebSocketLog! reconnect');
     disconnect();
-    init();
+    await init();
   }
 
   void connectIfNot() {

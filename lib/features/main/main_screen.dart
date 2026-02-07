@@ -104,7 +104,7 @@ class _MainScreenState extends State<MainScreen> {
                                 ),
                                 padding: const EdgeInsets.all(4),
                                 child: Text(
-                                  unreadCount.toString(),
+                                  unreadCount > 99 ? '99' : unreadCount.toString(),
                                   style: context.textTheme.bodyLarge?.copyWith(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w500,

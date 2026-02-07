@@ -16,18 +16,18 @@ import 'package:rxdart/rxdart.dart';
 import 'chat_state.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
-  final IMessengerRepository _messengerRepository;
-  final IChatsRepository _chatsRepository;
-  final IConnectionRepository _connectionRepository;
+  final MessengerRepository _messengerRepository;
+  final ChatsRepository _chatsRepository;
+  final ConnectionRepository _connectionRepository;
   late ChatData _data = ChatData.initial();
   late StreamSubscription _messagesUpdatesSub;
   late StreamSubscription _connectionStateSub;
   late StreamSubscription _chatUpdatesSub;
 
   ChatBloc({
-    required IMessengerRepository messengerRepository,
-    required IChatsRepository chatsRepository,
-    required IConnectionRepository connectionRepository,
+    required MessengerRepository messengerRepository,
+    required ChatsRepository chatsRepository,
+    required ConnectionRepository connectionRepository,
     required int chatId,
   }) : _messengerRepository = messengerRepository,
        _chatsRepository = chatsRepository,

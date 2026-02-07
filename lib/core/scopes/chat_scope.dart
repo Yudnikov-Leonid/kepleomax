@@ -18,7 +18,7 @@ class ChatScope extends StatefulWidget {
 
 class _ChatScopeState extends State<ChatScope> {
   bool _isScreenInited = false;
-  late final IConnectionRepository _repository;
+  late final ConnectionRepository _repository;
 
   /// callbacks
   @override

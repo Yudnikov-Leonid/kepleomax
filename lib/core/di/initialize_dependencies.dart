@@ -67,9 +67,11 @@ List<_InitializationStep> _steps = [
     call: (dependencies) async {
       final db = await LocalDatabaseManager.getDatabase();
       dependencies.database = db;
-      dependencies.usersLocalDataSource = UsersLocalDataSource(database: db);
-      dependencies.messagesLocalDataSource = MessagesLocalDataSource(database: db);
-      dependencies.chatsLocalDataSource = ChatsLocalDataSource(database: db);
+      dependencies.usersLocalDataSource = UsersLocalDataSourceImpl(database: db);
+      dependencies.messagesLocalDataSource = MessagesLocalDataSourceImpl(
+        database: db,
+      );
+      dependencies.chatsLocalDataSource = ChatsLocalDataSourceImpl(database: db);
     },
   ),
 
@@ -87,23 +89,38 @@ List<_InitializationStep> _steps = [
         logPrint: (Object object) => debugPrint(object.toString(), wrapWidth: 1024),
       );
 
-      final dio = Dio(BaseOptions(validateStatus: (_) => true));
+      final dio = Dio(
+        BaseOptions(
+          validateStatus: (_) => true,
+          connectTimeout: const Duration(seconds: 5),
+          receiveTimeout: const Duration(seconds: 10),
+          sendTimeout: const Duration(seconds: 10),
+        ),
+      );
 
       /// cause need prettyDioLogger here
-      dependencies.tokenProvider = TokenProvider(
+      dependencies.tokenProvider = TokenProviderImpl(
         prefs: dependencies.sharedPreferences,
         secureStorage: dependencies.secureStorage,
-        dio: Dio(BaseOptions(validateStatus: (_) => true))
-          ..interceptors.add(dependencies.prettyDioLogger),
+        // needs its own dio, cause current one will be locked
+        dio: Dio(
+          BaseOptions(
+            validateStatus: (_) => true,
+            connectTimeout: const Duration(seconds: 5),
+            receiveTimeout: const Duration(seconds: 10),
+          ),
+        )..interceptors.add(dependencies.prettyDioLogger),
       );
 
       /// cause need dio in authController and need authController in dio
       dependencies.authApi = AuthApi(dio, flavor.baseUrl);
-      dependencies.authRepository = AuthRepository(authApi: dependencies.authApi);
+      dependencies.authRepository = AuthRepositoryImpl(
+        authApi: dependencies.authApi,
+      );
       dependencies.userApi = UserApi(dio, flavor.baseUrl);
       dependencies.profileApi = ProfileApi(dio, flavor.baseUrl);
       dependencies.filesApi = FilesApi(dio, flavor.baseUrl);
-      dependencies.userRepository = UserRepository(
+      dependencies.userRepository = UserRepositoryImpl(
         profileApi: dependencies.profileApi,
         filesApi: dependencies.filesApi,
         userApi: dependencies.userApi,
@@ -137,27 +154,31 @@ List<_InitializationStep> _steps = [
       dependencies.postApi = PostApi(dependencies.dio, flavor.baseUrl);
       dependencies.messagesApi = MessagesApi(dependencies.dio, flavor.baseUrl);
       dependencies.chatsApi = ChatsApi(dependencies.dio, flavor.baseUrl);
-      dependencies.messagesWebSocket = MessagesWebSocket(
+      dependencies.messagesWebSocket = MessagesWebSocketImpl(
         baseUrl: flavor.baseUrl,
         tokenProvider: dependencies.tokenProvider,
       );
 
-      dependencies.filesRepository = FilesRepository(
+      dependencies.filesRepository = FilesRepositoryImpl(
         filesApi: dependencies.filesApi,
       );
-      dependencies.postRepository = PostRepository(postApi: dependencies.postApi);
-      dependencies.connectionRepository = ConnectionRepository(
+      dependencies.postRepository = PostRepositoryImpl(
+        postApi: dependencies.postApi,
+      );
+      dependencies.connectionRepository = ConnectionRepositoryImpl(
         webSocket: dependencies.messagesWebSocket,
       );
-      dependencies.messengerRepository = MessengerRepository(
+      dependencies.messengerRepository = MessengerRepositoryImpl(
         webSocket: dependencies.messagesWebSocket,
-        messagesApi: MessagesApiDataSource(messagesApi: dependencies.messagesApi),
-        chatsApi: ChatsApiDataSource(chatsApi: dependencies.chatsApi),
+        messagesApi: MessagesApiDataSourceImpl(
+          messagesApi: dependencies.messagesApi,
+        ),
+        chatsApi: ChatsApiDataSourceImpl(chatsApi: dependencies.chatsApi),
         messagesLocal: dependencies.messagesLocalDataSource,
         chatsLocal: dependencies.chatsLocalDataSource,
         usersLocal: dependencies.usersLocalDataSource,
       );
-      dependencies.chatsRepository = ChatsRepository(
+      dependencies.chatsRepository = ChatsRepositoryImpl(
         chatsApi: dependencies.chatsApi,
         chatsLocalDataSource: dependencies.chatsLocalDataSource,
       );

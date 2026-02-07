@@ -28,7 +28,7 @@ import 'package:sqflite/sqflite.dart';
 
 class Dependencies {
   late final AuthController authController;
-  late final TokenProvider tokenProvider;
+  late final TokenProviderImpl tokenProvider;
   late final SharedPreferences sharedPreferences;
   late final FlutterSecureStorage secureStorage;
   late final PrettyDioLogger prettyDioLogger;
@@ -45,17 +45,17 @@ class Dependencies {
   late final ChatsApi chatsApi;
   late final MessagesWebSocket messagesWebSocket;
 
-  late final IUsersLocalDataSource usersLocalDataSource;
-  late final IMessagesLocalDataSource messagesLocalDataSource;
-  late final IChatsLocalDataSource chatsLocalDataSource;
+  late final UsersLocalDataSource usersLocalDataSource;
+  late final MessagesLocalDataSource messagesLocalDataSource;
+  late final ChatsLocalDataSource chatsLocalDataSource;
 
-  late final IAuthRepository authRepository;
-  late final IUserRepository userRepository;
-  late final IPostRepository postRepository;
-  late final IFilesRepository filesRepository;
-  late final IConnectionRepository connectionRepository;
-  late final IMessengerRepository messengerRepository;
-  late final IChatsRepository chatsRepository;
+  late final AuthRepository authRepository;
+  late final UserRepository userRepository;
+  late final PostRepository postRepository;
+  late final FilesRepository filesRepository;
+  late final ConnectionRepository connectionRepository;
+  late final MessengerRepository messengerRepository;
+  late final ChatsRepository chatsRepository;
 
   Widget inject({required Widget child}) =>
       InheritedDependencies(dependencies: this, child: child);

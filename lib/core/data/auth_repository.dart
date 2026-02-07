@@ -1,9 +1,9 @@
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
 import 'package:kepleomax/core/network/apis/auth/login_dtos.dart';
 import 'package:kepleomax/core/network/apis/auth/logout_dtos.dart';
-import 'package:kepleomax/core/network/common/api_constants.dart';
 
-abstract class IAuthRepository {
+
+abstract class AuthRepository {
   Future<LoginResponseData> login({required String email, required String password});
 
   Future<void> logout({required String refreshToken});
@@ -11,21 +11,19 @@ abstract class IAuthRepository {
   Future<void> register({required String email, required String password});
 }
 
-class AuthRepository implements IAuthRepository {
+class AuthRepositoryImpl implements AuthRepository {
   final AuthApi _authApi;
 
-  AuthRepository({required AuthApi authApi}) : _authApi = authApi;
+  AuthRepositoryImpl({required AuthApi authApi}) : _authApi = authApi;
 
   @override
   Future<LoginResponseData> login({
     required String email,
     required String password,
   }) async {
-    final res = await _authApi
-        .login(
-          data: LoginRequestDto(email: email.trim(), password: password.trim()),
-        )
-        .timeout(ApiConstants.timeout);
+    final res = await _authApi.login(
+      data: LoginRequestDto(email: email.trim(), password: password.trim()),
+    );
 
     if (res.response.statusCode != 200) {
       throw Exception(
@@ -37,9 +35,8 @@ class AuthRepository implements IAuthRepository {
   }
 
   @override
-  Future<void> logout({required String refreshToken}) => _authApi
-      .logout(data: LogoutRequestDto(refreshToken: refreshToken.trim()))
-      .timeout(ApiConstants.timeout);
+  Future<void> logout({required String refreshToken}) =>
+      _authApi.logout(data: LogoutRequestDto(refreshToken: refreshToken.trim()));
 
   @override
   Future<void> register({required String email, required String password}) async {

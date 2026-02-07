@@ -58,7 +58,7 @@ class FakeMessagesWebSocket implements MessagesWebSocket {
   }
 
   @override
-  void reconnect() {
+  void reinit() {
     // TODO: implement reconnect
   }
 

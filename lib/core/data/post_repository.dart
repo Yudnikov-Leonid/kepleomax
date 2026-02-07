@@ -1,9 +1,8 @@
 import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/network/apis/posts/post_api.dart';
 import 'package:kepleomax/core/network/apis/posts/post_dtos.dart';
-import 'package:kepleomax/core/network/common/api_constants.dart';
 
-abstract class IPostRepository {
+abstract class PostRepository {
   Future<List<Post>> getPosts({
     required int limit,
     required int offset,
@@ -31,10 +30,10 @@ abstract class IPostRepository {
   Future<Post> deletePost({required int postId});
 }
 
-class PostRepository implements IPostRepository {
+class PostRepositoryImpl implements PostRepository {
   final PostApi _postApi;
 
-  PostRepository({required PostApi postApi}) : _postApi = postApi;
+  PostRepositoryImpl({required PostApi postApi}) : _postApi = postApi;
 
   @override
   Future<List<Post>> getPosts({
@@ -43,8 +42,7 @@ class PostRepository implements IPostRepository {
     required int beforeTime,
   }) async {
     final res = await _postApi
-        .getPosts(limit: limit, offset: offset, beforeTime: beforeTime)
-        .timeout(ApiConstants.timeout);
+        .getPosts(limit: limit, offset: offset, beforeTime: beforeTime);
 
     if (res.response.statusCode != 200) {
       throw Exception(
@@ -68,8 +66,7 @@ class PostRepository implements IPostRepository {
           limit: limit,
           offset: offset,
           beforeTime: beforeTime,
-        )
-        .timeout(ApiConstants.timeout);
+        );
 
     if (res.response.statusCode != 200) {
       throw Exception(
@@ -88,8 +85,7 @@ class PostRepository implements IPostRepository {
     final res = await _postApi
         .createNewPost(
           data: CreatePostRequestDto(content: content.trim(), images: images),
-        )
-        .timeout(ApiConstants.timeout);
+        );
 
     if (res.response.statusCode != 201) {
       throw Exception(
@@ -110,8 +106,7 @@ class PostRepository implements IPostRepository {
         .updatePost(
           postId: postId,
           data: CreatePostRequestDto(content: content.trim(), images: images),
-        )
-        .timeout(ApiConstants.timeout);
+        );
 
     if (res.response.statusCode != 200) {
       throw Exception(
@@ -125,8 +120,7 @@ class PostRepository implements IPostRepository {
   @override
   Future<Post> deletePost({required int postId}) async {
     final res = await _postApi
-        .deletePost(postId: postId)
-        .timeout(ApiConstants.timeout);
+        .deletePost(postId: postId);
 
     if (res.response.statusCode != 200) {
       throw Exception(

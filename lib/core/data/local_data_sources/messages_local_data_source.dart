@@ -2,7 +2,7 @@ import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
 import 'package:sqflite/sqflite.dart';
 
-abstract class IMessagesLocalDataSource {
+abstract class MessagesLocalDataSource {
   Future<List<MessageDto>> getMessagesByChatId(int chatId);
 
   Future<void> insert(MessageDto message);
@@ -18,10 +18,10 @@ abstract class IMessagesLocalDataSource {
   Future<void> deleteAllByIds(Iterable<int> ids);
 }
 
-class MessagesLocalDataSource implements IMessagesLocalDataSource {
+class MessagesLocalDataSourceImpl implements MessagesLocalDataSource {
   final Database _database;
 
-  MessagesLocalDataSource({required Database database}) : _database = database;
+  MessagesLocalDataSourceImpl({required Database database}) : _database = database;
 
   @override
   Future<List<MessageDto>> getMessagesByChatId(int chatId) async {

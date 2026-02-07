@@ -8,11 +8,11 @@ import 'package:rxdart/rxdart.dart';
 const _pagingLimit = 12;
 
 class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
-  final IUserRepository _userRepository;
+  final UserRepository _userRepository;
 
   late PeopleData _data = PeopleData.initial();
 
-  PeopleBloc({required IUserRepository userRepository})
+  PeopleBloc({required UserRepository userRepository})
     : _userRepository = userRepository,
       super(PeopleStateBase.initial()) {
     on<PeopleEventLoad>(
