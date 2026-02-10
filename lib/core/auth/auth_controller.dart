@@ -1,6 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:kepleomax/core/auth/user_provider.dart';
 import 'package:kepleomax/core/data/auth_repository.dart';
 import 'package:kepleomax/core/data/db/local_database_manager.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
@@ -14,7 +13,6 @@ class AuthController {
   final AuthRepository _authRepository;
   final UserRepository _userRepository;
   final TokenProviderImpl _tokenProvider;
-  final UserProvider _userProvider;
   final SharedPreferences _prefs;
 
   User? _user;
@@ -29,16 +27,14 @@ class AuthController {
     required AuthRepository authRepository,
     required UserRepository userRepository,
     required TokenProviderImpl tokenProvider,
-    required UserProvider userProvider,
     required SharedPreferences prefs,
   }) : _authRepository = authRepository,
        _userRepository = userRepository,
        _tokenProvider = tokenProvider,
-       _userProvider = userProvider,
        _prefs = prefs;
 
-  Future<void> init() async {
-    final user = await _userProvider.getSavedUser();
+  void init() {
+    final user = _userRepository.getCurrentUserFromCache();
     _user = user;
 
     if (_user == null) return;
@@ -89,7 +85,7 @@ class AuthController {
     if (newUser == _user) return;
 
     _user = newUser;
-    _userProvider.setNewUser(newUser);
+    _userRepository.setCurrentUser(newUser);
     for (final listener in _listeners) {
       listener();
     }

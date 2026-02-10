@@ -4,7 +4,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
-import 'package:kepleomax/core/auth/user_provider.dart';
 import 'package:kepleomax/core/data/auth_repository.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/connection_repository.dart';
@@ -52,159 +51,136 @@ Future<Dependencies> initializeDependencies() async {
 }
 
 List<_InitializationStep> _steps = [
-  _InitializationStep(
-    name: 'storages',
-    call: (dependencies) async {
-      dependencies.sharedPreferences = await SharedPreferences.getInstance();
-      dependencies.secureStorage = const FlutterSecureStorage();
-      dependencies.methodChannel = KlmMethodChannel();
-      CachedNetworkImage.logLevel = CacheManagerLogLevel.verbose;
-    },
-  ),
+  _InitializationStep('storages', (dp) async {
+    dp.sharedPreferences = await SharedPreferences.getInstance();
+    dp.secureStorage = const FlutterSecureStorage();
+    dp.methodChannel = KlmMethodChannel();
+    CachedNetworkImage.logLevel = CacheManagerLogLevel.verbose;
+  }),
 
-  _InitializationStep(
-    name: 'local_db',
-    call: (dependencies) async {
-      final db = await LocalDatabaseManager.getDatabase();
-      dependencies.database = db;
-      dependencies.usersLocalDataSource = UsersLocalDataSourceImpl(database: db);
-      dependencies.messagesLocalDataSource = MessagesLocalDataSourceImpl(
-        database: db,
-      );
-      dependencies.chatsLocalDataSource = ChatsLocalDataSourceImpl(database: db);
-    },
-  ),
+  _InitializationStep('local_data_sources', (dp) async {
+    final db = await LocalDatabaseManager.getDatabase();
+    dp.database = db;
+    dp.usersLocalDataSource = UsersLocalDataSourceImpl(
+      database: db,
+      prefs: dp.sharedPreferences,
+    );
+    dp.messagesLocalDataSource = MessagesLocalDataSourceImpl(database: db);
+    dp.chatsLocalDataSource = ChatsLocalDataSourceImpl(database: db);
+  }),
 
-  /// TODO apis are here and in the 'apis, repositories' step, it's not good
-  _InitializationStep(
-    name: 'dio, authController',
-    call: (dependencies) async {
-      dependencies.prettyDioLogger = PrettyDioLogger(
-        request: kDebugMode,
-        requestHeader: kDebugMode,
-        requestBody: kDebugMode,
-        responseHeader: kDebugMode,
-        responseBody: kDebugMode,
-        error: kDebugMode,
-        logPrint: (Object object) => debugPrint(object.toString(), wrapWidth: 1024),
-      );
+  _InitializationStep('dioLogger, dio', (dp) async {
+    dp.prettyDioLogger = PrettyDioLogger(
+      request: kDebugMode,
+      requestHeader: kDebugMode,
+      requestBody: kDebugMode,
+      responseHeader: kDebugMode,
+      responseBody: kDebugMode,
+      error: kDebugMode,
+      logPrint: (Object object) => debugPrint(object.toString(), wrapWidth: 1024),
+    );
 
-      final dio = Dio(
+    final dio = Dio(
+      BaseOptions(
+        validateStatus: (_) => true,
+        connectTimeout: const Duration(seconds: 5),
+        receiveTimeout: const Duration(seconds: 10),
+        sendTimeout: const Duration(seconds: 10),
+      ),
+    )..interceptors.add(dp.prettyDioLogger);
+
+    dp.dio = dio;
+  }),
+
+  _InitializationStep('token_provider', (dp) {
+    dp.tokenProvider = TokenProviderImpl(
+      prefs: dp.sharedPreferences,
+      secureStorage: dp.secureStorage,
+      // needs its own dio, cause the current one will be locked
+      dio: Dio(
         BaseOptions(
           validateStatus: (_) => true,
           connectTimeout: const Duration(seconds: 5),
           receiveTimeout: const Duration(seconds: 10),
-          sendTimeout: const Duration(seconds: 10),
         ),
-      );
+      )..interceptors.add(dp.prettyDioLogger),
+    );
+  }),
 
-      /// cause need prettyDioLogger here
-      dependencies.tokenProvider = TokenProviderImpl(
-        prefs: dependencies.sharedPreferences,
-        secureStorage: dependencies.secureStorage,
-        // needs its own dio, cause current one will be locked
-        dio: Dio(
-          BaseOptions(
-            validateStatus: (_) => true,
-            connectTimeout: const Duration(seconds: 5),
-            receiveTimeout: const Duration(seconds: 10),
-          ),
-        )..interceptors.add(dependencies.prettyDioLogger),
-      );
+  _InitializationStep('auth', (dp) async {
+    dp.authApi = AuthApi(dp.dio, flavor.baseUrl);
+    dp.authRepository = AuthRepositoryImpl(authApi: dp.authApi);
+    dp.userApi = UserApi(dp.dio, flavor.baseUrl);
+    dp.profileApi = ProfileApi(dp.dio, flavor.baseUrl);
+    dp.filesApi = FilesApi(dp.dio, flavor.baseUrl);
+    dp.userRepository = UserRepositoryImpl(
+      profileApi: dp.profileApi,
+      filesApi: dp.filesApi,
+      userApi: dp.userApi,
+      usersLocalDataSource: dp.usersLocalDataSource,
+    );
 
-      /// cause need dio in authController and need authController in dio
-      dependencies.authApi = AuthApi(dio, flavor.baseUrl);
-      dependencies.authRepository = AuthRepositoryImpl(
-        authApi: dependencies.authApi,
-      );
-      dependencies.userApi = UserApi(dio, flavor.baseUrl);
-      dependencies.profileApi = ProfileApi(dio, flavor.baseUrl);
-      dependencies.filesApi = FilesApi(dio, flavor.baseUrl);
-      dependencies.userRepository = UserRepositoryImpl(
-        profileApi: dependencies.profileApi,
-        filesApi: dependencies.filesApi,
-        userApi: dependencies.userApi,
-        usersLocalDataSource: dependencies.usersLocalDataSource,
-      );
-      final authController = AuthController(
-        authRepository: dependencies.authRepository,
-        userRepository: dependencies.userRepository,
-        tokenProvider: dependencies.tokenProvider,
-        userProvider: UserProvider(prefs: dependencies.sharedPreferences),
-        prefs: dependencies.sharedPreferences,
-      );
-      await authController.init();
-      dependencies.authController = authController;
+    final authController = AuthController(
+      authRepository: dp.authRepository,
+      userRepository: dp.userRepository,
+      tokenProvider: dp.tokenProvider,
+      prefs: dp.sharedPreferences,
+    );
+    authController.init();
+    dp.authController = authController;
 
-      dio.interceptors.addAll([
-        dependencies.prettyDioLogger,
-        AuthInterceptor(
-          tokenProvider: dependencies.tokenProvider,
-          authController: dependencies.authController,
-        ),
-      ]);
+    dp.dio.interceptors.add(
+      AuthInterceptor(
+        tokenProvider: dp.tokenProvider,
+        authController: dp.authController,
+      ),
+    );
+  }),
 
-      dependencies.dio = dio;
-    },
-  ),
+  _InitializationStep('apis, repositories', (dp) {
+    dp.postApi = PostApi(dp.dio, flavor.baseUrl);
+    dp.messagesApi = MessagesApi(dp.dio, flavor.baseUrl);
+    dp.chatsApi = ChatsApi(dp.dio, flavor.baseUrl);
+    dp.messagesWebSocket = MessagesWebSocketImpl(
+      baseUrl: flavor.baseUrl,
+      tokenProvider: dp.tokenProvider,
+    );
 
-  _InitializationStep(
-    name: 'apis, repositories',
-    call: (dependencies) {
-      dependencies.postApi = PostApi(dependencies.dio, flavor.baseUrl);
-      dependencies.messagesApi = MessagesApi(dependencies.dio, flavor.baseUrl);
-      dependencies.chatsApi = ChatsApi(dependencies.dio, flavor.baseUrl);
-      dependencies.messagesWebSocket = MessagesWebSocketImpl(
-        baseUrl: flavor.baseUrl,
-        tokenProvider: dependencies.tokenProvider,
-      );
+    dp.filesRepository = FilesRepositoryImpl(
+      filesApi: dp.filesApi,
+    );
+    dp.postRepository = PostRepositoryImpl(postApi: dp.postApi);
+    dp.connectionRepository = ConnectionRepositoryImpl(
+      webSocket: dp.messagesWebSocket,
+    );
+    dp.messengerRepository = MessengerRepositoryImpl(
+      webSocket: dp.messagesWebSocket,
+      messagesApi: MessagesApiDataSourceImpl(messagesApi: dp.messagesApi),
+      chatsApi: ChatsApiDataSourceImpl(chatsApi: dp.chatsApi),
+      messagesLocal: dp.messagesLocalDataSource,
+      chatsLocal: dp.chatsLocalDataSource,
+      usersLocal: dp.usersLocalDataSource,
+    );
+    dp.chatsRepository = ChatsRepositoryImpl(
+      chatsApi: dp.chatsApi,
+      chatsLocalDataSource: dp.chatsLocalDataSource,
+    );
+  }),
 
-      dependencies.filesRepository = FilesRepositoryImpl(
-        filesApi: dependencies.filesApi,
-      );
-      dependencies.postRepository = PostRepositoryImpl(
-        postApi: dependencies.postApi,
-      );
-      dependencies.connectionRepository = ConnectionRepositoryImpl(
-        webSocket: dependencies.messagesWebSocket,
-      );
-      dependencies.messengerRepository = MessengerRepositoryImpl(
-        webSocket: dependencies.messagesWebSocket,
-        messagesApi: MessagesApiDataSourceImpl(
-          messagesApi: dependencies.messagesApi,
-        ),
-        chatsApi: ChatsApiDataSourceImpl(chatsApi: dependencies.chatsApi),
-        messagesLocal: dependencies.messagesLocalDataSource,
-        chatsLocal: dependencies.chatsLocalDataSource,
-        usersLocal: dependencies.usersLocalDataSource,
-      );
-      dependencies.chatsRepository = ChatsRepositoryImpl(
-        chatsApi: dependencies.chatsApi,
-        chatsLocalDataSource: dependencies.chatsLocalDataSource,
-      );
-    },
-  ),
+  _InitializationStep(('firebase'), (_) async {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  }),
 
-  _InitializationStep(
-    name: ('firebase'),
-    call: (dependencies) async {
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    },
-  ),
-
-  _InitializationStep(
-    name: 'global_settings',
-    call: (_) {
-      VisibilityDetectorController.instance.updateInterval = const Duration(
-        milliseconds: 100,
-      );
-    },
-  ),
+  _InitializationStep('global_settings', (_) {
+    VisibilityDetectorController.instance.updateInterval = const Duration(
+      milliseconds: 100,
+    );
+  }),
 ];
 
 class _InitializationStep {
   final String name;
   final Function(Dependencies) call;
 
-  _InitializationStep({required this.name, required this.call});
+  _InitializationStep(this.name, this.call);
 }

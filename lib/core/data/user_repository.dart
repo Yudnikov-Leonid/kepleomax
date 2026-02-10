@@ -25,6 +25,11 @@ abstract class UserRepository {
   Future<bool> addFCMToken({required String token});
 
   Future<void> deleteFCMToken({required String token});
+
+  /// cache
+  User? getCurrentUserFromCache();
+
+  Future<void> setCurrentUser(User? user);
 }
 
 class UserRepositoryImpl implements UserRepository {
@@ -60,8 +65,7 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<UserProfile> getUserProfile(int userId) async {
-    final res = await _profileApi
-        .getProfile(userId.toString());
+    final res = await _profileApi.getProfile(userId.toString());
 
     if (res.response.statusCode != 200) {
       throw Exception(
@@ -89,8 +93,9 @@ class UserRepositoryImpl implements UserRepository {
       if (profile.user.profileImage == null || profile.user.profileImage!.isEmpty) {
         newImagePath = null;
       } else {
-        final imageRes = await _filesApi
-            .uploadFile(File(profile.user.profileImage!));
+        final imageRes = await _filesApi.uploadFile(
+          File(profile.user.profileImage!),
+        );
 
         if (imageRes.response.statusCode != 201) {
           throw Exception(
@@ -132,8 +137,11 @@ class UserRepositoryImpl implements UserRepository {
     required int offset,
   }) async {
     /// don't need search.trim()
-    final res = await _userApi
-        .searchUsers(search: search, limit: limit, offset: offset);
+    final res = await _userApi.searchUsers(
+      search: search,
+      limit: limit,
+      offset: offset,
+    );
 
     if (res.response.statusCode != 200) {
       throw Exception(
@@ -158,4 +166,11 @@ class UserRepositoryImpl implements UserRepository {
   Future<void> deleteFCMToken({required String token}) async {
     await _userApi.deleteFCMToken(body: FCMTokenRequestDto(token: token));
   }
+
+  @override
+  User? getCurrentUserFromCache() => _usersLocalDataSource.getCurrentUser();
+
+  @override
+  Future<void> setCurrentUser(User? user) =>
+      _usersLocalDataSource.setCurrentUser(user);
 }
