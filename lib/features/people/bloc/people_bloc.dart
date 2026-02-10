@@ -1,8 +1,8 @@
+import 'package:kepleomax/core/logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/people/bloc/people_state.dart';
-import 'package:kepleomax/main.dart';
 import 'package:rxdart/rxdart.dart';
 
 const _pagingLimit = 12;
@@ -18,8 +18,7 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     on<PeopleEventLoad>(
       _onLoad,
       transformer: (events, mapper) => Rx.merge([
-        events
-            .throttleTime(const Duration(seconds: 3)),
+        events.throttleTime(const Duration(seconds: 3)),
         events
             .debounceTime(const Duration(milliseconds: 900))
             .throttleTime(const Duration(milliseconds: 750)),
@@ -31,9 +30,9 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
   }
 
   void _onInitialLoad(
-      PeopleEventInitialLoad event,
-      Emitter<PeopleState> emit,
-      ) async {
+    PeopleEventInitialLoad event,
+    Emitter<PeopleState> emit,
+  ) async {
     _data = _data.copyWith(isLoading: true);
     emit(PeopleStateBase(data: _data));
 

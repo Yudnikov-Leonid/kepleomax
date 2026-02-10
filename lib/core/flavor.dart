@@ -1,3 +1,6 @@
+Flavor? _flavor;
+Flavor get flavor => _flavor ?? Flavor.devLocal();
+
 class Flavor {
   final String baseUrl;
   final String imageUrl;
@@ -8,6 +11,8 @@ class Flavor {
   bool get isRelease => type == FlavorType.release;
 
   const Flavor({required this.baseUrl, required this.imageUrl, required this.type});
+
+  static void setFlavor(Flavor flavor) => _flavor = flavor;
 
   factory Flavor.devLocal() => const Flavor(
     baseUrl: 'http://192.168.0.106:13000',

@@ -10,8 +10,8 @@ import 'package:kepleomax/core/data/models/messages_collection.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
-import 'package:kepleomax/main.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:kepleomax/core/logger.dart';
 
 import 'chat_state.dart';
 

@@ -2,9 +2,11 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:kepleomax/core/network/common/ntp_time.dart';
-import 'package:kepleomax/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:synchronized/synchronized.dart';
+import 'package:kepleomax/core/flavor.dart';
+
+import '../logger.dart';
 
 abstract class TokenProvider {
   Future<void> saveAccessToken(String token);

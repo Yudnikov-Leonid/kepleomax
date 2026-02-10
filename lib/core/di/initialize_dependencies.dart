@@ -18,6 +18,7 @@ import 'package:kepleomax/core/data/messenger_repository.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
+import 'package:kepleomax/core/flavor.dart';
 import 'package:kepleomax/core/native/klm_method_channel.dart';
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_api.dart';
@@ -30,10 +31,11 @@ import 'package:kepleomax/core/network/middlewares/auth_interceptor.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/firebase_options.dart';
-import 'package:kepleomax/main.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:visibility_detector/visibility_detector.dart';
+
+import '../logger.dart';
 
 Future<Dependencies> initializeDependencies() async {
   final dp = Dependencies();

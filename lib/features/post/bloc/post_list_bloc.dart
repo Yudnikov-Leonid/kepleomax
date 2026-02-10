@@ -1,3 +1,4 @@
+import 'package:kepleomax/core/logger.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
@@ -5,7 +6,6 @@ import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/network/common/ntp_time.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/post/bloc/post_list_state.dart';
-import 'package:kepleomax/main.dart';
 
 const int _pagingLimit = 5;
 
@@ -16,12 +16,10 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
   final int? _userId;
   int _loadTime = 0;
 
-  PostListBloc({
-    required PostRepository postRepository,
-    required int? userId,
-  }) : _postRepository = postRepository,
-       _userId = userId,
-       super(PostListStateBase.initial()) {
+  PostListBloc({required PostRepository postRepository, required int? userId})
+    : _postRepository = postRepository,
+      _userId = userId,
+      super(PostListStateBase.initial()) {
     on<PostListEvent>(
       (event, emit) => switch (event) {
         PostListEventLoad event => _onLoad(event, emit),

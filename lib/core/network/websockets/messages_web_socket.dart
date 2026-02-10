@@ -2,9 +2,9 @@ import 'dart:async';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
-import 'package:kepleomax/main.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 
+import '../../logger.dart';
 import 'models/read_messages_update.dart';
 
 abstract class MessagesWebSocket {

@@ -4,9 +4,9 @@ import 'package:kepleomax/core/data/auth_repository.dart';
 import 'package:kepleomax/core/data/db/local_database_manager.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
-import 'package:kepleomax/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../logger.dart';
 import '../models/user.dart';
 
 class AuthController {

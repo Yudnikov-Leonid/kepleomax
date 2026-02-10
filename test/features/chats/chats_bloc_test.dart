@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:kepleomax/core/flavor/flavor.dart';
+import 'package:kepleomax/core/flavor.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';

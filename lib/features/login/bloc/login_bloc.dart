@@ -1,14 +1,15 @@
+import 'package:kepleomax/core/logger.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/core/presentation/validators.dart';
-import 'package:kepleomax/main.dart';
 
 import 'login_state.dart';
 
 final String? Function(String) loginEmailValidator = UiValidator.emailValidator;
-final String? Function(String) loginPasswordValidator = UiValidator.passwordValidator;
+final String? Function(String) loginPasswordValidator =
+    UiValidator.passwordValidator;
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   final AuthController _authController;

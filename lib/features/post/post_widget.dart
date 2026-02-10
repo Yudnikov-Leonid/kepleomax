@@ -12,9 +12,9 @@ import 'package:kepleomax/core/presentation/parse_time.dart';
 import 'package:kepleomax/core/presentation/photos_preview/photos_preview_screen.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/generated/images_keys.images_keys.dart';
-import 'package:kepleomax/main.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:kepleomax/core/flavor.dart';
 
 part 'widgets/photo_row.dart';
 

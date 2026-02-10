@@ -7,7 +7,7 @@ import 'package:kepleomax/core/data/messenger_repository.dart';
 import 'package:kepleomax/core/data/models/chats_collection.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/chats/bloc/chats_state.dart';
-import 'package:kepleomax/main.dart';
+import 'package:kepleomax/core/logger.dart';
 
 class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
   final MessengerRepository _messengerRepository;
@@ -23,28 +23,26 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     required MessengerRepository messengerRepository,
     required ConnectionRepository connectionRepository,
     this.callsTimeout = const Duration(milliseconds: 500),
-  })
-      : _messengerRepository = messengerRepository,
-        _connectionRepository = connectionRepository,
-        super(ChatsStateBase.initial()) {
+  }) : _messengerRepository = messengerRepository,
+       _connectionRepository = connectionRepository,
+       super(ChatsStateBase.initial()) {
     _subConnectionState = _connectionRepository.connectionStateStream.listen(
-          (isConnected) => add(ChatsEventConnectingChanged(isConnected)),
+      (isConnected) => add(ChatsEventConnectingChanged(isConnected)),
       cancelOnError: false,
     );
     _chatsUpdatesSub = _chatsUpdatesSub = _messengerRepository.chatsUpdatesStream
         .listen(
           (newList) {
-        add(ChatsEventEmitChatsList(data: newList));
-      },
-      onError: (e, st) {
-        add(ChatsEventEmitError(error: e, stackTrace: st));
-      },
-      cancelOnError: false,
-    );
+            add(ChatsEventEmitChatsList(data: newList));
+          },
+          onError: (e, st) {
+            add(ChatsEventEmitError(error: e, stackTrace: st));
+          },
+          cancelOnError: false,
+        );
 
     on<ChatsEvent>(
-          (event, emit) =>
-      switch (event) {
+      (event, emit) => switch (event) {
         ChatsEventLoad event => _onLoad(event, emit),
         ChatsEvent _ => () {},
       },
@@ -60,9 +58,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
 
   void _onLoad(ChatsEventLoad event, Emitter<ChatsState> emit) async {
     /// TODO make this with bloc_concurrency
-    final now = DateTime
-        .now()
-        .millisecondsSinceEpoch;
+    final now = DateTime.now().millisecondsSinceEpoch;
     if (_lastTimeLoadWasCalled + 1000 > now) {
       return;
     }
@@ -79,8 +75,10 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     }
   }
 
-  void _onEmitChatsList(ChatsEventEmitChatsList event,
-      Emitter<ChatsState> emit,) async {
+  void _onEmitChatsList(
+    ChatsEventEmitChatsList event,
+    Emitter<ChatsState> emit,
+  ) async {
     _data = _data.copyWith(
       chats: event.data.chats.toList(growable: false), // TODO
       totalUnreadCount: event.data.chats.fold(0, (a, b) => a + b.unreadCount),
@@ -99,8 +97,10 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     _connectionRepository.reconnect(onlyIfNot: event.onlyIfNot);
   }
 
-  void _onConnectingChanged(ChatsEventConnectingChanged event,
-      Emitter<ChatsState> emit,) {
+  void _onConnectingChanged(
+    ChatsEventConnectingChanged event,
+    Emitter<ChatsState> emit,
+  ) {
     _data = _data.copyWith(isConnected: event.isConnected);
     emit(ChatsStateBase(data: _data));
     if (event.isConnected) {

@@ -7,10 +7,10 @@ import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_textfield.dart';
 import 'package:kepleomax/core/presentation/validators.dart';
-import 'package:kepleomax/main.dart';
 
 import '../../core/presentation/klm_cached_image.dart';
 import '../../core/presentation/user_image.dart';
+import 'package:kepleomax/core/flavor.dart';
 
 final String? Function(String) _usernameValidator = UiValidator.emptyValidator;
 
@@ -135,8 +135,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
                             _isButtonPressed = true;
                           });
 
-                          if (_usernameValidator(_nameController.text) !=
-                              null) {
+                          if (_usernameValidator(_nameController.text) != null) {
                             return;
                           }
 

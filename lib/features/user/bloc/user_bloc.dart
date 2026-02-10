@@ -1,10 +1,10 @@
+import 'package:kepleomax/core/logger.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/models/user_profile.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/user/bloc/user_states.dart';
-import 'package:kepleomax/main.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
   final UserRepository _userRepository;
