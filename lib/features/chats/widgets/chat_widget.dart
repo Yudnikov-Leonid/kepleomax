@@ -96,6 +96,7 @@ class ChatWidget extends StatelessWidget {
                   padding: const EdgeInsets.all(6),
                   child: Text(
                     chat.unreadCount.toString(),
+                    key: const Key('chat_unread_count_text'),
                     style: context.textTheme.bodyLarge?.copyWith(
                       color: Colors.white,
                       fontSize: 16,

@@ -140,6 +140,7 @@ class _Body extends StatelessWidget {
             }
           },
           child: ListView.builder(
+            key: const Key('chats_list_view'),
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(vertical: 10),
             itemCount: data.chats.length,
