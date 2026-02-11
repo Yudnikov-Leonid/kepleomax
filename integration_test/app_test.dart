@@ -1,7 +1,6 @@
 // dart format width=200
 
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:kepleomax/core/app.dart';
@@ -14,7 +13,6 @@ import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/common/user_dto.dart';
 import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
-import 'package:kepleomax/features/chats/chats_screen.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retrofit/dio.dart';
 
@@ -39,35 +37,40 @@ void main() {
 
     testWidgets('connection_test', (tester) async {
       when(dp.chatsApi.getChats()).thenAnswer((_) async {
-        await Future.delayed(const Duration(milliseconds: 300));
+        await Future.delayed(const Duration(milliseconds: 150));
         return HttpResponse(ChatsResponse(data: [], message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
       });
       await tester.pumpWidget(dp.inject(child: const App()));
+      tester.checkAppBarText('Connecting..');
+      tester.checkFindPeopleButton(isShown: false);
 
-      /// test connect
-      expect(tester.textByKey(const Key('app_bar_text')), equals('Connecting..'));
-
+      /// connect, check
       ws.setIsConnected(true);
       await tester.pump(const Duration(milliseconds: 100));
-      expect(tester.textByKey(const Key('app_bar_text')), equals('Updating..'));
+      tester.checkAppBarText('Updating..');
+      tester.checkFindPeopleButton(isShown: false);
 
-      await tester.pumpAndSettle(const Duration(milliseconds: 500));
-      expect(tester.textByKey(const Key('app_bar_text')), equals('Chats'));
-      expect(find.byKey(const Key('find_people_button')), findsOneWidget);
+      /// wait for the response of the repository, check
+      await tester.pumpAndSettle(const Duration(milliseconds: 300));
+      tester.checkAppBarText('Chats');
+      tester.checkFindPeopleButton(isShown: true);
 
-      /// disconnect
+      /// disconnect, check
       ws.setIsConnected(false);
       await tester.pump(const Duration(milliseconds: 100));
-      expect(tester.textByKey(const Key('app_bar_text')), equals('Connecting..'));
+      tester.checkAppBarText('Connecting..');
+      tester.checkFindPeopleButton(isShown: true);
 
-      /// connect
+      /// connect, check
       ws.setIsConnected(true);
       await tester.pump(const Duration(milliseconds: 100));
-      expect(tester.textByKey(const Key('app_bar_text')), equals('Updating..'));
+      tester.checkAppBarText('Updating..');
+      tester.checkFindPeopleButton(isShown: false);
 
-      await tester.pumpAndSettle(const Duration(milliseconds: 500));
-      expect(tester.textByKey(const Key('app_bar_text')), equals('Chats'));
-      expect(find.byKey(const Key('find_people_button')), findsOneWidget);
+      /// wait for the response of the repository, check
+      await tester.pumpAndSettle(const Duration(milliseconds: 300));
+      tester.checkAppBarText('Chats');
+      tester.checkFindPeopleButton(isShown: true);
     });
 
     testWidgets('chats_statuses_test, unread_counter_test', (tester) async {
@@ -75,30 +78,17 @@ void main() {
         dp.chatsApi.getChats(),
       ).thenAnswer((_) async => HttpResponse(ChatsResponse(data: [_chatDto0, _chatDto1, _chatDto2, _chatDto3, _chatDto4], message: null), Response(requestOptions: RequestOptions(), statusCode: 200)));
       await tester.pumpWidget(dp.inject(child: const App()));
-
-      /// test
       ws.setIsConnected(true);
       await tester.pumpAndSettle();
 
-      expect(find.byType(ChatWidget), findsNWidgets(5));
-      expect(tester.textByKey(const Key('chats_unread_text')), equals('6'));
-      expect(find.childrenWithText(const Key('chat-0'), '2'), findsOneWidget);
-      expect(find.childrenWithText(const Key('chat-0'), 'MSG_0'), findsOneWidget);
-      expect(find.childrenWithText(const Key('chat-0'), 'OTHER_USERNAME_1'), findsOneWidget);
-      expect(find.childrenWithText(const Key('chat-1'), '4'), findsOneWidget);
-      expect(find.childrenWithText(const Key('chat-1'), 'MSG_1'), findsOneWidget);
-      expect(find.childrenWithText(const Key('chat-1'), 'OTHER_USERNAME_2'), findsOneWidget);
-      expect(find.childrenWithIcon(const Key('chat-2'), Icons.check), findsOneWidget);
-      expect(find.childrenWithText(const Key('chat-2'), 'MSG_2'), findsOneWidget);
-      expect(find.childrenWithText(const Key('chat-2'), 'You: '), findsOneWidget);
-      expect(find.childrenWithIcon(const Key('chat-3'), Icons.check_box), findsOneWidget);
-      expect(find.childrenWithText(const Key('chat-3'), 'MSG_3'), findsOneWidget);
-      expect(find.childrenWithText(const Key('chat-3'), 'You: '), findsOneWidget);
-      expect(find.childrenWithIcon(const Key('chat-4'), Icons.check_box), findsNothing);
-      expect(find.childrenWithIcon(const Key('chat-4'), Icons.check), findsNothing);
-      expect(find.childrenWithText(const Key('chat-4'), 'MSG_4'), findsOneWidget);
-      expect(find.childrenWithText(const Key('chat-4'), 'You: '), findsNothing);
-      expect(find.childrenWithText(const Key('chat-4'), 'OTHER_USERNAME_5'), findsOneWidget);
+      /// check
+      tester.checkChatsOrder([0, 1, 2, 3, 4]);
+      tester.checkTotalUnreadCount(6);
+      tester.getChat(0).check(unreadCount: 2, unreadIcon: false, readIcon: false, message: 'MSG_0', msgFromCurrentUser: false, otherUserName: 'OTHER_USERNAME_1');
+      tester.getChat(1).check(unreadCount: 4, unreadIcon: false, readIcon: false, message: 'MSG_1', msgFromCurrentUser: false, otherUserName: 'OTHER_USERNAME_2');
+      tester.getChat(2).check(unreadCount: 0, unreadIcon: true, readIcon: false, message: 'MSG_2', msgFromCurrentUser: true, otherUserName: 'OTHER_USERNAME_3');
+      tester.getChat(3).check(unreadCount: 0, unreadIcon: false, readIcon: true, message: 'MSG_3', msgFromCurrentUser: true, otherUserName: 'OTHER_USERNAME_4');
+      tester.getChat(4).check(unreadCount: 0, unreadIcon: false, readIcon: false, message: 'MSG_4', msgFromCurrentUser: false, otherUserName: 'OTHER_USERNAME_5');
     });
 
     testWidgets('new_message_test', (tester) async {
@@ -106,31 +96,23 @@ void main() {
         dp.chatsApi.getChats(),
       ).thenAnswer((_) async => HttpResponse(ChatsResponse(data: [_chatDto0, _chatDto1, _chatDto2, _chatDto3, _chatDto4], message: null), Response(requestOptions: RequestOptions(), statusCode: 200)));
       await tester.pumpWidget(dp.inject(child: const App()));
-
-      /// test
       ws.setIsConnected(true);
       await tester.pumpAndSettle();
 
       /// check chat
-      expect(tester.keysOfListByKey(const Key('chats_list_view'), ChatWidget), equals([const Key('chat-0'), const Key('chat-1'), const Key('chat-2'), const Key('chat-3'), const Key('chat-4')]));
-      expect(find.childrenWithIcon(const Key('chat-4'), Icons.check_box), findsNothing);
-      expect(find.childrenWithIcon(const Key('chat-4'), Icons.check), findsNothing);
-      expect(find.childrenWithText(const Key('chat-4'), 'You: '), findsNothing);
+      tester.checkChatsOrder([0, 1, 2, 3, 4]);
+      tester.getChat(4).check(unreadCount: 0, unreadIcon: false, readIcon: false, message: 'MSG_4', msgFromCurrentUser: false);
 
-      /// addMessage
+      /// add message
       ws.addMessage(
         MessageDto(id: 5, chatId: _chatDto4.id, senderId: _chatDto4.otherUser.id, isCurrentUser: false, message: 'MSG_5', isRead: false, createdAt: 1100, editedAt: null, fromCache: false),
       );
       await tester.pumpAndSettle();
 
       /// check chat again
-      expect(tester.keysOfListByKey(const Key('chats_list_view'), ChatWidget), equals([const Key('chat-4'), const Key('chat-0'), const Key('chat-1'), const Key('chat-2'), const Key('chat-3')]));
-      expect(find.childrenWithIcon(const Key('chat-4'), Icons.check_box), findsNothing);
-      expect(find.childrenWithIcon(const Key('chat-4'), Icons.check), findsNothing);
-      expect(find.childrenWithText(const Key('chat-4'), 'You: '), findsNothing);
-      expect(find.childrenWithText(const Key('chat-4'), 'MSG_5'), findsOneWidget);
-      expect(find.childrenWithText(const Key('chat-4'), '1'), findsOneWidget);
-      expect(tester.textByKey(const Key('chats_unread_text')), equals('7'));
+      tester.checkChatsOrder([4, 0, 1, 2, 3]);
+      tester.getChat(4).check(unreadCount: 1, unreadIcon: false, readIcon: false, message: 'MSG_5', msgFromCurrentUser: false);
+      tester.checkTotalUnreadCount(7);
     });
 
     testWidgets('read_message_test', (tester) async {
@@ -138,24 +120,24 @@ void main() {
         dp.chatsApi.getChats(),
       ).thenAnswer((_) async => HttpResponse(ChatsResponse(data: [_chatDto0, _chatDto1, _chatDto2], message: null), Response(requestOptions: RequestOptions(), statusCode: 200)));
       await tester.pumpWidget(dp.inject(child: const App()));
-
-      /// test
       ws.setIsConnected(true);
       await tester.pumpAndSettle();
-      expect(find.childrenWithText(const Key('chat-0'), '2'), findsOneWidget);
-      expect(tester.textByKey(const Key('chats_unread_text')), equals('6'));
 
+      /// check chat
+      tester.getChat(0).check(unreadCount: 2);
+      tester.checkTotalUnreadCount(6);
+
+      /// add readMessages, check chat
       ws.addReadMessagesUpdate(ReadMessagesUpdate(chatId: _chatDto0.id, senderId: _chatDto0.otherUser.id, isCurrentUser: false, messagesIds: [999]));
       await tester.pumpAndSettle();
-      expect(find.childrenWithText(const Key('chat-0'), '1'), findsOneWidget);
-      expect(tester.textByKey(const Key('chats_unread_text')), equals('5'));
+      tester.getChat(0).check(unreadCount: 1);
+      tester.checkTotalUnreadCount(5);
 
+      /// add readMessages, check chat again
       ws.addReadMessagesUpdate(ReadMessagesUpdate(chatId: _chatDto0.id, senderId: _chatDto0.otherUser.id, isCurrentUser: false, messagesIds: [_chatDto0.lastMessage!.id]));
       await tester.pumpAndSettle();
-      expect(find.childrenWithKey(const Key('chat-0'), const Key('chat_unread_count_text')), findsNothing);
-      expect(find.childrenWithIcon(const Key('chat-0'), Icons.check_box), findsNothing);
-      expect(find.childrenWithIcon(const Key('chat-0'), Icons.check), findsNothing);
-      expect(tester.textByKey(const Key('chats_unread_text')), equals('4'));
+      tester.getChat(0).check(unreadCount: 0, unreadIcon: false, readIcon: false); // both was false and now still are false
+      tester.checkTotalUnreadCount(4);
     });
 
     testWidgets('read_current_user_message_test', (tester) async {
@@ -163,31 +145,36 @@ void main() {
         dp.chatsApi.getChats(),
       ).thenAnswer((_) async => HttpResponse(ChatsResponse(data: [_chatDto0, _chatDto1, _chatDto2, _chatDto3], message: null), Response(requestOptions: RequestOptions(), statusCode: 200)));
       await tester.pumpWidget(dp.inject(child: const App()));
-
-      /// test
       ws.setIsConnected(true);
       await tester.pumpAndSettle();
-      expect(find.childrenWithText(const Key('chat-0'), '2'), findsOneWidget);
-      expect(tester.textByKey(const Key('chats_unread_text')), equals('6'));
 
+      /// check chat
+      tester.getChat(0).check(unreadCount: 2);
+      tester.checkTotalUnreadCount(6);
+
+      /// add readMessages, check chat
       ws.addReadMessagesUpdate(ReadMessagesUpdate(chatId: _chatDto0.id, senderId: 0, isCurrentUser: true, messagesIds: [999]));
       await tester.pumpAndSettle();
-      expect(find.childrenWithText(const Key('chat-0'), '2'), findsOneWidget);
-      expect(tester.textByKey(const Key('chats_unread_text')), equals('6'));
+      tester.getChat(0).check(unreadCount: 2);
+      tester.checkTotalUnreadCount(6);
 
-      expect(find.childrenWithIcon(const Key('chat-2'), Icons.check), findsOneWidget);
+      /// check chat2, add readMessages, check chat2
+      tester.getChat(2).check(unreadIcon: true, readIcon: false);
       ws.addReadMessagesUpdate(ReadMessagesUpdate(chatId: _chatDto2.id, senderId: 0, isCurrentUser: true, messagesIds: [999]));
       await tester.pumpAndSettle();
-      expect(find.childrenWithIcon(const Key('chat-2'), Icons.check), findsOneWidget);
-      expect(tester.textByKey(const Key('chats_unread_text')), equals('6'));
+      tester.getChat(2).check(unreadIcon: true, readIcon: false);
+      tester.checkTotalUnreadCount(6);
 
+      /// add readMessages, check chat2
       ws.addReadMessagesUpdate(ReadMessagesUpdate(chatId: _chatDto2.id, senderId: 0, isCurrentUser: true, messagesIds: [_chatDto2.lastMessage!.id]));
       await tester.pumpAndSettle();
-      expect(tester.textByKey(const Key('chats_unread_text')), equals('6'));
-      expect(find.childrenWithIcon(const Key('chat-2'), Icons.check_box), findsOneWidget);
+      tester.getChat(2).check(unreadIcon: false, readIcon: true);
+      tester.checkTotalUnreadCount(6);
     });
 
     /// TODO remove message test
+    /// TODO cache test
+    /// TODO 999+ unread messages test
   });
 }
 
