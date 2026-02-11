@@ -1,7 +1,7 @@
 part of '../chats_screen.dart';
 
-class _ChatWidget extends StatelessWidget {
-  const _ChatWidget({required this.chat, this.isLoading = false, super.key});
+class ChatWidget extends StatelessWidget {
+  const ChatWidget({required this.chat, this.isLoading = false, super.key});
 
   final Chat chat;
   final bool isLoading;

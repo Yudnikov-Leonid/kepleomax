@@ -11,7 +11,10 @@ import '../logger.dart';
 abstract class TokenProvider {
   Future<void> saveAccessToken(String token);
 
-  Future<String?> getAccessToken({bool refreshIfNeeded = true});
+  Future<String?> getAccessToken({
+    bool refreshIfNeeded = true,
+    Function()? onLogoutCallback,
+  });
 
   Future<void> saveRefreshToken(String token);
 

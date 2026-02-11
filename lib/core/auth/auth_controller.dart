@@ -9,30 +9,50 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../logger.dart';
 import '../models/user.dart';
 
-class AuthController {
+abstract class AuthController {
+  User? get user;
+
+  void init();
+
+  Future<void> registerUser({required String email, required String password});
+
+  Future<void> login({required String email, required String password});
+
+  Future<void> logout();
+
+  Future<void> setUser(User? newUser);
+
+  void addListener(VoidCallback listener);
+
+  void removeAllListeners();
+}
+
+class AuthControllerImpl implements AuthController {
   final AuthRepository _authRepository;
   final UserRepository _userRepository;
-  final TokenProviderImpl _tokenProvider;
+  final TokenProvider _tokenProvider;
   final SharedPreferences _prefs;
 
   User? _user;
-
-  User? get user => _user;
 
   final List<VoidCallback> _listeners = [];
 
   static const _fcmKey = 'fcm_key';
 
-  AuthController({
+  AuthControllerImpl({
     required AuthRepository authRepository,
     required UserRepository userRepository,
-    required TokenProviderImpl tokenProvider,
+    required TokenProvider tokenProvider,
     required SharedPreferences prefs,
   }) : _authRepository = authRepository,
        _userRepository = userRepository,
        _tokenProvider = tokenProvider,
        _prefs = prefs;
 
+  @override
+  User? get user => _user;
+
+  @override
   void init() {
     final user = _userRepository.getCurrentUserFromCache();
     _user = user;
@@ -42,29 +62,32 @@ class AuthController {
     Future(() async {
       try {
         final user = await _userRepository.getUser(userId: _user!.id);
-        updateUser(user);
+        setUser(user);
       } catch (e, st) {
         logger.e(e, stackTrace: st);
       }
     });
   }
 
+  @override
   Future<void> registerUser({required String email, required String password}) =>
       _authRepository.register(email: email, password: password);
 
+  @override
   Future<void> login({required String email, required String password}) async {
     final res = await _authRepository.login(email: email, password: password);
 
     await _tokenProvider.saveAccessToken(res.accessToken);
     await _tokenProvider.saveRefreshToken(res.refreshToken);
-    await updateUser(User.fromDto(res.user));
+    await setUser(User.fromDto(res.user));
   }
 
+  @override
   Future<void> logout() async {
     if (_user == null) return;
 
     try {
-      await updateUser(null);
+      await setUser(null);
       LocalDatabaseManager.reset().ignore();
       final refreshToken = await _tokenProvider.getRefreshToken();
       if (refreshToken != null) {
@@ -81,8 +104,13 @@ class AuthController {
     }
   }
 
-  Future<void> updateUser(User? newUser) async {
+  @override
+  Future<void> setUser(User? newUser) async {
     if (newUser == _user) return;
+    if (newUser?.isCurrent == false) {
+      logger.e('Trying to setUser, but newUser.isCurrent == false');
+      return;
+    }
 
     _user = newUser;
     _userRepository.setCurrentUser(newUser);
@@ -95,6 +123,16 @@ class AuthController {
     } else {
       await _deleteFcmToken();
     }
+  }
+
+  @override
+  void addListener(VoidCallback listener) {
+    _listeners.add(listener);
+  }
+
+  @override
+  void removeAllListeners() {
+    _listeners.clear();
   }
 
   Future<void> _checkFcmToken() async {
@@ -129,13 +167,5 @@ class AuthController {
     await _userRepository.deleteFCMToken(token: token).onError((e, st) {
       logger.e('failed to delete fcm token: $e', stackTrace: st);
     });
-  }
-
-  void addListener(VoidCallback listener) {
-    _listeners.add(listener);
-  }
-
-  void removeAllListeners() {
-    _listeners.clear();
   }
 }

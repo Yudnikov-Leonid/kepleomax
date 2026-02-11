@@ -31,10 +31,13 @@ class KlmAppBar extends AppBar {
          titleSpacing: 5,
          backgroundColor: Colors.white,
          surfaceTintColor: Colors.white,
-         title: titleWidget ?? Text(
-           title ?? '',
-           style: context.textTheme.labelLarge?.copyWith(fontSize: 24),
-         ),
+         title:
+             titleWidget ??
+             Text(
+               title ?? '',
+               key: const Key('app_bar_text'),
+               style: context.textTheme.labelLarge?.copyWith(fontSize: 24),
+             ),
        );
 }
 

@@ -4,9 +4,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:kepleomax/core/app.dart';
+import 'package:kepleomax/core/flavor.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationService {
   NotificationService._privateConstructor();
@@ -44,7 +44,10 @@ class NotificationService {
     );
   }
 
+  /// will work in any environment except for testing
   Future<void> init() async {
+    if (flavor.isTesting) return;
+
     await _messaging.requestPermission();
 
     await setupFlutterNotifications();

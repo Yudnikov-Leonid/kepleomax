@@ -105,6 +105,7 @@ class _MainScreenState extends State<MainScreen> {
                                 padding: const EdgeInsets.all(4),
                                 child: Text(
                                   unreadCount > 99 ? '99' : unreadCount.toString(),
+                                  key: const Key('chats_unread_text'),
                                   style: context.textTheme.bodyLarge?.copyWith(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w500,

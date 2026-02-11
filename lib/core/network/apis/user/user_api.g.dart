@@ -20,12 +20,12 @@ class _UserApi implements UserApi {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<HttpResponse<GetUserDto>> getUser({required int userId}) async {
+  Future<HttpResponse<GetUserResponse>> getUser({required int userId}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'userId': userId};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<HttpResponse<GetUserDto>>(
+    final _options = _setStreamType<HttpResponse<GetUserResponse>>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -36,9 +36,9 @@ class _UserApi implements UserApi {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late GetUserDto _value;
+    late GetUserResponse _value;
     try {
-      _value = GetUserDto.fromJson(_result.data!);
+      _value = GetUserResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
@@ -48,7 +48,7 @@ class _UserApi implements UserApi {
   }
 
   @override
-  Future<HttpResponse<GetUsersDto>> searchUsers({
+  Future<HttpResponse<GetUsersResponse>> searchUsers({
     required String search,
     required int limit,
     required int offset,
@@ -61,7 +61,7 @@ class _UserApi implements UserApi {
     };
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<HttpResponse<GetUsersDto>>(
+    final _options = _setStreamType<HttpResponse<GetUsersResponse>>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -72,9 +72,9 @@ class _UserApi implements UserApi {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late GetUsersDto _value;
+    late GetUsersResponse _value;
     try {
-      _value = GetUsersDto.fromJson(_result.data!);
+      _value = GetUsersResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
@@ -85,7 +85,7 @@ class _UserApi implements UserApi {
 
   @override
   Future<HttpResponse<void>> addFCMToken({
-    required FCMTokenRequestDto body,
+    required FCMTokenRequest body,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -109,7 +109,7 @@ class _UserApi implements UserApi {
 
   @override
   Future<HttpResponse<void>> deleteFCMToken({
-    required FCMTokenRequestDto body,
+    required FCMTokenRequest body,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};

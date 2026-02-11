@@ -40,11 +40,11 @@ abstract class MessagesWebSocket {
 
 class MessagesWebSocketImpl implements MessagesWebSocket {
   final String _baseUrl;
-  final TokenProviderImpl _tokenProvider;
+  final TokenProvider _tokenProvider;
 
   MessagesWebSocketImpl({
     required String baseUrl,
-    required TokenProviderImpl tokenProvider,
+    required TokenProvider tokenProvider,
   }) : _tokenProvider = tokenProvider,
        _baseUrl = baseUrl;
 
@@ -57,19 +57,24 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
       StreamController.broadcast();
   final StreamController<bool> _connectionController = StreamController.broadcast();
 
+  @override
   Stream<MessageDto> get newMessageStream => _messageController.stream;
 
+  @override
   Stream<ReadMessagesUpdate> get readMessagesStream =>
       _readMessagesController.stream;
 
+  @override
   Stream<DeletedMessageUpdate> get deletedMessageStream =>
       _deletedMessageController.stream;
 
+  @override
   Stream<bool> get connectionStateStream => _connectionController.stream;
 
   /// socket
   Socket? _socket;
 
+  @override
   Future<void> init() async {
     logger.d('WebSocketLog! init, _socket != null: ${_socket != null}');
     if (_socket != null) {
@@ -142,12 +147,14 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
     });
   }
 
+  @override
   Future<void> reinit() async {
     logger.d('WebSocketLog! reconnect');
     disconnect();
     await init();
   }
 
+  @override
   void connectIfNot() {
     logger.d(
       'WebSocketLog! connectIfNot, _socket != null: ${_socket != null}, _socket.disconnected: ${_socket?.disconnected}',
@@ -157,6 +164,7 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
     }
   }
 
+  @override
   void disconnect() {
     logger.d('WebSocketLog! disconnect, socket != null: ${_socket != null}');
     if (_socket != null) {
@@ -164,29 +172,34 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
     }
   }
 
+  @override
   bool get isConnected => _socket?.connected ?? false;
 
   /// events
+  @override
   void sendMessage({required String message, required int recipientId}) {
-    if (_socket?.connected ?? false) {
+    if (_socket?.connected == true) {
       _socket!.emit('message', {'recipient_id': recipientId, 'message': message});
     }
   }
 
+  @override
   void deleteMessage({required int messageId}) {
-    if (_socket?.connected ?? false) {
+    if (_socket?.connected == true) {
       _socket!.emit('delete_message', {'message_id': messageId});
     }
   }
 
+  @override
   void readAllMessages({required int chatId}) {
-    if (_socket?.connected ?? false) {
+    if (_socket?.connected == true) {
       _socket!.emit('read_all', {'chat_id': chatId});
     }
   }
 
+  @override
   void readMessageBeforeTime({required int chatId, required DateTime time}) {
-    if (_socket?.connected ?? false) {
+    if (_socket?.connected == true) {
       _socket!.emit('read_before_time', {
         'chat_id': chatId,
         'time': time.millisecondsSinceEpoch,

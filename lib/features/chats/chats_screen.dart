@@ -77,11 +77,11 @@ class _Body extends StatelessWidget {
                 key: const Key('chats_loading'),
                 child: Column(
                   children: [
-                    _ChatWidget(chat: Chat.loading(), isLoading: true),
-                    _ChatWidget(chat: Chat.loading(), isLoading: true),
-                    _ChatWidget(chat: Chat.loading(), isLoading: true),
-                    _ChatWidget(chat: Chat.loading(), isLoading: true),
-                    _ChatWidget(chat: Chat.loading(), isLoading: true),
+                    ChatWidget(chat: Chat.loading(), isLoading: true),
+                    ChatWidget(chat: Chat.loading(), isLoading: true),
+                    ChatWidget(chat: Chat.loading(), isLoading: true),
+                    ChatWidget(chat: Chat.loading(), isLoading: true),
+                    ChatWidget(chat: Chat.loading(), isLoading: true),
                   ],
                 ),
               ),
@@ -115,6 +115,7 @@ class _Body extends StatelessWidget {
                         ),
                         const SizedBox(height: 10),
                         KlmButton(
+                          key: const Key('find_people_button'),
                           onPressed: () {
                             AppNavigator.of(context)!.push(const PeoplePage());
                           },
@@ -142,7 +143,7 @@ class _Body extends StatelessWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(vertical: 10),
             itemCount: data.chats.length,
-            itemBuilder: (context, i) => _ChatWidget(
+            itemBuilder: (context, i) => ChatWidget(
               key: Key('chat-${data.chats[i].id}'),
               chat: data.chats[i],
             ),

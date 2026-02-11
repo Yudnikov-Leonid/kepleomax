@@ -10,10 +10,10 @@ abstract class UserApi {
       _UserApi(dio, baseUrl: '$baseUrl/api/user');
 
   @GET('/')
-  Future<HttpResponse<GetUserDto>> getUser({@Query('userId') required int userId});
+  Future<HttpResponse<GetUserResponse>> getUser({@Query('userId') required int userId});
 
   @GET('/search')
-  Future<HttpResponse<GetUsersDto>> searchUsers({
+  Future<HttpResponse<GetUsersResponse>> searchUsers({
     @Query('search') required String search,
     @Query('limit') required int limit,
     @Query('offset') required int offset,
@@ -21,11 +21,11 @@ abstract class UserApi {
 
   @POST('/fcmToken')
   Future<HttpResponse<void>> addFCMToken({
-    @Body() required FCMTokenRequestDto body,
+    @Body() required FCMTokenRequest body,
   });
 
   @DELETE('/fcmToken')
   Future<HttpResponse<void>> deleteFCMToken({
-    @Body() required FCMTokenRequestDto body,
+    @Body() required FCMTokenRequest body,
   });
 }

@@ -12,7 +12,6 @@ import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.d
 import 'package:kepleomax/core/data/messenger_repository.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
-import 'package:kepleomax/core/native/klm_method_channel.dart';
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_api.dart';
 import 'package:kepleomax/core/network/apis/files/files_api.dart';
@@ -28,11 +27,10 @@ import 'package:sqflite/sqflite.dart';
 
 class Dependencies {
   late final AuthController authController;
-  late final TokenProviderImpl tokenProvider;
+  late final TokenProvider tokenProvider;
   late final SharedPreferences sharedPreferences;
   late final FlutterSecureStorage secureStorage;
   late final PrettyDioLogger prettyDioLogger;
-  late final KlmMethodChannel methodChannel;
   late final Database database;
 
   late final Dio dio;

@@ -38,4 +38,6 @@ abstract class User with _$User {
     profileImage: null,
     isCurrent: false,
   );
+
+  factory User.testing() => User.fromDto(UserDto.testing());
 }

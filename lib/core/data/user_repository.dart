@@ -157,14 +157,14 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<bool> addFCMToken({required String token}) async {
     final result = await _userApi.addFCMToken(
-      body: FCMTokenRequestDto(token: token),
+      body: FCMTokenRequest(token: token),
     );
     return result.response.statusCode == 200;
   }
 
   @override
   Future<void> deleteFCMToken({required String token}) async {
-    await _userApi.deleteFCMToken(body: FCMTokenRequestDto(token: token));
+    await _userApi.deleteFCMToken(body: FCMTokenRequest(token: token));
   }
 
   @override

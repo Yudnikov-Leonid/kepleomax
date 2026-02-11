@@ -39,6 +39,13 @@ class UserDto extends Equatable {
     'is_current': isCurrent ? 1 : 0,
   };
 
+  factory UserDto.testing() => const UserDto(
+    id: 0,
+    username: 'TEST_USERNAME',
+    profileImage: null,
+    isCurrent: true,
+  );
+
   @override
   List<Object?> get props => [id, username, profileImage, isCurrent];
 }

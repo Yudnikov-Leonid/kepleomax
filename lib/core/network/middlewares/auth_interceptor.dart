@@ -5,11 +5,11 @@ import 'package:kepleomax/core/network/token_provider.dart';
 import '../../logger.dart';
 
 class AuthInterceptor extends QueuedInterceptorsWrapper {
-  final TokenProviderImpl _tokenProvider;
+  final TokenProvider _tokenProvider;
   final AuthController _authController;
 
   AuthInterceptor({
-    required TokenProviderImpl tokenProvider,
+    required TokenProvider tokenProvider,
     required AuthController authController,
   }) : _authController = authController,
        _tokenProvider = tokenProvider;
