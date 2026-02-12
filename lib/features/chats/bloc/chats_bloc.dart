@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/connection_repository.dart';
 import 'package:kepleomax/core/data/messenger_repository.dart';
 import 'package:kepleomax/core/data/models/chats_collection.dart';
+import 'package:kepleomax/core/flavor.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:kepleomax/core/logger.dart';
@@ -57,9 +58,9 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
   int _lastTimeLoadWasCalled = 0;
 
   void _onLoad(ChatsEventLoad event, Emitter<ChatsState> emit) async {
-    /// TODO make this with bloc_concurrency
+    /// TODO make this with bloc_concurrency, make isTesting better
     final now = DateTime.now().millisecondsSinceEpoch;
-    if (_lastTimeLoadWasCalled + 1000 > now) {
+    if (_lastTimeLoadWasCalled + 1000 > now && !flavor.isTesting) {
       return;
     }
     _lastTimeLoadWasCalled = now;
@@ -102,9 +103,10 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     Emitter<ChatsState> emit,
   ) {
     _data = _data.copyWith(isConnected: event.isConnected);
-    emit(ChatsStateBase(data: _data));
     if (event.isConnected) {
       add(const ChatsEventLoad(withCache: false));
+    } else {
+      emit(ChatsStateBase(data: _data));
     }
   }
 

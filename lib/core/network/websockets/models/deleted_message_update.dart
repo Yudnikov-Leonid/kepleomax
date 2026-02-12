@@ -5,7 +5,7 @@ class DeletedMessageUpdate {
   final MessageDto deletedMessage;
   final MessageDto? newLastMessage;
 
-  DeletedMessageUpdate({
+  const DeletedMessageUpdate({
     required this.chatId,
     required this.deletedMessage,
     required this.newLastMessage,

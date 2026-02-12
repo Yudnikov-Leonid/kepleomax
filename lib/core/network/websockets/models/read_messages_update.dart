@@ -4,7 +4,7 @@ class ReadMessagesUpdate {
   final bool isCurrentUser;
   final List<int> messagesIds;
 
-  ReadMessagesUpdate({
+  const ReadMessagesUpdate({
     required this.chatId,
     required this.senderId,
     required this.isCurrentUser,

@@ -68,13 +68,13 @@ class _Body extends StatelessWidget {
         final data = state.data;
         if (data.isLoading && data.chats.isEmpty) {
           return RefreshIndicator(
+            key: const Key('chats_loading'),
             onRefresh: () async {
               context.read<ChatsBloc>().add(const ChatsEventReconnect());
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Skeletonizer(
-                key: const Key('chats_loading'),
                 child: Column(
                   children: [
                     ChatWidget(chat: Chat.loading(), isLoading: true),

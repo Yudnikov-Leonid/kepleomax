@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kepleomax/features/chats/chats_screen.dart';
 
+enum AppBarStatus { connecting, updating, chats }
+
 extension TesterExtension on WidgetTester {
   String? textByKey(Key key) => widget<Text>(find.byKey(key)).data;
 
@@ -14,8 +16,17 @@ extension TesterExtension on WidgetTester {
 
   Finder getChat(int id) => find.byKey(Key('chat-$id'));
 
-  void checkAppBarText(String expected) {
-    expect(textByKey(const Key('app_bar_text')), equals(expected));
+  void checkAppBarStatus(AppBarStatus expected) {
+    String text;
+    switch (expected) {
+      case AppBarStatus.connecting:
+        text = 'Connecting..';
+      case AppBarStatus.updating:
+        text = 'Updating..';
+      case AppBarStatus.chats:
+        text = 'Chats';
+    }
+    expect(textByKey(const Key('app_bar_text')), equals(text));
   }
 
   void checkFindPeopleButton({required bool isShown}) {
@@ -26,7 +37,18 @@ extension TesterExtension on WidgetTester {
   }
 
   void checkTotalUnreadCount(int expected) {
-    expect(textByKey(const Key('chats_unread_text')), equals(expected.toString()));
+    if (expected == 0) {
+      expect(find.byKey(const Key('chats_unread_text')), findsNothing);
+    } else {
+      expect(textByKey(const Key('chats_unread_text')), equals(expected.toString()));
+    }
+  }
+
+  void checkChatsCount(int expected) {
+    expect(
+      keysOfListByKey(const Key('chats_list_view'), ChatWidget).length,
+      expected,
+    );
   }
 
   void checkChatsOrder(List<int> ids) {
