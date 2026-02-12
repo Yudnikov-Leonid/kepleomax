@@ -1,7 +1,7 @@
 part of '../chat_screen.dart';
 
-class _MessageWidget extends StatelessWidget {
-  const _MessageWidget({
+class MessageWidget extends StatelessWidget {
+  const MessageWidget({
     required this.message,
     required this.user,
     required this.onDelete,
@@ -31,7 +31,7 @@ class _MessageWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (_isCurrent)
-            const Spacer()
+            const Spacer(key: Key('current_user_spacer'))
           else ...[
             SizedBox(
               height: 35,
@@ -156,7 +156,13 @@ class _MessageWidget extends StatelessWidget {
       }),
       if (message.isCurrentUser && !message.fromCache) ...[
         _popupItem('Edit', Icons.edit, () {}),
-        _popupItem('Delete', Icons.delete, onDelete, color: Colors.red),
+        _popupItem(
+          'Delete',
+          Icons.delete,
+          onDelete,
+          color: Colors.red,
+          key: const Key('delete_message_popup_button'),
+        ),
       ],
     ];
   }
@@ -166,7 +172,9 @@ class _MessageWidget extends StatelessWidget {
     IconData iconData,
     VoidCallback onTap, {
     Color? color,
+    Key? key,
   }) => PopupMenuItem(
+    key: key,
     onTap: onTap,
     child: Row(
       children: [

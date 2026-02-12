@@ -35,7 +35,7 @@ class KlmAppBar extends AppBar {
              titleWidget ??
              Text(
                title ?? '',
-               key: const Key('app_bar_text'),
+               key: const Key('app_bar_status_text'),
                style: context.textTheme.labelLarge?.copyWith(fontSize: 24),
              ),
        );

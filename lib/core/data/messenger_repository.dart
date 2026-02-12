@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:kepleomax/core/app_constants.dart';
 import 'package:kepleomax/core/data/data_sources/chats_api_data_sources.dart';
 import 'package:kepleomax/core/data/data_sources/messages_api_data_sources.dart';
 import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.dart';
@@ -15,8 +16,6 @@ import 'local_data_sources/chats_local_data_source.dart';
 import 'local_data_sources/messages_local_data_source.dart';
 import 'models/chats_collection.dart';
 import 'models/messages_collection.dart';
-
-const int _messagesPagingLimit = 15;
 
 abstract class MessengerRepository {
   /// api/db calls
@@ -252,7 +251,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
     /// add to the stream data from api
     final apiMessagesDtos = await _messagesApi.getMessages(
       chatId: chatId,
-      limit: _messagesPagingLimit,
+      limit: AppConstants.messagesPagingCount,
     );
     final newList = await _combineCacheAndApi(
       cache.map(Message.fromDto),
@@ -261,7 +260,12 @@ class MessengerRepositoryImpl implements MessengerRepository {
 
     /// TODO add unreadMessages
     _emitMessagesCollection(
-      MessagesCollection(messages: newList, chatId: chatId, maintainLoading: false),
+      MessagesCollection(
+        messages: newList,
+        chatId: chatId,
+        allMessagesLoaded: newList.length < AppConstants.messagesPagingCount,
+        maintainLoading: false,
+      ),
     );
     _messagesLocal.insertAll(apiMessagesDtos);
   }
@@ -317,8 +321,8 @@ class MessengerRepositoryImpl implements MessengerRepository {
         ? messagesFromCache.length
         : messagesFromCache.toList().indexWhere((m) => m.id == toMessageId);
     final newLimit = limitCorrection == -1
-        ? _messagesPagingLimit
-        : limitCorrection + _messagesPagingLimit;
+        ? AppConstants.messagesPagingCount
+        : limitCorrection + AppConstants.messagesPagingCount;
     final newMessagesDtos = await _messagesApi.getMessages(
       chatId: chatId,
       limit: newLimit,

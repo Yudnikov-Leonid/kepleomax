@@ -178,7 +178,7 @@ List<_InitializationStep> _steps = [
     dp.chatsApi = ChatsApi(dp.dio, flavor.baseUrl);
   }, callForTests: (dp) {
     dp.postApi = PostApi(dp.dio, flavor.baseUrl);
-    dp.messagesApi = MessagesApi(dp.dio, flavor.baseUrl);
+    dp.messagesApi = MockMessagesApi();
     dp.chatsApi = MockChatsApi();
   }),
 

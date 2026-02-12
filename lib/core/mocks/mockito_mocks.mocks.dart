@@ -7,6 +7,8 @@ import 'dart:async' as _i4;
 
 import 'package:kepleomax/core/network/apis/chats/chats_api.dart' as _i3;
 import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart' as _i5;
+import 'package:kepleomax/core/network/apis/messages/message_dtos.dart' as _i7;
+import 'package:kepleomax/core/network/apis/messages/messages_api.dart' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:retrofit/retrofit.dart' as _i2;
 
@@ -85,4 +87,39 @@ class MockChatsApi extends _i1.Mock implements _i3.ChatsApi {
             ),
           )
           as _i4.Future<_i2.HttpResponse<_i5.ChatResponse>>);
+}
+
+/// A class which mocks [MessagesApi].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockMessagesApi extends _i1.Mock implements _i6.MessagesApi {
+  MockMessagesApi() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i4.Future<_i2.HttpResponse<_i7.MessagesResponse>> getMessages({
+    required int? chatId,
+    required int? limit,
+    required int? cursor,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getMessages, [], {
+              #chatId: chatId,
+              #limit: limit,
+              #cursor: cursor,
+            }),
+            returnValue:
+                _i4.Future<_i2.HttpResponse<_i7.MessagesResponse>>.value(
+                  _FakeHttpResponse_0<_i7.MessagesResponse>(
+                    this,
+                    Invocation.method(#getMessages, [], {
+                      #chatId: chatId,
+                      #limit: limit,
+                      #cursor: cursor,
+                    }),
+                  ),
+                ),
+          )
+          as _i4.Future<_i2.HttpResponse<_i7.MessagesResponse>>);
 }

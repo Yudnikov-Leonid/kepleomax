@@ -86,7 +86,6 @@ class _ChatScreenState extends State<ChatScreen> {
             floatingActionButton: _ReadButton(
               scrollController: _scrollController,
               chatId: widget.chatId,
-              key: const Key('chat_read_button'),
             ),
             appBar: const _AppBar(key: Key('chat_appbar')),
             body: _Body(
@@ -229,7 +228,7 @@ class _BodyState extends State<_Body> {
                           triggerOnObserveType:
                               ObserverTriggerOnObserveType.directly,
                           child: ListView.builder(
-                            key: Key('chat_scroll_view_${data.chatId}'),
+                            key: const Key('chats_list_view'),
                             controller: widget.scrollController,
                             physics: ChatObserverClampingScrollPhysics(
                               observer: _chatObserver,
@@ -249,7 +248,7 @@ class _BodyState extends State<_Body> {
                               ),
                               onVisibilityChanged: (info) =>
                                   _onVisibilityChanged(info, data.messages[i]),
-                              child: _MessageWidget(
+                              child: MessageWidget(
                                 key: Key('message_${data.messages[i].id}'),
                                 onDelete: () {
                                   _chatBloc.add(
@@ -273,11 +272,7 @@ class _BodyState extends State<_Body> {
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeOut,
                   );
-                  _chatBloc.add(
-                    ChatEventSendMessage(
-                      messageBody: message,
-                    ),
-                  );
+                  _chatBloc.add(ChatEventSendMessage(messageBody: message));
                 },
                 isLoading: data.isLoading,
                 key: const Key('chat_bottom'),
@@ -400,6 +395,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                                 : data.isLoading
                                 ? 'Updating..'
                                 : '',
+                            key: const Key('chat_app_bar_status_text'),
                             style: context.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w500,
                               color: Colors.grey,

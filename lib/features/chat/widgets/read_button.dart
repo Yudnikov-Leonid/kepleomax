@@ -4,7 +4,6 @@ class _ReadButton extends StatefulWidget {
   const _ReadButton({
     required ScrollController scrollController,
     required this.chatId,
-    super.key,
   }) : _scrollController = scrollController;
 
   final ScrollController _scrollController;
@@ -74,6 +73,7 @@ class _ReadButtonState extends State<_ReadButton> {
             clipBehavior: Clip.none,
             children: [
               FloatingActionButton(
+                key: const Key('read_all_button'),
                 shape: const CircleBorder(),
                 elevation: 1,
                 backgroundColor: Colors.white,

@@ -52,7 +52,7 @@ class ConnectionRepositoryImpl implements ConnectionRepository {
 
   @override
   void readMessageBeforeTime({required int chatId, required DateTime time}) =>
-      _webSocket.readMessageBeforeTime(chatId: chatId, time: time);
+      _webSocket.readMessagesBeforeTime(chatId: chatId, time: time);
 
   @override
   Stream<bool> get connectionStateStream => _webSocket.connectionStateStream;

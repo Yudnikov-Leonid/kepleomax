@@ -145,7 +145,7 @@ class _Body extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 10),
             itemCount: data.chats.length,
             itemBuilder: (context, i) => ChatWidget(
-              key: Key('chat-${data.chats[i].id}'),
+              key: Key('chat_${data.chats[i].id}'),
               chat: data.chats[i],
             ),
           ),

@@ -7,6 +7,7 @@ import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/connection_repository.dart';
 import 'package:kepleomax/core/data/messenger_repository.dart';
 import 'package:kepleomax/core/data/models/messages_collection.dart';
+import 'package:kepleomax/core/flavor.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
@@ -104,8 +105,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   int _lastTimeLoadWasCalled = 0;
 
   void _onLoad(ChatEventLoad event, Emitter<ChatState> emit) async {
+    /// TODO make better flavor.isTesting
     final now = DateTime.now().millisecondsSinceEpoch;
-    if (now - 1000 < _lastTimeLoadWasCalled) {
+    if (now - 1000 < _lastTimeLoadWasCalled && !flavor.isTesting) {
       return;
     }
     _lastTimeLoadWasCalled = now;
@@ -152,9 +154,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         _data = _data.copyWith(otherUser: chat!.otherUser);
       }
 
-      print(
-        'MyLog loadMessages with chatId: $chatId, withCache: ${event.withCache}',
-      );
+      // print(
+      //   'MyLog loadMessages with chatId: $chatId, withCache: ${event.withCache}',
+      // );
       await _messengerRepository.loadMessages(
         chatId: chatId,
         withCache: event.withCache,

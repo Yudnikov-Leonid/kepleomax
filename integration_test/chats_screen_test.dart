@@ -13,18 +13,18 @@ import 'package:kepleomax/core/mocks/mock_messages_web_socket.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
-import 'package:kepleomax/core/network/common/user_dto.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
 import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retrofit/dio.dart';
 
-import 'utils.dart';
+import 'utils/mock_objects.dart';
+import 'utils/utils.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  group('chats_screen', () {
+  group('chats_screen_tests', () {
     late Dependencies dp;
     late MockMessagesWebSocket ws;
     Duration _cachedGetChatsDelay = Duration.zero;
@@ -79,40 +79,40 @@ void main() {
         return HttpResponse(ChatsResponse(data: [], message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
       });
       await tester.pumpWidget(dp.inject(child: const App()));
-      tester.checkAppBarStatus(AppBarStatus.connecting);
+      tester.checkChatsAppBarStatus(ChatsAppBarStatus.connecting);
       tester.checkFindPeopleButton(isShown: false);
 
       /// connect, check
       ws.setIsConnected(true);
       await tester.pump(const Duration(milliseconds: 100));
-      tester.checkAppBarStatus(AppBarStatus.updating);
+      tester.checkChatsAppBarStatus(ChatsAppBarStatus.updating);
       tester.checkFindPeopleButton(isShown: false);
 
       /// wait for the response of the repository, check
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
-      tester.checkAppBarStatus(AppBarStatus.chats);
+      tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
       tester.checkFindPeopleButton(isShown: true);
 
       /// disconnect, check
       ws.setIsConnected(false);
       await tester.pump(const Duration(milliseconds: 100));
-      tester.checkAppBarStatus(AppBarStatus.connecting);
+      tester.checkChatsAppBarStatus(ChatsAppBarStatus.connecting);
       tester.checkFindPeopleButton(isShown: true);
 
       /// connect, check
       ws.setIsConnected(true);
       await tester.pump(const Duration(milliseconds: 100));
-      tester.checkAppBarStatus(AppBarStatus.updating);
+      tester.checkChatsAppBarStatus(ChatsAppBarStatus.updating);
       tester.checkFindPeopleButton(isShown: false);
 
       /// wait for the response of the repository, check
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
-      tester.checkAppBarStatus(AppBarStatus.chats);
+      tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
       tester.checkFindPeopleButton(isShown: true);
     });
 
     testWidgets('chats_statuses_test', (tester) async {
-      await setupAppWithChats(tester, [_chatDto0, _chatDto1, _chatDto2, _chatDto3, _chatDto4]);
+      await setupAppWithChats(tester, [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4]);
 
       /// check
       tester.checkChatsOrder([0, 1, 2, 3, 4]);
@@ -124,12 +124,12 @@ void main() {
     });
 
     testWidgets('unread_count_test', (tester) async {
-      await setupAppWithChats(tester, [_chatDto0, _chatDto1, _chatDto2, _chatDto3, _chatDto4]);
+      await setupAppWithChats(tester, [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4]);
       tester.checkTotalUnreadCount(6);
     });
 
     testWidgets('new_message_test', (tester) async {
-      await setupAppWithChats(tester, [_chatDto0, _chatDto1, _chatDto2, _chatDto3, _chatDto4]);
+      await setupAppWithChats(tester, [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4]);
 
       /// check chat
       tester.checkChatsOrder([0, 1, 2, 3, 4]);
@@ -137,7 +137,7 @@ void main() {
 
       /// add message
       ws.addMessage(
-        MessageDto(id: 5, chatId: _chatDto4.id, senderId: _chatDto4.otherUser.id, isCurrentUser: false, message: 'MSG_5', isRead: false, createdAt: 1100, editedAt: null, fromCache: false),
+        MessageDto(id: 5, chatId: chatDto4.id, senderId: chatDto4.otherUser.id, isCurrentUser: false, message: 'MSG_5', isRead: false, createdAt: 1100, editedAt: null, fromCache: false),
       );
       await tester.pumpAndSettle();
 
@@ -148,54 +148,54 @@ void main() {
     });
 
     testWidgets('read_message_test', (tester) async {
-      await setupAppWithChats(tester, [_chatDto0]);
+      await setupAppWithChats(tester, [chatDto0]);
 
       /// check chat
       tester.getChat(0).check(unreadCount: 2);
       tester.checkTotalUnreadCount(2);
 
       /// add readMessages, check chat
-      ws.addReadMessagesUpdate(ReadMessagesUpdate(chatId: _chatDto0.id, senderId: _chatDto0.otherUser.id, isCurrentUser: false, messagesIds: [999]));
+      ws.addReadMessagesUpdate(ReadMessagesUpdate(chatId: chatDto0.id, senderId: chatDto0.otherUser.id, isCurrentUser: false, messagesIds: [999]));
       await tester.pumpAndSettle();
       tester.getChat(0).check(unreadCount: 1);
       tester.checkTotalUnreadCount(1);
 
       /// add readMessages, check chat again
-      ws.addReadMessagesUpdate(ReadMessagesUpdate(chatId: _chatDto0.id, senderId: _chatDto0.otherUser.id, isCurrentUser: false, messagesIds: [_chatDto0.lastMessage!.id]));
+      ws.addReadMessagesUpdate(ReadMessagesUpdate(chatId: chatDto0.id, senderId: chatDto0.otherUser.id, isCurrentUser: false, messagesIds: [chatDto0.lastMessage!.id]));
       await tester.pumpAndSettle();
       tester.getChat(0).check(unreadCount: 0, unreadIcon: false, readIcon: false); // both was false and now still are false
       tester.checkTotalUnreadCount(0);
     });
 
     testWidgets('read_current_user_messages_test', (tester) async {
-      await setupAppWithChats(tester, [_chatDto0, _chatDto2]);
+      await setupAppWithChats(tester, [chatDto0, chatDto2]);
 
       /// check chat
       tester.getChat(0).check(unreadCount: 2);
       tester.checkTotalUnreadCount(2);
 
       /// add readMessages, check chat
-      ws.addReadMessagesUpdate(ReadMessagesUpdate(chatId: _chatDto0.id, senderId: 0, isCurrentUser: true, messagesIds: [999]));
+      ws.addReadMessagesUpdate(ReadMessagesUpdate(chatId: chatDto0.id, senderId: 0, isCurrentUser: true, messagesIds: [999]));
       await tester.pumpAndSettle();
       tester.getChat(0).check(unreadCount: 2);
       tester.checkTotalUnreadCount(2);
 
       /// check chat2, add readMessages, check chat2
       tester.getChat(2).check(unreadIcon: true, readIcon: false);
-      ws.addReadMessagesUpdate(ReadMessagesUpdate(chatId: _chatDto2.id, senderId: 0, isCurrentUser: true, messagesIds: [999]));
+      ws.addReadMessagesUpdate(ReadMessagesUpdate(chatId: chatDto2.id, senderId: 0, isCurrentUser: true, messagesIds: [999]));
       await tester.pumpAndSettle();
       tester.getChat(2).check(unreadIcon: true, readIcon: false);
       tester.checkTotalUnreadCount(2);
 
       /// add readMessages, check chat2
-      ws.addReadMessagesUpdate(ReadMessagesUpdate(chatId: _chatDto2.id, senderId: 0, isCurrentUser: true, messagesIds: [_chatDto2.lastMessage!.id]));
+      ws.addReadMessagesUpdate(ReadMessagesUpdate(chatId: chatDto2.id, senderId: 0, isCurrentUser: true, messagesIds: [chatDto2.lastMessage!.id]));
       await tester.pumpAndSettle();
       tester.getChat(2).check(unreadIcon: false, readIcon: true);
       tester.checkTotalUnreadCount(2);
     });
 
     testWidgets('10000_unread_messages_test', (tester) async {
-      await setupAppWithChats(tester, [ChatDto(id: _chatDto0.id, otherUser: _chatDto0.otherUser, lastMessage: _chatDto0.lastMessage, unreadCount: 10000)]);
+      await setupAppWithChats(tester, [ChatDto(id: chatDto0.id, otherUser: chatDto0.otherUser, lastMessage: chatDto0.lastMessage, unreadCount: 10000)]);
 
       /// check
       tester.getChat(0).check(unreadCount: 999);
@@ -207,7 +207,7 @@ void main() {
      * if newLastMessage != null -> new lastMessage of chat should be set to that
      */
     testWidgets('delete_messages_test', (tester) async {
-      await setupAppWithChats(tester, [_chatDto0]);
+      await setupAppWithChats(tester, [chatDto0]);
 
       /// check, delete currentUser message, check
       tester.getChat(0).check(unreadCount: 2);
@@ -244,7 +244,7 @@ void main() {
       tester.getChat(0).check(unreadCount: 1);
 
       /// check, delete currentUser message with newLastMessage from otherUser, check
-      tester.getChat(0).check(message: _chatDto0.lastMessage!.message);
+      tester.getChat(0).check(message: chatDto0.lastMessage!.message);
       ws.addDeletedMessagesUpdate(
         const DeletedMessageUpdate(
           chatId: 0,
@@ -270,7 +270,7 @@ void main() {
     });
 
     testWidgets('delete_messages_chats_order_test', (tester) async {
-      await setupAppWithChats(tester, [_chatDto0, _chatDto1, _chatDto2, _chatDto3, _chatDto4]);
+      await setupAppWithChats(tester, [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4]);
 
       /// current createdAts: [1090, 1080, 1070, 1060, 1050]
       /// check order, add newLastMessage to chat 0 with createdAt 1000, check order
@@ -311,31 +311,31 @@ void main() {
     });
 
     testWidgets('cache_test', (tester) async {
-      await setupAppWithChats(tester, [_chatDto0, _chatDto1, _chatDto2, _chatDto3, _chatDto4], getChatsDelay: const Duration(milliseconds: 150));
+      await setupAppWithChats(tester, [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4], getChatsDelay: const Duration(milliseconds: 150));
 
       /// check no chats on first start
       expect(find.byKey(const Key('chats_loading')), findsOneWidget);
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
       expect(find.byKey(const Key('chats_loading')), findsNothing);
-      tester.checkAppBarStatus(AppBarStatus.chats);
+      tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
       tester.checkChatsOrder([0, 1, 2, 3, 4]);
 
       /// check cachedChats, then new chats from api
-      changeGetChatsResponse([_chatDto4, _chatDto3, _chatDto2, _chatDto1]);
+      changeGetChatsResponse([chatDto4, chatDto3, chatDto2, chatDto1]);
       await restartApp(tester);
-      tester.checkAppBarStatus(AppBarStatus.updating);
+      tester.checkChatsAppBarStatus(ChatsAppBarStatus.updating);
       tester.checkChatsOrder([0, 1, 2, 3, 4]);
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
-      tester.checkAppBarStatus(AppBarStatus.chats);
+      tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
       tester.checkChatsOrder([4, 3, 2, 1]);
     });
     
     testWidgets('cache_new_message_test', (tester) async {
-      await setupAppWithChats(tester, [_chatDto0, _chatDto1, _chatDto2, _chatDto3, _chatDto4], getChatsDelay: const Duration(milliseconds: 150));
+      await setupAppWithChats(tester, [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4], getChatsDelay: const Duration(milliseconds: 150));
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
       /// check current chats
-      tester.checkAppBarStatus(AppBarStatus.chats);
+      tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
       tester.checkChatsOrder([0, 1, 2, 3, 4]);
 
       /// add new message, check chats
@@ -347,57 +347,24 @@ void main() {
 
       /// check cachedChats, then new chats from api
       await restartApp(tester);
-      tester.checkAppBarStatus(AppBarStatus.updating);
+      tester.checkChatsAppBarStatus(ChatsAppBarStatus.updating);
       tester.checkChatsOrder([2, 0, 1, 3, 4]);
       tester.getChat(2).check(message: 'MSG_999', msgFromCurrentUser: true);
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
-      tester.checkAppBarStatus(AppBarStatus.chats);
+      tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
       tester.checkChatsOrder([0, 1, 2, 3, 4]);
-      tester.getChat(2).check(message: _chatDto2.lastMessage!.message, msgFromCurrentUser: _chatDto2.lastMessage!.isCurrentUser);
+      tester.getChat(2).check(message: chatDto2.lastMessage!.message, msgFromCurrentUser: chatDto2.lastMessage!.isCurrentUser);
 
       /// check cachedChats
       await restartApp(tester);
-      tester.checkAppBarStatus(AppBarStatus.updating);
+      tester.checkChatsAppBarStatus(ChatsAppBarStatus.updating);
       tester.checkChatsOrder([0, 1, 2, 3, 4]);
-      tester.getChat(2).check(message: _chatDto2.lastMessage!.message, msgFromCurrentUser: _chatDto2.lastMessage!.isCurrentUser);
+      tester.getChat(2).check(message: chatDto2.lastMessage!.message, msgFromCurrentUser: chatDto2.lastMessage!.isCurrentUser);
     });
 
+    /// TODO message from the chat that's not loaded now (new one)
     /// TODO cache test with deleted message ?
     /// TODO error cases test ?
+    /// TODO find people navigation test ?
   });
 }
-
-final _chatDto0 = const ChatDto(
-  id: 0,
-  otherUser: UserDto(id: 1, username: 'OTHER_USERNAME_1', profileImage: null, isCurrent: false),
-  lastMessage: MessageDto(id: 0, chatId: 0, senderId: 1, isCurrentUser: false, message: 'MSG_0', isRead: false, createdAt: 1090, editedAt: null, fromCache: false),
-  unreadCount: 2,
-);
-
-final _chatDto1 = const ChatDto(
-  id: 1,
-  otherUser: UserDto(id: 2, username: 'OTHER_USERNAME_2', profileImage: null, isCurrent: false),
-  lastMessage: MessageDto(id: 1, chatId: 1, senderId: 2, isCurrentUser: false, message: 'MSG_1', isRead: false, createdAt: 1080, editedAt: null, fromCache: false),
-  unreadCount: 4,
-);
-
-final _chatDto2 = const ChatDto(
-  id: 2,
-  otherUser: UserDto(id: 3, username: 'OTHER_USERNAME_3', profileImage: null, isCurrent: false),
-  lastMessage: MessageDto(id: 2, chatId: 2, senderId: 0, isCurrentUser: true, message: 'MSG_2', isRead: false, createdAt: 1070, editedAt: null, fromCache: false),
-  unreadCount: 0,
-);
-
-final _chatDto3 = const ChatDto(
-  id: 3,
-  otherUser: UserDto(id: 4, username: 'OTHER_USERNAME_4', profileImage: null, isCurrent: false),
-  lastMessage: MessageDto(id: 3, chatId: 3, senderId: 0, isCurrentUser: true, message: 'MSG_3', isRead: true, createdAt: 1060, editedAt: null, fromCache: false),
-  unreadCount: 0,
-);
-
-final _chatDto4 = const ChatDto(
-  id: 4,
-  otherUser: UserDto(id: 5, username: 'OTHER_USERNAME_5', profileImage: null, isCurrent: false),
-  lastMessage: MessageDto(id: 4, chatId: 4, senderId: 5, isCurrentUser: false, message: 'MSG_4', isRead: true, createdAt: 1050, editedAt: null, fromCache: false),
-  unreadCount: 0,
-);

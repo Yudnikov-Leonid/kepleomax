@@ -35,7 +35,7 @@ abstract class MessagesWebSocket {
 
   void readAllMessages({required int chatId});
 
-  void readMessageBeforeTime({required int chatId, required DateTime time});
+  void readMessagesBeforeTime({required int chatId, required DateTime time});
 }
 
 class MessagesWebSocketImpl implements MessagesWebSocket {
@@ -198,7 +198,7 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
   }
 
   @override
-  void readMessageBeforeTime({required int chatId, required DateTime time}) {
+  void readMessagesBeforeTime({required int chatId, required DateTime time}) {
     if (_socket?.connected == true) {
       _socket!.emit('read_before_time', {
         'chat_id': chatId,

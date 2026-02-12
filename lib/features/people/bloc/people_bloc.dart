@@ -1,11 +1,10 @@
+import 'package:kepleomax/core/app_constants.dart';
 import 'package:kepleomax/core/logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/people/bloc/people_state.dart';
 import 'package:rxdart/rxdart.dart';
-
-const _pagingLimit = 12;
 
 class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
   final UserRepository _userRepository;
@@ -39,13 +38,13 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     try {
       final newUsers = await _userRepository.search(
         search: '',
-        limit: _pagingLimit,
+        limit: AppConstants.peoplePagingCount,
         offset: 0,
       );
 
       _data = _data.copyWith(
         users: newUsers,
-        isAllUsersLoaded: newUsers.length < _pagingLimit,
+        isAllUsersLoaded: newUsers.length < AppConstants.peoplePagingCount,
         isLoading: false,
       );
     } catch (e, st) {
@@ -65,13 +64,13 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     try {
       final newUsers = await _userRepository.search(
         search: _data.searchText,
-        limit: _pagingLimit,
+        limit: AppConstants.peoplePagingCount,
         offset: 0,
       );
 
       _data = _data.copyWith(
         users: newUsers,
-        isAllUsersLoaded: newUsers.length < _pagingLimit,
+        isAllUsersLoaded: newUsers.length < AppConstants.peoplePagingCount,
         isLoading: false,
       );
     } catch (e, st) {
@@ -89,13 +88,13 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     try {
       final newUsers = await _userRepository.search(
         search: _data.searchText,
-        limit: _pagingLimit,
+        limit: AppConstants.peoplePagingCount,
         offset: _data.users.length,
       );
       _data = _data.copyWith(
         /// todo make paging better as on posts page
         users: {..._data.users, ...newUsers}.toList(),
-        isAllUsersLoaded: newUsers.length < _pagingLimit,
+        isAllUsersLoaded: newUsers.length < AppConstants.peoplePagingCount,
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);

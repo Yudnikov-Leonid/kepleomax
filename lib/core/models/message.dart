@@ -10,6 +10,8 @@ abstract class Message with _$Message {
   static const unreadMessagesId = -2;
   static const dateId = -3;
 
+  bool get isSystem => id == unreadMessagesId || id == dateId;
+
   const factory Message({
     required int id,
     required int chatId,

@@ -1,3 +1,4 @@
+import 'package:kepleomax/core/app_constants.dart';
 import 'package:kepleomax/core/logger.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,8 +7,6 @@ import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/network/common/ntp_time.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/post/bloc/post_list_state.dart';
-
-const int _pagingLimit = 5;
 
 class PostListBloc extends Bloc<PostListEvent, PostListState> {
   final PostRepository _postRepository;
@@ -50,7 +49,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
 
       _data = _data.copyWith(
         posts: posts,
-        isAllPostsLoaded: posts.length < _pagingLimit,
+        isAllPostsLoaded: posts.length < AppConstants.postsPagingCount,
         isNewPostsLoading: false,
       );
       emit(PostListStateBase(data: _data));
@@ -77,7 +76,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
       );
 
       _data = _data.copyWith(
-        isAllPostsLoaded: newPosts.length < _pagingLimit,
+        isAllPostsLoaded: newPosts.length < AppConstants.postsPagingCount,
         posts: [...oldPosts, ...newPosts],
       );
     } catch (e, st) {
@@ -121,14 +120,14 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
   }) async {
     if (_userId == null) {
       return await _postRepository.getPosts(
-        limit: _pagingLimit,
+        limit: AppConstants.postsPagingCount,
         offset: offset,
         beforeTime: beforeTime,
       );
     } else {
       return await _postRepository.getPostsByUserId(
         userId: _userId,
-        limit: _pagingLimit,
+        limit: AppConstants.postsPagingCount,
         offset: offset,
         beforeTime: beforeTime,
       );
