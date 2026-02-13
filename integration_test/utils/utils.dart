@@ -16,10 +16,7 @@ extension TesterExtension on WidgetTester {
     Key listKey,
     Type childrenType,
   ) => widgetList<T>(
-    find.descendant(
-      of: find.byKey(const Key('chats_list_view')),
-      matching: find.byType(childrenType),
-    ),
+    find.descendant(of: find.byKey(listKey), matching: find.byType(childrenType)),
   ).toList();
 
   Iterable<Key?> keysOfListByKey(Key listKey, Type childrenType) =>
@@ -28,10 +25,35 @@ extension TesterExtension on WidgetTester {
         childrenType,
       ).map((widget) => widget.key).toList();
 
+  Future<void> scrollMessagesTo(int messageId) async {
+    await dragUntilVisible(
+      find.byKey(Key('message_$messageId')),
+      find.byKey(const Key('messages_list_view')),
+      const Offset(0, 200),
+    );
+  }
+
+  Future<void> flingMessages({bool toTheTop = true}) async {
+    await fling(
+      find.byKey(const Key('messages_list_view')),
+      Offset(0, 1000 * (toTheTop ? 1 : -1)),
+      5000,
+    );
+    await pumpAndSettle();
+  }
+
+  Future<void> reopenChat({int chatId = 0}) async {
+    await tap(find.byKey(const Key('back_button')));
+    await pumpAndSettle();
+    await tap(find.byKey(Key('chat_$chatId')));
+    await pumpAndSettle();
+  }
+
   ChatChecker getChat(int id) => ChatChecker(find.byKey(Key('chat_$id')));
 
   MessageChecker getMessage(int id) =>
       MessageChecker(find.byKey(Key('message_$id')));
+
 
   void checkChatsAppBarStatus(ChatsAppBarStatus expected) {
     String text;
@@ -94,19 +116,18 @@ extension TesterExtension on WidgetTester {
   }
 
   void checkMessagesCount(int expected) {
-    expect(
-      childrenOfListByKey<MessageWidget>(
-        const Key('chats_list_view'),
-        MessageWidget,
-      ).where((w) => !w.message.isSystem).length,
-      equals(expected),
-    );
+    expect(visibleMessagesCount, equals(expected));
   }
+
+  int get visibleMessagesCount => childrenOfListByKey<MessageWidget>(
+    const Key('messages_list_view'),
+    MessageWidget,
+  ).where((w) => !w.message.isSystem).length;
 
   void checkMessagesOrder(List<int> ids) {
     expect(
       childrenOfListByKey<MessageWidget>(
-        const Key('chats_list_view'),
+        const Key('messages_list_view'),
         MessageWidget,
       ).where((w) => !w.message.isSystem).map((w) => w.key),
       equals(ids.map((id) => Key('message_$id'))),

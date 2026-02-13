@@ -80,6 +80,7 @@ class KlmBackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
+      key: const Key('back_button'),
       onPressed:
           onPressed ??
           () {

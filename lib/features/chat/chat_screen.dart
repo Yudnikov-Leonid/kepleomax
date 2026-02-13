@@ -228,7 +228,7 @@ class _BodyState extends State<_Body> {
                           triggerOnObserveType:
                               ObserverTriggerOnObserveType.directly,
                           child: ListView.builder(
-                            key: const Key('chats_list_view'),
+                            key: const Key('messages_list_view'),
                             controller: widget.scrollController,
                             physics: ChatObserverClampingScrollPhysics(
                               observer: _chatObserver,
@@ -296,7 +296,7 @@ class _BodyState extends State<_Body> {
     }
     if (message.fromCache) {
       // print('MyLog2 visibleMessageFromCache: ${data.messages[i].message}');
-      _chatBloc.add(ChatEventLoadMore(cachedMessageId: message.id));
+      _chatBloc.add(ChatEventLoadMore(toMessageId: message.id));
     }
   }
 
@@ -306,7 +306,7 @@ class _BodyState extends State<_Body> {
 
     if (widget.scrollController.offset >
         widget.scrollController.position.maxScrollExtent - 300) {
-      _chatBloc.add(const ChatEventLoadMore(cachedMessageId: null));
+      _chatBloc.add(const ChatEventLoadMore(toMessageId: null));
     }
   }
 

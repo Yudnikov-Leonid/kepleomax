@@ -121,17 +121,21 @@ List<_InitializationStep> _steps = [
     },
   ),
 
-  _InitializationStep('auth_apis', (dp) {
-    dp.authApi = AuthApi(dp.dio, flavor.baseUrl);
-    dp.userApi = UserApi(dp.dio, flavor.baseUrl);
-    dp.profileApi = ProfileApi(dp.dio, flavor.baseUrl);
-    dp.filesApi = FilesApi(dp.dio, flavor.baseUrl);
-  }, callForTests: (dp) {
-    dp.authApi = AuthApi(dp.dio, flavor.baseUrl);
-    dp.userApi = FakeUserApi();
-    dp.profileApi = ProfileApi(dp.dio, flavor.baseUrl);
-    dp.filesApi = FilesApi(dp.dio, flavor.baseUrl);
-  }),
+  _InitializationStep(
+    'auth_apis',
+    (dp) {
+      dp.authApi = AuthApi(dp.dio, flavor.baseUrl);
+      dp.userApi = UserApi(dp.dio, flavor.baseUrl);
+      dp.profileApi = ProfileApi(dp.dio, flavor.baseUrl);
+      dp.filesApi = FilesApi(dp.dio, flavor.baseUrl);
+    },
+    callForTests: (dp) {
+      dp.authApi = AuthApi(dp.dio, flavor.baseUrl);
+      dp.userApi = FakeUserApi();
+      dp.profileApi = ProfileApi(dp.dio, flavor.baseUrl);
+      dp.filesApi = FilesApi(dp.dio, flavor.baseUrl);
+    },
+  ),
 
   _InitializationStep('auth', (dp) async {
     dp.authRepository = AuthRepositoryImpl(authApi: dp.authApi);
@@ -172,19 +176,21 @@ List<_InitializationStep> _steps = [
     },
   ),
 
-  _InitializationStep('apis', (dp) {
-    dp.postApi = PostApi(dp.dio, flavor.baseUrl);
-    dp.messagesApi = MessagesApi(dp.dio, flavor.baseUrl);
-    dp.chatsApi = ChatsApi(dp.dio, flavor.baseUrl);
-  }, callForTests: (dp) {
-    dp.postApi = PostApi(dp.dio, flavor.baseUrl);
-    dp.messagesApi = MockMessagesApi();
-    dp.chatsApi = MockChatsApi();
-  }),
+  _InitializationStep(
+    'apis',
+    (dp) {
+      dp.postApi = PostApi(dp.dio, flavor.baseUrl);
+      dp.messagesApi = MessagesApi(dp.dio, flavor.baseUrl);
+      dp.chatsApi = ChatsApi(dp.dio, flavor.baseUrl);
+    },
+    callForTests: (dp) {
+      dp.postApi = PostApi(dp.dio, flavor.baseUrl);
+      dp.messagesApi = MockMessagesApi();
+      dp.chatsApi = MockChatsApi();
+    },
+  ),
 
   _InitializationStep('repositories', (dp) {
-
-
     dp.filesRepository = FilesRepositoryImpl(filesApi: dp.filesApi);
     dp.postRepository = PostRepositoryImpl(postApi: dp.postApi);
     dp.connectionRepository = ConnectionRepositoryImpl(

@@ -1,7 +1,8 @@
 class AppConstants {
   AppConstants._();
 
-  static const messagesPagingCount = 15;
-  static const postsPagingCount = 5;
-  static const peoplePagingCount = 12;
+  /// TODO change it for tests
+  static const msgPagingLimit = 15;
+  static const postsPagingLimit = 5;
+  static const peoplePagingLimit = 12;
 }

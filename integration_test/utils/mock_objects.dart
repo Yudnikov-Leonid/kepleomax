@@ -44,3 +44,8 @@ final messageDto1 = const MessageDto(id: 1, chatId: 0, senderId: 1, isCurrentUse
 final messageDto2 = const MessageDto(id: 2, chatId: 0, senderId: 1, isCurrentUser: false, message: 'MSG_2', isRead: true, createdAt: 1070, editedAt: null, fromCache: false);
 final messageDto3 = const MessageDto(id: 3, chatId: 0, senderId: 0, isCurrentUser: true, message: 'MSG_3', isRead: false, createdAt: 1060, editedAt: null, fromCache: false);
 final messageDto4 = const MessageDto(id: 4, chatId: 0, senderId: 0, isCurrentUser: true, message: 'MSG_4', isRead: true, createdAt: 1050, editedAt: null, fromCache: false);
+
+List<MessageDto> generateMessages(int from, int count, {int chatId = 0}) => List.generate(
+  count,
+  (i) => MessageDto(id: i + from, chatId: chatId, senderId: 1, isCurrentUser: false, message: 'MSG_${i + from}', isRead: true, createdAt: 800, editedAt: null, fromCache: false),
+);

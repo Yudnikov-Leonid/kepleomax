@@ -49,7 +49,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
 
       _data = _data.copyWith(
         posts: posts,
-        isAllPostsLoaded: posts.length < AppConstants.postsPagingCount,
+        isAllPostsLoaded: posts.length < AppConstants.postsPagingLimit,
         isNewPostsLoading: false,
       );
       emit(PostListStateBase(data: _data));
@@ -76,7 +76,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
       );
 
       _data = _data.copyWith(
-        isAllPostsLoaded: newPosts.length < AppConstants.postsPagingCount,
+        isAllPostsLoaded: newPosts.length < AppConstants.postsPagingLimit,
         posts: [...oldPosts, ...newPosts],
       );
     } catch (e, st) {
@@ -120,14 +120,14 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
   }) async {
     if (_userId == null) {
       return await _postRepository.getPosts(
-        limit: AppConstants.postsPagingCount,
+        limit: AppConstants.postsPagingLimit,
         offset: offset,
         beforeTime: beforeTime,
       );
     } else {
       return await _postRepository.getPostsByUserId(
         userId: _userId,
-        limit: AppConstants.postsPagingCount,
+        limit: AppConstants.postsPagingLimit,
         offset: offset,
         beforeTime: beforeTime,
       );

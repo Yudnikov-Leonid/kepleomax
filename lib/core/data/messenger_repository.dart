@@ -31,6 +31,7 @@ abstract class MessengerRepository {
   Stream<ChatsCollection> get chatsUpdatesStream;
 }
 
+/// DON'T ADD AWAIT BEFORE LOCAL DATABASE CALLS
 class MessengerRepositoryImpl implements MessengerRepository {
   final MessagesWebSocket _webSocket;
 
@@ -67,7 +68,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
 
   /// websocket listeners TODO need refactor, maybe put it in another class
   // TODO make tests
-  void _onNewMessage(MessageDto messageDto) {
+  void _onNewMessage(MessageDto messageDto) async {
     _messagesLocal.insert(messageDto);
 
     if (_lastMessagesCollection != null &&
@@ -97,6 +98,16 @@ class MessengerRepositoryImpl implements MessengerRepository {
           ),
         );
         _emitChatsCollection(ChatsCollection(chats: newChats));
+      } else {
+        /// it's a new chat
+        final newChat = await _chatsApi.getChatWithId(messageDto.chatId);
+        if (newChat == null) return;
+        _chatsLocal.insert(newChat);
+        _emitChatsCollection(
+          ChatsCollection(
+            chats: [Chat.fromDto(newChat, fromCache: false), ...newChats],
+          ),
+        );
       }
     }
   }
@@ -216,19 +227,19 @@ class MessengerRepositoryImpl implements MessengerRepository {
 
     //await Future.delayed(const Duration(seconds: 1));
     final chats = await _chatsApi.getChats();
-    await _chatsLocal.clearAndInsertChats(chats);
-    for (final chat in chats) {
-      if (chat.lastMessage != null) {
-        await _messagesLocal.insert(chat.lastMessage!);
-      }
-      _usersLocal.insert(chat.otherUser);
-    }
     _emitChatsCollection(
       ChatsCollection(
         chats: chats.map((chat) => Chat.fromDto(chat, fromCache: false)),
         fromCache: false,
       ),
     );
+    _chatsLocal.clearAndInsertChats(chats);
+    for (final chat in chats) {
+      if (chat.lastMessage != null) {
+        _messagesLocal.insert(chat.lastMessage!);
+      }
+      _usersLocal.insert(chat.otherUser);
+    }
   }
 
   @override
@@ -251,7 +262,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
     /// add to the stream data from api
     final apiMessagesDtos = await _messagesApi.getMessages(
       chatId: chatId,
-      limit: AppConstants.messagesPagingCount,
+      limit: AppConstants.msgPagingLimit,
     );
     final newList = await _combineCacheAndApi(
       cache.map(Message.fromDto),
@@ -263,7 +274,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
       MessagesCollection(
         messages: newList,
         chatId: chatId,
-        allMessagesLoaded: newList.length < AppConstants.messagesPagingCount,
+        allMessagesLoaded: newList.length < AppConstants.msgPagingLimit,
         maintainLoading: false,
       ),
     );
@@ -321,8 +332,8 @@ class MessengerRepositoryImpl implements MessengerRepository {
         ? messagesFromCache.length
         : messagesFromCache.toList().indexWhere((m) => m.id == toMessageId);
     final newLimit = limitCorrection == -1
-        ? AppConstants.messagesPagingCount
-        : limitCorrection + AppConstants.messagesPagingCount;
+        ? AppConstants.msgPagingLimit
+        : limitCorrection + AppConstants.msgPagingLimit;
     final newMessagesDtos = await _messagesApi.getMessages(
       chatId: chatId,
       limit: newLimit,

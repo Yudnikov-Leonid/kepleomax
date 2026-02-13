@@ -5,7 +5,13 @@ class MessageChecker {
 
   MessageChecker(this.finder);
 
-  void check({bool? fromCurrentUser, bool? isRead, String? message}) {
+  void check({
+    bool? fromCurrentUser,
+    bool? isRead,
+    String? message,
+    bool? isVisible,
+    bool? fromCache,
+  }) {
     if (isRead != null && fromCurrentUser == false) {
       throw Exception("you can't check the read status of anotherUser message");
     }
@@ -32,12 +38,21 @@ class MessageChecker {
       expect(
         find.descendant(
           of: finder,
+
           /// must be textContaining instead of text, cause messageWidget adds some
           /// spaces at the end for the timeWidget place correction
           matching: find.textContaining(message, findRichText: true),
         ),
         findsOneWidget,
       );
+    }
+    if (isVisible != null) {
+      expect(finder, isVisible ? findsOneWidget : findsNothing);
+    }
+    if (fromCache != null) {
+      final message =
+          (finder.evaluate().elementAt(0).widget as MessageWidget).message;
+      expect(message.fromCache, fromCache);
     }
   }
 }

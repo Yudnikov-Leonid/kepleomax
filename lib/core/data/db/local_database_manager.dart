@@ -38,14 +38,19 @@ class LocalDatabaseManager {
           profile_image VARCHAR(32),
           is_current BIT NOT NULL)
           ''');
+
+      // don't forget to add each new table into reset()
     },
     onUpgrade: (db, oldV, newV) async {},
   );
 
   static Future<void> reset() async {
     if (_db != null) {
-      await deleteDatabase(_db!.path);
-      _db = null;
+      // await deleteDatabase(_db!.path);
+      // _db = null;
+      await _db!.delete('messages');
+      await _db!.delete('chats');
+      await _db!.delete('users');
     }
   }
 }

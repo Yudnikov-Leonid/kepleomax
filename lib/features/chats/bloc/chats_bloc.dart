@@ -71,7 +71,8 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     try {
       await _messengerRepository.loadChats(withCache: event.withCache);
     } catch (e, st) {
-      /// TODO
+      /// TODO ?
+      logger.e(e, stackTrace: st);
       add(ChatsEventEmitError(error: e, stackTrace: st));
     }
   }
@@ -80,10 +81,11 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     ChatsEventEmitChatsList event,
     Emitter<ChatsState> emit,
   ) async {
+    final data = event.data;
     _data = _data.copyWith(
-      chats: event.data.chats.toList(growable: false), // TODO
-      totalUnreadCount: event.data.chats.fold(0, (a, b) => a + b.unreadCount),
-      isLoading: event.data.fromCache,
+      chats: data.chats.toList(growable: false), // TODO
+      totalUnreadCount: data.chats.fold(0, (a, b) => a + b.unreadCount),
+      isLoading: data.fromCache,
     );
     emit(ChatsStateBase(data: _data));
   }

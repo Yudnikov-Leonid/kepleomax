@@ -38,13 +38,13 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     try {
       final newUsers = await _userRepository.search(
         search: '',
-        limit: AppConstants.peoplePagingCount,
+        limit: AppConstants.peoplePagingLimit,
         offset: 0,
       );
 
       _data = _data.copyWith(
         users: newUsers,
-        isAllUsersLoaded: newUsers.length < AppConstants.peoplePagingCount,
+        isAllUsersLoaded: newUsers.length < AppConstants.peoplePagingLimit,
         isLoading: false,
       );
     } catch (e, st) {
@@ -64,13 +64,13 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     try {
       final newUsers = await _userRepository.search(
         search: _data.searchText,
-        limit: AppConstants.peoplePagingCount,
+        limit: AppConstants.peoplePagingLimit,
         offset: 0,
       );
 
       _data = _data.copyWith(
         users: newUsers,
-        isAllUsersLoaded: newUsers.length < AppConstants.peoplePagingCount,
+        isAllUsersLoaded: newUsers.length < AppConstants.peoplePagingLimit,
         isLoading: false,
       );
     } catch (e, st) {
@@ -88,13 +88,13 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     try {
       final newUsers = await _userRepository.search(
         search: _data.searchText,
-        limit: AppConstants.peoplePagingCount,
+        limit: AppConstants.peoplePagingLimit,
         offset: _data.users.length,
       );
       _data = _data.copyWith(
         /// todo make paging better as on posts page
         users: {..._data.users, ...newUsers}.toList(),
-        isAllUsersLoaded: newUsers.length < AppConstants.peoplePagingCount,
+        isAllUsersLoaded: newUsers.length < AppConstants.peoplePagingLimit,
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);

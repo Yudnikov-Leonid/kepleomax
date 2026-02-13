@@ -235,7 +235,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     try {
       await _messengerRepository.loadMoreMessages(
         chatId: _data.chatId,
-        toMessageId: event.cachedMessageId,
+        toMessageId: event.toMessageId,
       );
     } catch (e, st) {
       logger.e(e, stackTrace: st);
@@ -275,20 +275,20 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   void _onEmitMessages(ChatEventEmitMessages event, Emitter<ChatState> emit) {
     final messages = event.data.messages.toList(growable: false);
-    final newMessage = <Message>[];
+    final newMessages = <Message>[];
     for (int i = 0; i < messages.length; i++) {
-      newMessage.add(messages[i]);
+      newMessages.add(messages[i]);
       final createdAt1 = messages[i].createdAt;
       final createdAt2 = messages.elementAtOrNull(i + 1)?.createdAt;
       if (createdAt2 == null ||
           createdAt1.day > createdAt2.day ||
           createdAt1.month > createdAt2.month ||
           createdAt1.year > createdAt2.year) {
-        newMessage.add(Message.date(createdAt1));
+        newMessages.add(Message.date(createdAt1));
       }
     }
     _data = _data.copyWith(
-      messages: newMessage,
+      messages: newMessages,
       isLoading: event.data.maintainLoading,
     );
     if (event.data.allMessagesLoaded != null) {
@@ -354,9 +354,9 @@ class ChatEventEmitError implements ChatEvent {
 
 class ChatEventLoadMore implements ChatEvent {
   /// to load more if list was significantly scrolled on top
-  final int? cachedMessageId;
+  final int? toMessageId;
 
-  const ChatEventLoadMore({required this.cachedMessageId});
+  const ChatEventLoadMore({required this.toMessageId});
 }
 
 class ChatEventConnectingChanged implements ChatEvent {
