@@ -1,7 +1,7 @@
-import 'package:equatable/equatable.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'message_dtos.g.dart';
+part 'message_dtos.freezed.dart';
 
 @JsonSerializable()
 class MessagesResponse {
@@ -16,28 +16,21 @@ class MessagesResponse {
   Map<String, dynamic> toJson() => _$MessagesResponseToJson(this);
 }
 
-class MessageDto extends Equatable {
-  final int id;
-  final int chatId;
-  final int senderId;
-  final bool isCurrentUser;
-  final String message;
-  final bool isRead;
-  final int createdAt;
-  final int? editedAt;
-  final bool fromCache;
+@Freezed(fromJson: false, toJson: false)
+abstract class MessageDto with _$MessageDto {
+  const MessageDto._();
 
-  const MessageDto({
-    required this.id,
-    required this.chatId,
-    required this.senderId,
-    required this.isCurrentUser,
-    required this.message,
-    required this.isRead,
-    required this.createdAt,
-    required this.editedAt,
-    required this.fromCache,
-  });
+  const factory MessageDto({
+    required int id,
+    required int chatId,
+    required int senderId,
+    required bool isCurrentUser,
+    required String message,
+    required bool isRead,
+    required int createdAt,
+    required int? editedAt,
+    required bool fromCache,
+  }) = _MessageDto;
 
   factory MessageDto.fromJson(Map<String, dynamic> json, {bool fromCache = false}) =>
       MessageDto(
@@ -84,16 +77,4 @@ class MessageDto extends Equatable {
     'created_at': createdAt,
     'edited_at': editedAt,
   };
-
-  @override
-  List<Object?> get props => [
-    id,
-    chatId,
-    senderId,
-    isCurrentUser,
-    message,
-    isRead,
-    createdAt,
-    editedAt,
-  ];
 }

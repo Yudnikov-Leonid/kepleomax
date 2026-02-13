@@ -95,7 +95,7 @@ void main() {
       });
     }
 
-    testWidgets('connection_test', (tester) async {
+    testWidgets('connection_test',(tester) async {
       /// after setup app will be connected to the ws, because the app must be connected to open the chat
       await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4], getMessagesAsyncControl: true);
 
@@ -124,6 +124,7 @@ void main() {
       tester.checkMessagesOrder([0, 1, 2, 3, 4]);
 
       /// wait for the response of the repository, check
+      await tester.pump(const Duration(milliseconds: 10)); // need this line
       await getMessagesSendResponse(tester);
       tester.checkChatAppBarStatus(ChatAppBarStatus.none);
       tester.checkMessagesCount(5);
@@ -307,6 +308,7 @@ void main() {
     // });
 
     /// TODO test system messages (dates, unreadCount)
+    /// TODO base paging test
     /// paging is tested via unit-tests
   });
 }

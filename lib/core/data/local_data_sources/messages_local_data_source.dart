@@ -15,7 +15,9 @@ abstract class MessagesLocalDataSource {
 
   Future<void> deleteById(int id);
 
-  Future<void> deleteAllByIds(Iterable<int> ids);
+  Future<void> deleteAllWithIds(Iterable<int> ids);
+
+  Future<void> deleteAllByChatId(int chatId);
 }
 
 class MessagesLocalDataSourceImpl implements MessagesLocalDataSource {
@@ -27,7 +29,7 @@ class MessagesLocalDataSourceImpl implements MessagesLocalDataSource {
   Future<List<MessageDto>> getMessagesByChatId(int chatId) async {
     final query = await _database.query(
       'messages',
-      where: r'chat_id = ?',
+      where: 'chat_id = ?',
       whereArgs: [chatId],
       orderBy: 'created_at DESC',
       // limit: limit, // TODO
@@ -81,11 +83,16 @@ class MessagesLocalDataSourceImpl implements MessagesLocalDataSource {
   }
 
   @override
-  Future<void> deleteAllByIds(Iterable<int> ids) async {
+  Future<void> deleteAllWithIds(Iterable<int> ids) async {
     await _database.transaction((transaction) async {
       for (final id in ids) {
         await transaction.delete('messages', where: 'id = ?', whereArgs: [id]);
       }
     });
+  }
+
+  @override
+  Future<void> deleteAllByChatId(int chatId) async {
+    await _database.delete('messages', where: 'chat_id = ?', whereArgs: [chatId]);
   }
 }

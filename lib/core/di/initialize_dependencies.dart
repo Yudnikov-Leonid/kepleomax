@@ -198,11 +198,11 @@ List<_InitializationStep> _steps = [
     );
     dp.messengerRepository = MessengerRepositoryImpl(
       webSocket: dp.messagesWebSocket,
-      messagesApi: MessagesApiDataSourceImpl(messagesApi: dp.messagesApi),
-      chatsApi: ChatsApiDataSourceImpl(chatsApi: dp.chatsApi),
-      messagesLocal: dp.messagesLocalDataSource,
-      chatsLocal: dp.chatsLocalDataSource,
-      usersLocal: dp.usersLocalDataSource,
+      messagesApiDataSource: MessagesApiDataSourceImpl(messagesApi: dp.messagesApi),
+      chatsApiDataSource: ChatsApiDataSourceImpl(chatsApi: dp.chatsApi),
+      messagesLocalDataSource: dp.messagesLocalDataSource,
+      chatsLocalDataSource: dp.chatsLocalDataSource,
+      usersLocalDataSource: dp.usersLocalDataSource,
     );
     dp.chatsRepository = ChatsRepositoryImpl(
       chatsApi: dp.chatsApi,

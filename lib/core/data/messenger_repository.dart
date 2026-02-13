@@ -34,7 +34,6 @@ abstract class MessengerRepository {
   Stream<ChatsCollection> get chatsUpdatesStream;
 }
 
-/// DON'T ADD AWAIT BEFORE LOCAL DATABASE CALLS
 class MessengerRepositoryImpl implements MessengerRepository {
   final MessagesWebSocket _webSocket;
 
@@ -53,17 +52,17 @@ class MessengerRepositoryImpl implements MessengerRepository {
 
   MessengerRepositoryImpl({
     required MessagesWebSocket webSocket,
-    required ChatsApiDataSource chatsApi,
-    required MessagesApiDataSource messagesApi,
-    required MessagesLocalDataSource messagesLocal,
-    required ChatsLocalDataSource chatsLocal,
-    required UsersLocalDataSource usersLocal,
+    required ChatsApiDataSource chatsApiDataSource,
+    required MessagesApiDataSource messagesApiDataSource,
+    required MessagesLocalDataSource messagesLocalDataSource,
+    required ChatsLocalDataSource chatsLocalDataSource,
+    required UsersLocalDataSource usersLocalDataSource,
   }) : _webSocket = webSocket,
-       _chatsApi = chatsApi,
-       _messagesApi = messagesApi,
-       _chatsLocal = chatsLocal,
-       _messagesLocal = messagesLocal,
-       _usersLocal = usersLocal {
+       _chatsApi = chatsApiDataSource,
+       _messagesApi = messagesApiDataSource,
+       _chatsLocal = chatsLocalDataSource,
+       _messagesLocal = messagesLocalDataSource,
+       _usersLocal = usersLocalDataSource {
     _webSocket.newMessageStream.listen(_onNewMessage, cancelOnError: false);
     _webSocket.readMessagesStream.listen(_onReadMessages, cancelOnError: false);
     _webSocket.deletedMessageStream.listen(_onDeletedMessage, cancelOnError: false);
@@ -268,10 +267,28 @@ class MessengerRepositoryImpl implements MessengerRepository {
       chatId: chatId,
       limit: AppConstants.msgPagingLimit,
     );
-    final newList = await _combineCacheAndApi(
+    var newList = (await _combineCacheAndApi(
       cache.map(Message.fromDto),
       apiMessagesDtos,
-    );
+    )).toList();
+    if (apiMessagesDtos.isEmpty) {
+      /// chat is empty now
+      _messagesLocal.deleteAllByChatId(chatId);
+    }
+    if (newList.isNotEmpty && newList.first.fromCache == true) {
+      /// some first messages were deleted
+      final firstIndexNotFromCache = newList.indexWhere((m) => !m.fromCache);
+      _messagesLocal.deleteAllWithIds(
+        newList.sublist(0, firstIndexNotFromCache).map((m) => m.id),
+      );
+      newList = newList.sublist(firstIndexNotFromCache);
+    }
+    if (apiMessagesDtos.isNotEmpty &&
+        apiMessagesDtos.length < AppConstants.msgPagingLimit) {
+      /// last cached messages should be deleted
+      newList = newList.where((m) => !m.fromCache).toList();
+      _messagesLocal.deleteAllByChatId(chatId);
+    }
 
     /// TODO add unreadMessages
     _emitMessagesCollection(
@@ -289,7 +306,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
     Iterable<Message> cache,
     Iterable<MessageDto> messages,
   ) async {
-    if (cache.isEmpty) return messages.map(Message.fromDto);
+    if (cache.isEmpty || messages.isEmpty) return messages.map(Message.fromDto);
 
     final newList = List<Message>.from(cache);
 
@@ -301,22 +318,35 @@ class MessengerRepositoryImpl implements MessengerRepository {
     /// todo handle -1
     if (firstIndex == -1 && lastIndex == -1) {
       /// it's paging and need to add the messages to the top
+      /// the case: 0, 1, 2, 3, 4 -> need to add 5, 6, 7
       newList.addAll(messages.map(Message.fromDto));
     } else if (lastIndex == -1) {
+      /// the case: 0, 1, 2, 3, 4 -> need to add 4, 5, 6, 7
       final removedMessages = newList.sublist(firstIndex);
       newList.replaceRange(
         firstIndex,
         newList.length,
         messages.map(Message.fromDto),
       );
-      await _messagesLocal.deleteAllByIds(removedMessages.map((m) => m.id));
+      _messagesLocal.deleteAllWithIds(removedMessages.map((m) => m.id));
     } else {
+      // firstIndex != -1 && lastIndex != -1
+      /// the case: 0, 1, 2, 3, 4 -> need to add 1, 2, 3
       final removedMessages = newList.sublist(firstIndex, lastIndex + 1);
       newList.replaceRange(firstIndex, lastIndex + 1, messages.map(Message.fromDto));
-      await _messagesLocal.deleteAllByIds(removedMessages.map((m) => m.id));
+      _messagesLocal.deleteAllWithIds(removedMessages.map((m) => m.id));
+    }
+    // firstIndex == -1 && lastIndex != -1 -> impossible, case will look like that:
+    // 5, 4, 1, 0 -> need to add 3, 2, 1, 0
+
+    if (firstIndex > 0 && newList[firstIndex - 1].fromCache == true) {
+      /// the case (a - api, c - cache): 0a, 1a, 2a, 3a, 4c, 5c, 6c -> 0a, 1a, 2a, 3a, 4c, 5a, 6a. 4 should be deleted
+      final start = newList.indexWhere((m) => m.fromCache);
+      final end = firstIndex; // exclusive
+      newList.removeRange(start, end);
     }
 
-    await _messagesLocal.insertAll(messages);
+    _messagesLocal.insertAll(messages);
     return newList;
   }
 
@@ -325,7 +355,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
     required int chatId,
     required int? toMessageId,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    // await Future.delayed(const Duration(milliseconds: 500));
     if (_lastMessagesCollection == null) return;
     final messages = _lastMessagesCollection!.messages;
     final messagesFromCache = messages.where((m) => m.fromCache).toList();
@@ -334,7 +364,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
     /// messages AND all that have not been loaded
     final limitCorrection = toMessageId == null
         ? messagesFromCache.length
-        : messagesFromCache.toList().indexWhere((m) => m.id == toMessageId);
+        : messagesFromCache.indexWhere((m) => m.id == toMessageId);
     final newLimit = limitCorrection == -1
         ? AppConstants.msgPagingLimit
         : limitCorrection + AppConstants.msgPagingLimit;
