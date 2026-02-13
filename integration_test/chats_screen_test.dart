@@ -1,5 +1,7 @@
 // dart format width=200
 
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,7 +31,7 @@ void main() {
   group('chats_screen_tests', () {
     late Dependencies dp;
     late MockMessagesWebSocket ws;
-    Duration _cachedGetChatsDelay = Duration.zero;
+    late Completer<void> _getChatsCompleter;
 
     setUpAll(() {
       Flavor.setFlavor(Flavor.testing());
@@ -42,14 +44,18 @@ void main() {
     });
 
     tearDown(() async {
-      _cachedGetChatsDelay = Duration.zero;
       await LocalDatabaseManager.reset();
     });
 
-    Future<void> setupAppWithChats(WidgetTester tester, List<ChatDto> chats, {Duration getChatsDelay = Duration.zero}) async {
-      _cachedGetChatsDelay = getChatsDelay;
+    Future<void> setupAppWithChats(WidgetTester tester, List<ChatDto> chats, {bool getChatsAsyncControl = false, bool connect = true}) async {
       when(dp.chatsApi.getChats()).thenAnswer((_) async {
-        await Future.delayed(getChatsDelay);
+        final id = DateTime.now().second;
+        if (getChatsAsyncControl) {
+          print('$id setup completer');
+          _getChatsCompleter = Completer();
+          await _getChatsCompleter.future;
+        }
+        print('$id send chats');
         return HttpResponse(ChatsResponse(data: chats, message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
       });
       when((dp.chatsApi as MockChatsApi).getChatWithId(chatId: anyNamed("chatId"))).thenAnswer((inv) async {
@@ -59,17 +65,28 @@ void main() {
         );
       });
       await tester.pumpWidget(dp.inject(child: const App()));
+      if (!connect) {
+        return;
+      }
       ws.setIsConnected(true);
-      if (getChatsDelay == Duration.zero) {
-        await tester.pumpAndSettle();
-      } else {
+      if (getChatsAsyncControl) {
         await tester.pump();
+      } else {
+        await tester.pumpAndSettle();
       }
     }
 
-    void changeGetChatsResponse(List<ChatDto> chats) {
+    Future<void> getChatsSendResponse(WidgetTester tester) async {
+      _getChatsCompleter.complete();
+      await tester.pumpAndSettle();
+    }
+
+    void changeGetChatsResponse(List<ChatDto> chats, {bool getChatsAsyncControl = false}) {
       when(dp.chatsApi.getChats()).thenAnswer((_) async {
-        await Future.delayed(_cachedGetChatsDelay);
+        if (getChatsAsyncControl) {
+          _getChatsCompleter = Completer();
+          await _getChatsCompleter.future;
+        }
         return HttpResponse(ChatsResponse(data: chats, message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
       });
     }
@@ -82,39 +99,35 @@ void main() {
     }
 
     testWidgets('connection_test', (tester) async {
-      when(dp.chatsApi.getChats()).thenAnswer((_) async {
-        await Future.delayed(const Duration(milliseconds: 150));
-        return HttpResponse(ChatsResponse(data: [], message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
-      });
-      await tester.pumpWidget(dp.inject(child: const App()));
+      await setupAppWithChats(tester, [], getChatsAsyncControl: true, connect: false);
       tester.checkChatsAppBarStatus(ChatsAppBarStatus.connecting);
       tester.checkFindPeopleButton(isShown: false);
 
       /// connect, check
       ws.setIsConnected(true);
-      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump();
       tester.checkChatsAppBarStatus(ChatsAppBarStatus.updating);
       tester.checkFindPeopleButton(isShown: false);
 
-      /// wait for the response of the repository, check
-      await tester.pumpAndSettle(const Duration(milliseconds: 300));
+      /// wait for the getChats response, check
+      await getChatsSendResponse(tester);
       tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
       tester.checkFindPeopleButton(isShown: true);
 
       /// disconnect, check
       ws.setIsConnected(false);
-      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump();
       tester.checkChatsAppBarStatus(ChatsAppBarStatus.connecting);
       tester.checkFindPeopleButton(isShown: true);
 
       /// connect, check
       ws.setIsConnected(true);
-      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump();
       tester.checkChatsAppBarStatus(ChatsAppBarStatus.updating);
       tester.checkFindPeopleButton(isShown: false);
 
-      /// wait for the response of the repository, check
-      await tester.pumpAndSettle(const Duration(milliseconds: 300));
+      /// wait for the getChats response, check
+      await getChatsSendResponse(tester);
       tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
       tester.checkFindPeopleButton(isShown: true);
     });
@@ -317,28 +330,28 @@ void main() {
     });
 
     testWidgets('cache_test', (tester) async {
-      await setupAppWithChats(tester, [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4], getChatsDelay: const Duration(milliseconds: 150));
+      await setupAppWithChats(tester, [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4], getChatsAsyncControl: true);
 
       /// check no chats on first start
       expect(find.byKey(const Key('chats_loading')), findsOneWidget);
-      await tester.pumpAndSettle(const Duration(milliseconds: 300));
+      await getChatsSendResponse(tester);
       expect(find.byKey(const Key('chats_loading')), findsNothing);
       tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
       tester.checkChatsOrder([0, 1, 2, 3, 4]);
 
       /// check cachedChats, then new chats from api
-      changeGetChatsResponse([chatDto4, chatDto3, chatDto2, chatDto1]);
+      changeGetChatsResponse([chatDto4, chatDto3, chatDto2, chatDto1], getChatsAsyncControl: true);
       await restartApp(tester);
       tester.checkChatsAppBarStatus(ChatsAppBarStatus.updating);
       tester.checkChatsOrder([0, 1, 2, 3, 4]);
-      await tester.pumpAndSettle(const Duration(milliseconds: 300));
+      await getChatsSendResponse(tester);
       tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
       tester.checkChatsOrder([4, 3, 2, 1]);
     });
 
     testWidgets('cache_new_message_test', (tester) async {
-      await setupAppWithChats(tester, [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4], getChatsDelay: const Duration(milliseconds: 150));
-      await tester.pumpAndSettle(const Duration(milliseconds: 300));
+      await setupAppWithChats(tester, [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4], getChatsAsyncControl: true);
+      await getChatsSendResponse(tester);
 
       /// check current chats
       tester.checkChatsOrder([0, 1, 2, 3, 4]);
@@ -356,7 +369,7 @@ void main() {
       tester.checkChatsAppBarStatus(ChatsAppBarStatus.updating);
       tester.checkChatsOrder([2, 0, 1, 3, 4]);
       tester.getChat(2).check(message: 'MSG_999', msgFromCurrentUser: true);
-      await tester.pumpAndSettle(const Duration(milliseconds: 300));
+      await getChatsSendResponse(tester);
       tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
       tester.checkChatsOrder([0, 1, 2, 3, 4]);
       tester.getChat(2).check(message: chatDto2.lastMessage!.message, msgFromCurrentUser: chatDto2.lastMessage!.isCurrentUser);

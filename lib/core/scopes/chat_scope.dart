@@ -56,7 +56,7 @@ class _ChatScopeState extends State<ChatScope> {
       create: (context) => ChatsBloc(
         messengerRepository: Dependencies.of(context).messengerRepository,
         connectionRepository: Dependencies.of(context).connectionRepository,
-      )..add(const ChatsEventLoad(withCache: true)),
+      )..add(const ChatsEventLoadCache()),
       child: BlocBuilder<ChatsBloc, ChatsState>(
         builder: (context, state) => FocusDetector(
           onForegroundGained: () => _onResume(state),

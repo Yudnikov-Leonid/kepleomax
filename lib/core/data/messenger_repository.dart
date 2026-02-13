@@ -19,7 +19,10 @@ import 'models/messages_collection.dart';
 
 abstract class MessengerRepository {
   /// api/db calls
-  Future<void> loadChats({bool withCache = true});
+  /// on BlocInit call loadChatsFromCache(); on ws connected call loadChats()
+  Future<void> loadChatsFromCache();
+
+  Future<void> loadChats();
 
   Future<void> loadMessages({required int chatId, bool withCache = true});
 
@@ -212,19 +215,20 @@ class MessengerRepositoryImpl implements MessengerRepository {
 
   /// api calls
   @override
-  Future<void> loadChats({bool withCache = true}) async {
-    if (withCache) {
-      final cache = await _chatsLocal.getChats();
-      _emitChatsCollection(
-        ChatsCollection(
-          chats: cache
-              .map((chat) => Chat.fromDto(chat, fromCache: true))
-              .toList(growable: false),
-          fromCache: true,
-        ),
-      );
-    }
+  Future<void> loadChatsFromCache() async {
+    final cache = await _chatsLocal.getChats();
+    _emitChatsCollection(
+      ChatsCollection(
+        chats: cache
+            .map((chat) => Chat.fromDto(chat, fromCache: true))
+            .toList(growable: false),
+        fromCache: true,
+      ),
+    );
+  }
 
+  @override
+  Future<void> loadChats() async {
     //await Future.delayed(const Duration(seconds: 1));
     final chats = await _chatsApi.getChats();
     _emitChatsCollection(

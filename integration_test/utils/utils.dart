@@ -42,11 +42,15 @@ extension TesterExtension on WidgetTester {
     await pumpAndSettle();
   }
 
-  Future<void> reopenChat({int chatId = 0}) async {
+  Future<void> reopenChat({int chatId = 0, bool settle = true}) async {
     await tap(find.byKey(const Key('back_button')));
     await pumpAndSettle();
     await tap(find.byKey(Key('chat_$chatId')));
-    await pumpAndSettle();
+    if (settle) {
+      await pumpAndSettle();
+    } else {
+      await pump(const Duration(milliseconds: 50));
+    }
   }
 
   ChatChecker getChat(int id) => ChatChecker(find.byKey(Key('chat_$id')));

@@ -1,5 +1,7 @@
 // dart format width=200
 
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,6 +30,7 @@ void main() {
   group('chat_screen_tests', () {
     late Dependencies dp;
     late MockMessagesWebSocket ws;
+    late Completer<void> _getMessagesCompleter;
 
     setUpAll(() {
       Flavor.setFlavor(Flavor.testing());
@@ -43,7 +46,7 @@ void main() {
       await LocalDatabaseManager.reset();
     });
 
-    Future<void> setupApp(WidgetTester tester, ChatDto chat, List<MessageDto> messages, {Duration getMessagesDelay = Duration.zero}) async {
+    Future<void> setupApp(WidgetTester tester, ChatDto chat, List<MessageDto> messages, {bool getMessagesAsyncControl = false}) async {
       when(dp.chatsApi.getChats()).thenAnswer((_) async {
         return HttpResponse(ChatsResponse(data: [chat], message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
       });
@@ -54,18 +57,27 @@ void main() {
         );
       });
       when(dp.messagesApi.getMessages(chatId: chat.id, limit: AppConstants.msgPagingLimit, cursor: null)).thenAnswer((_) async {
-        await Future.delayed(getMessagesDelay);
+        if (getMessagesAsyncControl) {
+          _getMessagesCompleter = Completer();
+          await _getMessagesCompleter.future;
+        }
         return HttpResponse(MessagesResponse(data: messages, message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
       });
       await tester.pumpWidget(dp.inject(child: const App()));
       ws.setIsConnected(true);
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(Key('chat_${chat.id}')));
-      if (getMessagesDelay == Duration.zero) {
-        await tester.pumpAndSettle();
-      } else {
+      if (getMessagesAsyncControl) {
+        /// 50 millis to end page opening animation. Settle doesn't work cause skeletonizer
         await tester.pump(const Duration(milliseconds: 50));
+      } else {
+        await tester.pumpAndSettle();
       }
+    }
+
+    Future<void> getMessagesSendResponse(WidgetTester tester) async {
+      _getMessagesCompleter.complete();
+      await tester.pumpAndSettle();
     }
 
     void setupGetMessages(List<MessageDto> messages, {Duration delay = Duration.zero, int chatId = 0}) {
@@ -85,14 +97,14 @@ void main() {
 
     testWidgets('connection_test', (tester) async {
       /// after setup app will be connected to the ws, because the app must be connected to open the chat
-      await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4], getMessagesDelay: const Duration(milliseconds: 150));
+      await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4], getMessagesAsyncControl: true);
 
       /// check
       tester.checkChatAppBarStatus(ChatAppBarStatus.updating);
       tester.checkMessagesOrder([0]); // cached from chat
 
       /// wait for the response of the repository, check
-      await tester.pumpAndSettle(const Duration(milliseconds: 300));
+      await getMessagesSendResponse(tester);
       tester.checkChatAppBarStatus(ChatAppBarStatus.none);
       tester.checkMessagesCount(5);
       tester.checkMessagesOrder([0, 1, 2, 3, 4]);
@@ -112,7 +124,7 @@ void main() {
       tester.checkMessagesOrder([0, 1, 2, 3, 4]);
 
       /// wait for the response of the repository, check
-      await tester.pumpAndSettle(const Duration(milliseconds: 300));
+      await getMessagesSendResponse(tester);
       tester.checkChatAppBarStatus(ChatAppBarStatus.none);
       tester.checkMessagesCount(5);
       tester.checkMessagesOrder([0, 1, 2, 3, 4]);
@@ -212,22 +224,19 @@ void main() {
     });
 
     testWidgets('delete_cached_message_from_chat_test', (tester) async {
-      await setupApp(tester, chatDto0, [messageDto2, messageDto3, messageDto4], getMessagesDelay: const Duration(milliseconds: 150));
+      await setupApp(tester, chatDto0, [messageDto2, messageDto3, messageDto4], getMessagesAsyncControl: true);
 
       /// we have cachedMessage with id 0 from chat. This message won't be received
       /// from api, so it should be deleted from cache
       tester.checkMessagesOrder([0]);
-      await tester.pumpAndSettle();
+      await getMessagesSendResponse(tester);
       tester.checkMessagesOrder([2, 3, 4]);
 
       /// go back, open chat, check cache, check loaded messages
-      await tester.tap(find.byType(BackButton));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(Key('chat_${chatDto0.id}')));
-      await tester.pump(const Duration(milliseconds: 50));
+      await tester.reopenChat(settle: false);
       tester.checkMessagesOrder([2, 3, 4]);
       tester.checkChatAppBarStatus(ChatAppBarStatus.updating);
-      await tester.pumpAndSettle(const Duration(milliseconds: 300));
+      await getMessagesSendResponse(tester);
       tester.checkMessagesOrder([2, 3, 4]);
       tester.checkChatAppBarStatus(ChatAppBarStatus.none);
     });

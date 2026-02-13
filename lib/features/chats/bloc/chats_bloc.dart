@@ -24,26 +24,29 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     required MessengerRepository messengerRepository,
     required ConnectionRepository connectionRepository,
     this.callsTimeout = const Duration(milliseconds: 500),
-  }) : _messengerRepository = messengerRepository,
-       _connectionRepository = connectionRepository,
-       super(ChatsStateBase.initial()) {
+  })
+      : _messengerRepository = messengerRepository,
+        _connectionRepository = connectionRepository,
+        super(ChatsStateBase.initial()) {
     _subConnectionState = _connectionRepository.connectionStateStream.listen(
-      (isConnected) => add(ChatsEventConnectingChanged(isConnected)),
+          (isConnected) => add(ChatsEventConnectingChanged(isConnected)),
       cancelOnError: false,
     );
     _chatsUpdatesSub = _chatsUpdatesSub = _messengerRepository.chatsUpdatesStream
         .listen(
           (newList) {
-            add(ChatsEventEmitChatsList(data: newList));
-          },
-          onError: (e, st) {
-            add(ChatsEventEmitError(error: e, stackTrace: st));
-          },
-          cancelOnError: false,
-        );
+        add(ChatsEventEmitChatsList(data: newList));
+      },
+      onError: (e, st) {
+        add(ChatsEventEmitError(error: e, stackTrace: st));
+      },
+      cancelOnError: false,
+    );
 
     on<ChatsEvent>(
-      (event, emit) => switch (event) {
+          (event, emit) =>
+      switch (event) {
+        ChatsEventLoadCache event => _onLoadCache(event, emit),
         ChatsEventLoad event => _onLoad(event, emit),
         ChatsEvent _ => () {},
       },
@@ -55,11 +58,21 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     on<ChatsEventEmitError>(_onEmitError);
   }
 
+  void _onLoadCache(ChatsEventLoadCache event, Emitter<ChatsState> emit) async {
+    try {
+      await _messengerRepository.loadChatsFromCache();
+    } catch (e, st) {
+      add(ChatsEventEmitError(error: e, stackTrace: st));
+    }
+  }
+
   int _lastTimeLoadWasCalled = 0;
 
   void _onLoad(ChatsEventLoad event, Emitter<ChatsState> emit) async {
     /// TODO make this with bloc_concurrency, make isTesting better
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = DateTime
+        .now()
+        .millisecondsSinceEpoch;
     if (_lastTimeLoadWasCalled + 1000 > now && !flavor.isTesting) {
       return;
     }
@@ -69,18 +82,15 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     emit(ChatsStateBase(data: _data));
 
     try {
-      await _messengerRepository.loadChats(withCache: event.withCache);
+      await _messengerRepository.loadChats();
     } catch (e, st) {
       /// TODO ?
-      logger.e(e, stackTrace: st);
       add(ChatsEventEmitError(error: e, stackTrace: st));
     }
   }
 
-  void _onEmitChatsList(
-    ChatsEventEmitChatsList event,
-    Emitter<ChatsState> emit,
-  ) async {
+  void _onEmitChatsList(ChatsEventEmitChatsList event,
+      Emitter<ChatsState> emit,) async {
     final data = event.data;
     _data = _data.copyWith(
       chats: data.chats.toList(growable: false), // TODO
@@ -100,13 +110,11 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     _connectionRepository.reconnect(onlyIfNot: event.onlyIfNot);
   }
 
-  void _onConnectingChanged(
-    ChatsEventConnectingChanged event,
-    Emitter<ChatsState> emit,
-  ) {
+  void _onConnectingChanged(ChatsEventConnectingChanged event,
+      Emitter<ChatsState> emit,) {
     _data = _data.copyWith(isConnected: event.isConnected);
     if (event.isConnected) {
-      add(const ChatsEventLoad(withCache: false));
+      add(const ChatsEventLoad());
     } else {
       emit(ChatsStateBase(data: _data));
     }
@@ -123,11 +131,13 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
 ///events
 abstract class ChatsEvent {}
 
-/// call it on initState. Load also will be called on ws connected
-class ChatsEventLoad implements ChatsEvent {
-  final bool withCache;
+/// call it on initState. Load will be called on ws connected
+class ChatsEventLoadCache implements ChatsEvent {
+  const ChatsEventLoadCache();
+}
 
-  const ChatsEventLoad({this.withCache = true});
+class ChatsEventLoad implements ChatsEvent {
+  const ChatsEventLoad();
 }
 
 class ChatsEventReconnect implements ChatsEvent {

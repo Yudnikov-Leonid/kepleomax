@@ -95,7 +95,7 @@ class _Body extends StatelessWidget {
               return RefreshIndicator(
                 onRefresh: () async {
                   context.read<ChatsBloc>().add(
-                    const ChatsEventLoad(withCache: false),
+                    const ChatsEventLoad(),
                   );
                 },
                 child: SingleChildScrollView(
@@ -136,7 +136,7 @@ class _Body extends StatelessWidget {
             if (!data.isConnected) {
               context.read<ChatsBloc>().add(const ChatsEventReconnect());
             } else {
-              context.read<ChatsBloc>().add(const ChatsEventLoad(withCache: false));
+              context.read<ChatsBloc>().add(const ChatsEventLoad());
             }
           },
           child: ListView.builder(
