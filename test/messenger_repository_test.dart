@@ -189,8 +189,33 @@ void main() {
       /// check
       repository.loadMessages(chatId: 0);
       await iterator.moveNext();
-      await checkNextState([...apiMessages], allMessagesLoaded: true);
+      await checkNextState(apiMessages, allMessagesLoaded: true);
     });
+
+    test('load_messages_conflict_with_cache_6_test', () async {
+      final cacheMessages = generateMessages(5, 15, fromCache: true);
+      final apiMessages = generateMessages(0, 15);
+      getMessagesFromCacheMustReturn(cacheMessages);
+      getMessagesMustReturn(apiMessages);
+
+      /// check
+      repository.loadMessages(chatId: 0);
+      await iterator.moveNext();
+      await checkNextState([...apiMessages, ...generateMessages(15, 5, fromCache: true)]);
+    });
+
+    test('load_messages_conflict_with_cache_7_test', () async {
+      final cacheMessages = generateMessages(20, 15, fromCache: true);
+      final apiMessages = generateMessages(0, 15);
+      getMessagesFromCacheMustReturn(cacheMessages);
+      getMessagesMustReturn(apiMessages);
+
+      /// check
+      repository.loadMessages(chatId: 0);
+      await iterator.moveNext();
+      await checkNextState([...apiMessages, ...generateMessages(20, 15, fromCache: true)]);
+    });
+
 
     test('load_more_messages_conflict_with_cache_1_test', () async {
       final cacheMessages = generateMessages(0, 30, fromCache: true);

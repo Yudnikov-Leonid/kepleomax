@@ -270,6 +270,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
     var newList = (await _combineCacheAndApi(
       cache.map(Message.fromDto),
       apiMessagesDtos,
+      loadMoreMode: false,
     )).toList();
     if (apiMessagesDtos.isEmpty) {
       /// chat is empty now
@@ -304,8 +305,9 @@ class MessengerRepositoryImpl implements MessengerRepository {
 
   Future<Iterable<Message>> _combineCacheAndApi(
     Iterable<Message> cache,
-    Iterable<MessageDto> messages,
-  ) async {
+    Iterable<MessageDto> messages, {
+    required bool loadMoreMode,
+  }) async {
     if (cache.isEmpty || messages.isEmpty) return messages.map(Message.fromDto);
 
     final newList = List<Message>.from(cache);
@@ -316,10 +318,14 @@ class MessengerRepositoryImpl implements MessengerRepository {
     //print('MyLog firstIndex: $firstIndex, lastIndex: $lastIndex');
 
     /// todo handle -1
-    if (firstIndex == -1 && lastIndex == -1) {
+    if (firstIndex == -1 && lastIndex == -1 && loadMoreMode) {
       /// it's paging and need to add the messages to the top
       /// the case: 0, 1, 2, 3, 4 -> need to add 5, 6, 7
+      /// or if it's !loadMoreMode, it can be the case: 5, 6, 7 -> need to add 0, 1, 2
       newList.addAll(messages.map(Message.fromDto));
+    } else if (firstIndex == -1 && lastIndex == -1) {
+      /// the case: 5, 6, 7 -> need to add 0, 1, 2
+      newList.insertAll(0, messages.map(Message.fromDto));
     } else if (lastIndex == -1) {
       /// the case: 0, 1, 2, 3, 4 -> need to add 4, 5, 6, 7
       final removedMessages = newList.sublist(firstIndex);
@@ -329,6 +335,24 @@ class MessengerRepositoryImpl implements MessengerRepository {
         messages.map(Message.fromDto),
       );
       _messagesLocal.deleteAllWithIds(removedMessages.map((m) => m.id));
+    } else if (firstIndex == -1) {
+      /// the case: 3, 4, 5, 6 -> need to add 0, 1, 2, 3, 4
+      /// or the case: 5, 6 -> need to add 0, 1, 2
+      final firstCacheMessageId = newList.first.id;
+      final indexOfFirstCollision = messages.toList().indexWhere(
+        (m) => m.id == firstCacheMessageId,
+      );
+      final messages2 = messages.map(Message.fromDto).toList();
+      newList.replaceRange(
+        0,
+        lastIndex + 1,
+        messages2.sublist(indexOfFirstCollision),
+      );
+      final messagesToAddToStart = messages2.sublist(
+        0,
+        indexOfFirstCollision == -1 ? null : indexOfFirstCollision,
+      );
+      newList.insertAll(0, messagesToAddToStart);
     } else {
       // firstIndex != -1 && lastIndex != -1
       /// the case: 0, 1, 2, 3, 4 -> need to add 1, 2, 3
@@ -388,7 +412,11 @@ class MessengerRepositoryImpl implements MessengerRepository {
       return;
     }
 
-    final newList = await _combineCacheAndApi(messages, newMessagesDtos);
+    final newList = await _combineCacheAndApi(
+      messages,
+      newMessagesDtos,
+      loadMoreMode: true,
+    );
 
     print(
       'MyLog, newLimit: $newLimit, newMessagesLength: ${newMessagesDtos.length}',
