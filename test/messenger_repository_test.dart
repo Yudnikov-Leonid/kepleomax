@@ -217,6 +217,42 @@ void main() {
       await checkNextState(apiMessages, allMessagesLoaded: true, checkLocal: true);
     });
 
+    test('load_messages_one_message_test', () async {
+      final cacheMessages = generateGetMessagesFromCache(0, 1);
+      final apiMessages = generateGetMessages(0, 1);
+
+      repository.loadMessages(chatId: 0);
+      await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
+      await checkNextState(apiMessages, allMessagesLoaded: true, checkLocal: true);
+    });
+
+    test('load_messages_0_api_messages_test', () async {
+      final cacheMessages = generateGetMessagesFromCache(0, 15);
+      final apiMessages = generateGetMessages(0, 0);
+
+      repository.loadMessages(chatId: 0);
+      await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
+      await checkNextState(apiMessages, allMessagesLoaded: true, checkLocal: true);
+    });
+
+    test('load_messages_0_cache_messages_test', () async {
+      final cacheMessages = generateGetMessagesFromCache(0, 0);
+      final apiMessages = generateGetMessages(0, 15);
+
+      repository.loadMessages(chatId: 0);
+      await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
+      await checkNextState(apiMessages, checkLocal: true);
+    });
+
+    test('load_messages_0_cache_and_api_messages_test', () async {
+      final cacheMessages = generateGetMessagesFromCache(0, 0);
+      final apiMessages = generateGetMessages(0, 0);
+
+      repository.loadMessages(chatId: 0);
+      await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
+      await checkNextState(apiMessages, allMessagesLoaded: true, checkLocal: true);
+    });
+
     /// loadMoreMessages() tests ----------------------------------------------------
     test('load_more_messages_n_n_test', () async {
       final cacheMessages = generateMessages(0, 30, fromCache: true);
