@@ -5,7 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/connection_repository.dart';
-import 'package:kepleomax/core/data/messenger_repository.dart';
+import 'package:kepleomax/core/data/messenger/messenger_repository.dart';
 import 'package:kepleomax/core/data/models/messages_collection.dart';
 import 'package:kepleomax/core/flavor.dart';
 import 'package:kepleomax/core/models/message.dart';

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/connection_repository.dart';
-import 'package:kepleomax/core/data/messenger_repository.dart';
+import 'package:kepleomax/core/data/messenger/messenger_repository.dart';
 import 'package:kepleomax/core/data/models/chats_collection.dart';
 import 'package:kepleomax/core/flavor.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';

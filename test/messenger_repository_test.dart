@@ -8,7 +8,7 @@ import 'package:kepleomax/core/data/data_sources/messages_api_data_sources.dart'
 import 'package:kepleomax/core/data/local_data_sources/chats_local_data_source.dart';
 import 'package:kepleomax/core/data/local_data_sources/messages_local_data_source.dart';
 import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.dart';
-import 'package:kepleomax/core/data/messenger_repository.dart';
+import 'package:kepleomax/core/data/messenger/messenger_repository.dart';
 import 'package:kepleomax/core/data/models/messages_collection.dart';
 import 'package:kepleomax/core/mocks/mock_messages_web_socket.dart';
 import 'package:kepleomax/core/models/message.dart';
@@ -95,7 +95,7 @@ void main() {
 
       repository.loadMessages(chatId: 0);
       await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
-      await checkNextState([...apiMessages, ...cacheMessages.sublist(apiMessages.length)]);
+      await checkNextState([...apiMessages, if (apiMessages.length <= cacheMessages.length) ...cacheMessages.sublist(apiMessages.length)]);
     }
 
     /// loadMessages() tests -------------------------------------------------------
@@ -306,7 +306,7 @@ void main() {
       final nextApiMessages = generateMessages(15, 10);
       getMessagesMustReturn(nextApiMessages, limit: 15, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 15);
-      await checkNextState([...apiMessages, ...nextApiMessages]);
+      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true);
     });
 
     test('load_more_messages_without_cache_test', () async {
@@ -423,6 +423,8 @@ void main() {
       repository.loadMoreMessages(chatId: 0, toMessageId: 25);
       await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true);
     });
+
+    /// TODO local_db_tests
 
     /// old style tests
     // test('load_more_messages_conflict_with_cache_1_test', () async {
