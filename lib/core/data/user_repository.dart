@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:kepleomax/core/app_constants.dart';
 import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.dart';
+import 'package:kepleomax/core/data/models/users_collection.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/models/user_profile.dart';
 import 'package:kepleomax/core/network/apis/files/files_api.dart';
@@ -16,17 +19,18 @@ abstract class UserRepository {
 
   Future<UserProfile> updateProfile(UserProfile profile, {updateImage = false});
 
-  Future<List<User>> search({
-    required String search,
-    required int limit,
-    required int offset,
-  });
+  /// search
+  Stream<UsersCollection> get usersStream;
+
+  Future<void> loadSearch({required String search});
+
+  Future<void> loadMore();
 
   Future<bool> addFCMToken({required String token});
 
   Future<void> deleteFCMToken({required String token});
 
-  /// cache
+  /// cache currentUser
   User? getCurrentUserFromCache();
 
   Future<void> setCurrentUser(User? user);
@@ -37,6 +41,9 @@ class UserRepositoryImpl implements UserRepository {
   final ProfileApi _profileApi;
   final FilesApi _filesApi;
   final UsersLocalDataSource _usersLocalDataSource;
+  final _usersController = StreamController<UsersCollection>.broadcast();
+  UsersCollection _lastUsersCollection = const UsersCollection(users: []);
+  String _cachedSearch = '';
 
   UserRepositoryImpl({
     required ProfileApi profileApi,
@@ -47,6 +54,11 @@ class UserRepositoryImpl implements UserRepository {
        _profileApi = profileApi,
        _filesApi = filesApi,
        _usersLocalDataSource = usersLocalDataSource;
+
+  void _emitUsersCollection(UsersCollection collection) {
+    _lastUsersCollection = collection;
+    _usersController.add(collection);
+  }
 
   @override
   Future<User> getUser({required int userId}) async {
@@ -131,16 +143,15 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<List<User>> search({
-    required String search,
-    required int limit,
-    required int offset,
+  Future<void> loadSearch({
+    required String search
   }) async {
+    _cachedSearch = search;
     /// don't need search.trim()
     final res = await _userApi.searchUsers(
       search: search,
-      limit: limit,
-      offset: offset,
+      limit: AppConstants.peoplePagingLimit,
+      cursor: null,
     );
 
     if (res.response.statusCode != 200) {
@@ -151,14 +162,41 @@ class UserRepositoryImpl implements UserRepository {
 
     final dtos = res.data.data;
     _usersLocalDataSource.insertAll(dtos).ignore();
-    return dtos.map(User.fromDto).toList();
+    _emitUsersCollection(
+      UsersCollection(
+        users: dtos.map(User.fromDto),
+        allUsersLoaded: dtos.length < AppConstants.peoplePagingLimit,
+      ),
+    );
+  }
+
+  @override
+  Future<void> loadMore() async {
+    final res = await _userApi.searchUsers(
+      search: _cachedSearch,
+      limit: AppConstants.peoplePagingLimit,
+      cursor: _lastUsersCollection.users.last.id,
+    );
+
+    if (res.response.statusCode != 200) {
+      throw Exception(
+        res.data.message ?? "Failed to get users: ${res.response.statusCode}",
+      );
+    }
+
+    final dtos = res.data.data;
+    _usersLocalDataSource.insertAll(dtos).ignore();
+    _emitUsersCollection(
+      UsersCollection(
+        users: [..._lastUsersCollection.users, ...dtos.map(User.fromDto)],
+        allUsersLoaded: dtos.length < AppConstants.peoplePagingLimit,
+      ),
+    );
   }
 
   @override
   Future<bool> addFCMToken({required String token}) async {
-    final result = await _userApi.addFCMToken(
-      body: FCMTokenRequest(token: token),
-    );
+    final result = await _userApi.addFCMToken(body: FCMTokenRequest(token: token));
     return result.response.statusCode == 200;
   }
 
@@ -173,4 +211,7 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<void> setCurrentUser(User? user) =>
       _usersLocalDataSource.setCurrentUser(user);
+
+  @override
+  Stream<UsersCollection> get usersStream => _usersController.stream;
 }

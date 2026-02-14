@@ -1,6 +1,6 @@
 part of 'messenger_repository.dart';
 
-extension OnDeleteMessageExtension on MessengerRepositoryImpl {
+extension _OnDeleteMessageExtension on MessengerRepositoryImpl {
   void _onDeletedMessage(DeletedMessageUpdate update) {
     _messagesLocal.deleteById(update.deletedMessage.id);
 

@@ -1,6 +1,6 @@
 part of 'messenger_repository.dart';
 
-extension OnReadMessagesExtension on MessengerRepositoryImpl {
+extension _OnReadMessagesExtension on MessengerRepositoryImpl {
   void _onReadMessages(ReadMessagesUpdate update) {
     _messagesLocal.readMessages(update);
 

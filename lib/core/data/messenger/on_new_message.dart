@@ -1,6 +1,6 @@
 part of 'messenger_repository.dart';
 
-extension OnNewMessageExtension on MessengerRepositoryImpl {
+extension _OnNewMessageExtension on MessengerRepositoryImpl {
   void _onNewMessage(MessageDto messageDto) async {
     _messagesLocal.insert(messageDto);
 

@@ -51,14 +51,15 @@ class _UserApi implements UserApi {
   Future<HttpResponse<GetUsersResponse>> searchUsers({
     required String search,
     required int limit,
-    required int offset,
+    required int? cursor,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'search': search,
       r'limit': limit,
-      r'offset': offset,
+      r'cursor': cursor,
     };
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<HttpResponse<GetUsersResponse>>(
