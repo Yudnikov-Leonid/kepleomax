@@ -2,16 +2,19 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:kepleomax/core/network/common/ntp_time.dart';
-import 'package:kepleomax/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:synchronized/synchronized.dart';
+import 'package:kepleomax/core/flavor.dart';
 
-import 'common/api_constants.dart';
+import '../logger.dart';
 
-abstract class ITokenProvider {
+abstract class TokenProvider {
   Future<void> saveAccessToken(String token);
 
-  Future<String?> getAccessToken({bool refreshIfNeeded = true});
+  Future<String?> getAccessToken({
+    bool refreshIfNeeded = true,
+    Function()? onLogoutCallback,
+  });
 
   Future<void> saveRefreshToken(String token);
 
@@ -20,14 +23,14 @@ abstract class ITokenProvider {
   Future<void> clearAll();
 }
 
-class TokenProvider implements ITokenProvider {
+class TokenProviderImpl implements TokenProvider {
   final SharedPreferences _prefs;
   final FlutterSecureStorage _secureStorage;
   final Dio _dio;
 
   final _lock = Lock();
 
-  TokenProvider({
+  TokenProviderImpl({
     required SharedPreferences prefs,
     required FlutterSecureStorage secureStorage,
     required Dio dio,
@@ -82,12 +85,10 @@ class TokenProvider implements ITokenProvider {
 
       try {
         logger.i('try to refresh accessToken');
-        final response = await _dio
-            .post(
-              '${flavor.baseUrl}/api/auth/refresh',
-              data: {'refreshToken': refreshToken},
-            )
-            .timeout(ApiConstants.timeout);
+        final response = await _dio.post(
+          '${flavor.baseUrl}/api/auth/refresh',
+          data: {'refreshToken': refreshToken},
+        );
 
         if (response.statusCode == 401 ||
             response.statusCode == 403 ||

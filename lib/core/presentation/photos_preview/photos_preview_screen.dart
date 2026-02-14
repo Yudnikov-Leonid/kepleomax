@@ -9,9 +9,10 @@ import 'package:gal/gal.dart';
 import 'package:kepleomax/core/presentation/klm_cached_image.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
-import 'package:kepleomax/main.dart';
 import 'package:num_remap/num_remap.dart';
 import 'package:path_provider/path_provider.dart';
+
+import '../../logger.dart';import 'package:kepleomax/core/flavor.dart';
 
 part 'swipe_view.dart';
 

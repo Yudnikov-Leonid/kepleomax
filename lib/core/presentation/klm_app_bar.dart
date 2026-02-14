@@ -31,10 +31,13 @@ class KlmAppBar extends AppBar {
          titleSpacing: 5,
          backgroundColor: Colors.white,
          surfaceTintColor: Colors.white,
-         title: titleWidget ?? Text(
-           title ?? '',
-           style: context.textTheme.labelLarge?.copyWith(fontSize: 24),
-         ),
+         title:
+             titleWidget ??
+             Text(
+               title ?? '',
+               key: const Key('app_bar_status_text'),
+               style: context.textTheme.labelLarge?.copyWith(fontSize: 24),
+             ),
        );
 }
 
@@ -77,6 +80,7 @@ class KlmBackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
+      key: const Key('back_button'),
       onPressed:
           onPressed ??
           () {

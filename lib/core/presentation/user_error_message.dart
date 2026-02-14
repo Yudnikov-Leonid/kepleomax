@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:kepleomax/main.dart';
+import 'package:kepleomax/core/flavor.dart';
 
 extension UserErrorMessage on Object {
   String get userErrorMessage {

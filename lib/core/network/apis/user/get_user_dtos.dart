@@ -4,39 +4,39 @@ import 'package:kepleomax/core/network/common/user_dto.dart';
 part 'get_user_dtos.g.dart';
 
 @JsonSerializable()
-class GetUserDto {
+class GetUserResponse {
   final UserDto? data;
   final String? message;
 
-  const GetUserDto({required this.data, required this.message});
+  const GetUserResponse({required this.data, required this.message});
 
-  factory GetUserDto.fromJson(Map<String, dynamic> json) =>
-      _$GetUserDtoFromJson(json);
+  factory GetUserResponse.fromJson(Map<String, dynamic> json) =>
+      _$GetUserResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$GetUserDtoToJson(this);
+  Map<String, dynamic> toJson() => _$GetUserResponseToJson(this);
 }
 
 @JsonSerializable()
-class GetUsersDto {
+class GetUsersResponse {
   final List<UserDto> data;
   final String? message;
 
-  const GetUsersDto({required this.data, required this.message});
+  const GetUsersResponse({required this.data, required this.message});
 
-  factory GetUsersDto.fromJson(Map<String, dynamic> json) =>
-      _$GetUsersDtoFromJson(json);
+  factory GetUsersResponse.fromJson(Map<String, dynamic> json) =>
+      _$GetUsersResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$GetUsersDtoToJson(this);
+  Map<String, dynamic> toJson() => _$GetUsersResponseToJson(this);
 }
 
 @JsonSerializable()
-class FCMTokenRequestDto {
+class FCMTokenRequest {
   final String token;
 
-  FCMTokenRequestDto({required this.token});
+  FCMTokenRequest({required this.token});
 
-  factory FCMTokenRequestDto.fromJson(Map<String, dynamic> json) =>
-      _$FCMTokenRequestDtoFromJson(json);
+  factory FCMTokenRequest.fromJson(Map<String, dynamic> json) =>
+      _$FCMTokenRequestFromJson(json);
 
-  Map<String, dynamic> toJson() => _$FCMTokenRequestDtoToJson(this);
+  Map<String, dynamic> toJson() => _$FCMTokenRequestToJson(this);
 }

@@ -1,0 +1,127 @@
+import 'dart:async';
+
+import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
+import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
+import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
+import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
+
+class MockMessagesWebSocket implements MessagesWebSocket {
+  /// testing stuff
+  bool _isConnected = false;
+  int? _nextSendMessageId;
+  final _readMessagesBeforeTimeWasCalls = <(int, DateTime)>[];
+  final _readAllCalls = <int>[];
+  final _deleteMessageCalls = <int>[];
+
+  void setIsConnected(bool value) {
+    _isConnected = value;
+    _connectionController.add(value);
+  }
+
+  void addMessage(MessageDto messageDto) => _messageController.add(messageDto);
+
+  void addReadMessagesUpdate(ReadMessagesUpdate update) =>
+      _readMessagesController.add(update);
+
+  void addDeletedMessagesUpdate(DeletedMessageUpdate update) =>
+      _deletedMessageController.add(update);
+
+  void setNextSendMessageId(int value) {
+    _nextSendMessageId = value;
+  }
+
+  bool isRaadBeforeTimeWasCalledWith(int chatId, DateTime time) {
+    final last = _readMessagesBeforeTimeWasCalls.lastOrNull;
+    return last?.$1 == chatId && last?.$2 == time;
+  }
+
+  bool isReadAllCalledWith(int chatId) {
+    return _readAllCalls.lastOrNull == chatId;
+  }
+
+  bool isDeleteMessageCalledWith(int messageId) {
+    return _deleteMessageCalls.lastOrNull == messageId;
+  }
+
+  int get readBeforeTimeCalledTimes => _readMessagesBeforeTimeWasCalls.length;
+
+  int get readAllCalledTimes => _readAllCalls.length;
+
+  int get deleteMessageCalledTimes => _deleteMessageCalls.length;
+
+  /// streams
+  final StreamController<MessageDto> _messageController =
+      StreamController.broadcast();
+  final StreamController<ReadMessagesUpdate> _readMessagesController =
+      StreamController.broadcast();
+  final StreamController<DeletedMessageUpdate> _deletedMessageController =
+      StreamController.broadcast();
+  final StreamController<bool> _connectionController = StreamController.broadcast();
+
+  @override
+  Stream<MessageDto> get newMessageStream => _messageController.stream;
+
+  @override
+  Stream<ReadMessagesUpdate> get readMessagesStream =>
+      _readMessagesController.stream;
+
+  @override
+  Stream<DeletedMessageUpdate> get deletedMessageStream =>
+      _deletedMessageController.stream;
+
+  @override
+  Stream<bool> get connectionStateStream => _connectionController.stream;
+
+  /// websocket
+  @override
+  Future<void> init() async {}
+
+  @override
+  Future<void> reinit() async {}
+
+  @override
+  void connectIfNot() {}
+
+  @override
+  void disconnect() {}
+
+  @override
+  bool get isConnected => _isConnected;
+
+  /// events
+  @override
+  void sendMessage({required String message, required int recipientId}) {
+    if (_nextSendMessageId == null) {
+      throw Exception("id to new message is not specified");
+    }
+
+    _messageController.add(
+      MessageDto(
+        id: _nextSendMessageId!,
+        chatId: 0,
+        senderId: 0,
+        isCurrentUser: true,
+        message: message,
+        isRead: false,
+        createdAt: 2000,
+        editedAt: null,
+        fromCache: false,
+      ),
+    );
+  }
+
+  @override
+  void deleteMessage({required int messageId}) {
+    _deleteMessageCalls.add(messageId);
+  }
+
+  @override
+  void readAllMessages({required int chatId}) {
+    _readAllCalls.add(chatId);
+  }
+
+  @override
+  void readMessagesBeforeTime({required int chatId, required DateTime time}) {
+    _readMessagesBeforeTimeWasCalls.add((chatId, time));
+  }
+}

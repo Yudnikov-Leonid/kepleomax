@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/models/user_profile.dart';
 import 'package:kepleomax/core/network/apis/files/files_api.dart';
@@ -7,9 +8,8 @@ import 'package:kepleomax/core/network/apis/profile/profile_api.dart';
 import 'package:kepleomax/core/network/apis/profile/profile_dtos.dart';
 import 'package:kepleomax/core/network/apis/user/get_user_dtos.dart';
 import 'package:kepleomax/core/network/apis/user/user_api.dart';
-import 'package:kepleomax/core/network/common/api_constants.dart';
 
-abstract class IUserRepository {
+abstract class UserRepository {
   Future<User> getUser({required int userId});
 
   Future<UserProfile> getUserProfile(int userId);
@@ -25,24 +25,32 @@ abstract class IUserRepository {
   Future<bool> addFCMToken({required String token});
 
   Future<void> deleteFCMToken({required String token});
+
+  /// cache
+  User? getCurrentUserFromCache();
+
+  Future<void> setCurrentUser(User? user);
 }
 
-class UserRepository implements IUserRepository {
+class UserRepositoryImpl implements UserRepository {
   final UserApi _userApi;
   final ProfileApi _profileApi;
   final FilesApi _filesApi;
+  final UsersLocalDataSource _usersLocalDataSource;
 
-  UserRepository({
+  UserRepositoryImpl({
     required ProfileApi profileApi,
     required FilesApi filesApi,
     required UserApi userApi,
+    required UsersLocalDataSource usersLocalDataSource,
   }) : _userApi = userApi,
        _profileApi = profileApi,
-       _filesApi = filesApi;
+       _filesApi = filesApi,
+       _usersLocalDataSource = usersLocalDataSource;
 
   @override
   Future<User> getUser({required int userId}) async {
-    final res = await _userApi.getUser(userId: userId).timeout(ApiConstants.timeout);
+    final res = await _userApi.getUser(userId: userId);
 
     if (res.response.statusCode != 200) {
       throw Exception(
@@ -50,14 +58,14 @@ class UserRepository implements IUserRepository {
       );
     }
 
-    return User.fromDto(res.data.data!);
+    final dto = res.data.data!;
+    _usersLocalDataSource.insert(dto).ignore();
+    return User.fromDto(dto);
   }
 
   @override
   Future<UserProfile> getUserProfile(int userId) async {
-    final res = await _profileApi
-        .getProfile(userId.toString())
-        .timeout(ApiConstants.timeout);
+    final res = await _profileApi.getProfile(userId.toString());
 
     if (res.response.statusCode != 200) {
       throw Exception(
@@ -85,9 +93,9 @@ class UserRepository implements IUserRepository {
       if (profile.user.profileImage == null || profile.user.profileImage!.isEmpty) {
         newImagePath = null;
       } else {
-        final imageRes = await _filesApi
-            .uploadFile(File(profile.user.profileImage!))
-            .timeout(ApiConstants.timeout);
+        final imageRes = await _filesApi.uploadFile(
+          File(profile.user.profileImage!),
+        );
 
         if (imageRes.response.statusCode != 201) {
           throw Exception(
@@ -129,9 +137,11 @@ class UserRepository implements IUserRepository {
     required int offset,
   }) async {
     /// don't need search.trim()
-    final res = await _userApi
-        .searchUsers(search: search, limit: limit, offset: offset)
-        .timeout(ApiConstants.timeout);
+    final res = await _userApi.searchUsers(
+      search: search,
+      limit: limit,
+      offset: offset,
+    );
 
     if (res.response.statusCode != 200) {
       throw Exception(
@@ -139,19 +149,28 @@ class UserRepository implements IUserRepository {
       );
     }
 
-    return res.data.data.map(User.fromDto).toList();
+    final dtos = res.data.data;
+    _usersLocalDataSource.insertAll(dtos).ignore();
+    return dtos.map(User.fromDto).toList();
   }
 
   @override
   Future<bool> addFCMToken({required String token}) async {
     final result = await _userApi.addFCMToken(
-      body: FCMTokenRequestDto(token: token),
+      body: FCMTokenRequest(token: token),
     );
     return result.response.statusCode == 200;
   }
 
   @override
   Future<void> deleteFCMToken({required String token}) async {
-    await _userApi.deleteFCMToken(body: FCMTokenRequestDto(token: token));
+    await _userApi.deleteFCMToken(body: FCMTokenRequest(token: token));
   }
+
+  @override
+  User? getCurrentUserFromCache() => _usersLocalDataSource.getCurrentUser();
+
+  @override
+  Future<void> setCurrentUser(User? user) =>
+      _usersLocalDataSource.setCurrentUser(user);
 }

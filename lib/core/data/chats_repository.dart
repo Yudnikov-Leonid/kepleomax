@@ -1,64 +1,37 @@
-import 'package:kepleomax/core/data/local/local_database.dart';
+import 'dart:async';
+
+import 'package:kepleomax/core/data/local_data_sources/chats_local_data_source.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_api.dart';
-import 'package:kepleomax/core/network/common/api_constants.dart';
 
-abstract class IChatsRepository {
-  Future<List<Chat>> getChats();
 
-  Future<List<Chat>> getChatsFromCache();
-
-  Future<void> updateLocalChat(Chat chat);
-
+abstract class ChatsRepository {
+  /// api
   Future<Chat?> getChatWithUser(int otherUserId);
 
-  Future<Chat?> getChatWithUserFromCache(int otherUserId);
-
   Future<Chat?> getChatWithId(int chatId);
+
+  /// cache
+  Future<Chat?> getChatWithUserFromCache(int otherUserId);
 
   Future<Chat?> getChatWithIdFromCache(int chatId);
 }
 
-class ChatsRepository implements IChatsRepository {
+class ChatsRepositoryImpl implements ChatsRepository {
   final ChatsApi _chatsApi;
-  final ILocalChatsDatabase _localDatabase;
+  final ChatsLocalDataSource _chatsLocal;
 
-  ChatsRepository({required ChatsApi chatsApi, required LocalDatabase localDatabase})
-    : _localDatabase = localDatabase,
-      _chatsApi = chatsApi;
+  ChatsRepositoryImpl({
+    required ChatsApi chatsApi,
+    required ChatsLocalDataSource chatsLocalDataSource,
+  }) : _chatsLocal = chatsLocalDataSource,
+       _chatsApi = chatsApi;
 
-  @override
-  Future<List<Chat>> getChats() async {
-    final res = await _chatsApi.getChats().timeout(ApiConstants.timeout);
-
-    if (res.response.statusCode != 200) {
-      throw Exception(
-        res.data.message ?? "Failed to get chats: ${res.response.statusCode}",
-      );
-    }
-
-    final data = res.data.data!;
-    await _localDatabase.clearAndInsertChats(data);
-    return data.map(Chat.fromDto).toList();
-  }
-
-  @override
-  Future<List<Chat>> getChatsFromCache() async {
-    final chats = await _localDatabase.getChats();
-    final mapped = chats.map(Chat.fromDto).toList();
-    return mapped;
-  }
-
-  @override
-  Future<void> updateLocalChat(Chat chat) async {
-    await _localDatabase.updateChat(chat.toDto());
-  }
-
+  /// api
   @override
   Future<Chat?> getChatWithUser(int otherUserId) async {
     final res = await _chatsApi
-        .getChatWithUser(otherUserId: otherUserId)
-        .timeout(ApiConstants.timeout);
+        .getChatWithUser(otherUserId: otherUserId);
 
     if (res.response.statusCode == 404) {
       return null;
@@ -69,26 +42,13 @@ class ChatsRepository implements IChatsRepository {
       );
     }
 
-    return Chat.fromDto(res.data.data!);
-  }
-
-  @override
-  Future<Chat?> getChatWithUserFromCache(int otherUserId) async {
-    final chats = await _localDatabase.getChats();
-    /// TODO make query in _localDatabase to this
-    final dto = chats.where((e) => e.otherUser.id == otherUserId).firstOrNull;
-    if (dto == null) {
-      return null;
-    } else {
-      return Chat.fromDto(dto);
-    }
+    return Chat.fromDto(res.data.data!, fromCache: false);
   }
 
   @override
   Future<Chat?> getChatWithId(int chatId) async {
     final res = await _chatsApi
-        .getChatWithId(chatId: chatId)
-        .timeout(ApiConstants.timeout);
+        .getChatWithId(chatId: chatId);
 
     if (res.response.statusCode == 404) {
       return null;
@@ -100,15 +60,28 @@ class ChatsRepository implements IChatsRepository {
     }
 
     final data = res.data.data!;
-    _localDatabase.insertChat(data);
-    return Chat.fromDto(data);
+    _chatsLocal.insert(data);
+    return Chat.fromDto(data, fromCache: false);
+  }
+
+  /// cache
+  @override
+  Future<Chat?> getChatWithUserFromCache(int otherUserId) async {
+    final chats = await _chatsLocal.getChats();
+
+    /// TODO make query in _localDatabase to this
+    final dto = chats.where((e) => e.otherUser.id == otherUserId).firstOrNull;
+    if (dto == null) {
+      return null;
+    } else {
+      return Chat.fromDto(dto, fromCache: true);
+    }
   }
 
   @override
   Future<Chat?> getChatWithIdFromCache(int chatId) async {
-    final dto = await _localDatabase.getChat(chatId);
-    print('MyLog getChatWithIdFromCache: ${dto?.toJson()}');
+    final dto = await _chatsLocal.getChat(chatId);
     if (dto == null) return null;
-    return Chat.fromDto(dto);
+    return Chat.fromDto(dto, fromCache: true);
   }
 }

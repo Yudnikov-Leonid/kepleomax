@@ -66,23 +66,22 @@ class _Body extends StatelessWidget {
         if (state is! ChatsStateBase) return const SizedBox();
 
         final data = state.data;
-
         if (data.isLoading && data.chats.isEmpty) {
           return RefreshIndicator(
+            key: const Key('chats_loading'),
             onRefresh: () async {
               context.read<ChatsBloc>().add(const ChatsEventReconnect());
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Skeletonizer(
-                key: const Key('chats_loading'),
                 child: Column(
                   children: [
-                    _ChatWidget(chat: Chat.loading(), isLoading: true),
-                    _ChatWidget(chat: Chat.loading(), isLoading: true),
-                    _ChatWidget(chat: Chat.loading(), isLoading: true),
-                    _ChatWidget(chat: Chat.loading(), isLoading: true),
-                    _ChatWidget(chat: Chat.loading(), isLoading: true),
+                    ChatWidget(chat: Chat.loading(), isLoading: true),
+                    ChatWidget(chat: Chat.loading(), isLoading: true),
+                    ChatWidget(chat: Chat.loading(), isLoading: true),
+                    ChatWidget(chat: Chat.loading(), isLoading: true),
+                    ChatWidget(chat: Chat.loading(), isLoading: true),
                   ],
                 ),
               ),
@@ -95,7 +94,9 @@ class _Body extends StatelessWidget {
             builder: (context, constraints) {
               return RefreshIndicator(
                 onRefresh: () async {
-                  context.read<ChatsBloc>().add(const ChatsEventLoad());
+                  context.read<ChatsBloc>().add(
+                    const ChatsEventLoad(),
+                  );
                 },
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -114,6 +115,7 @@ class _Body extends StatelessWidget {
                         ),
                         const SizedBox(height: 10),
                         KlmButton(
+                          key: const Key('find_people_button'),
                           onPressed: () {
                             AppNavigator.of(context)!.push(const PeoplePage());
                           },
@@ -138,11 +140,12 @@ class _Body extends StatelessWidget {
             }
           },
           child: ListView.builder(
+            key: const Key('chats_list_view'),
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(vertical: 10),
             itemCount: data.chats.length,
-            itemBuilder: (context, i) => _ChatWidget(
-              key: Key('chat-${data.chats[i].id}'),
+            itemBuilder: (context, i) => ChatWidget(
+              key: Key('chat_${data.chats[i].id}'),
               chat: data.chats[i],
             ),
           ),

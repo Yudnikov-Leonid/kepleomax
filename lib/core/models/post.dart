@@ -12,9 +12,9 @@ abstract class Post with _$Post {
     required String content,
     required List<String> images,
     required int likesCount,
-    required int createdAt,
+    required DateTime createdAt,
     @Default(false) bool isMockLoadingPost,
-    int? updatedAt,
+    DateTime? updatedAt,
   }) = _Post;
 
   factory Post.fromDto(PostDto dto) => Post(
@@ -23,8 +23,10 @@ abstract class Post with _$Post {
     content: dto.content,
     images: dto.images,
     likesCount: 0,
-    createdAt: dto.createdAt,
-    updatedAt: dto.editedAt,
+    createdAt: DateTime.fromMillisecondsSinceEpoch(dto.createdAt),
+    updatedAt: dto.editedAt == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(dto.editedAt!),
   );
 
   factory Post.loading() => Post(
@@ -33,7 +35,7 @@ abstract class Post with _$Post {
     content: '\n\n\n\n',
     images: [],
     likesCount: 999999,
-    createdAt: 0,
+    createdAt: DateTime(0),
     isMockLoadingPost: true,
   );
 }

@@ -7,9 +7,9 @@ class ParseTime {
     return count % 10 == 1 && count != 11;
   }
 
-  static String unixTimeToPassTime(int unixTime) {
+  static String toPassTime(DateTime dateTime) {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    unixTime = unixTime ~/ 1000;
+    final unixTime = dateTime.millisecondsSinceEpoch ~/ 1000;
 
     if (now - unixTime < 60) {
       return '${now - unixTime} sec ago';
@@ -28,9 +28,9 @@ class ParseTime {
     }
   }
 
-  static String unixTimeToPassTimeSlim(int unixTime) {
+  static String toPassTimeSlim(DateTime dateTime) {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    unixTime = unixTime ~/ 1000;
+    final unixTime = dateTime.millisecondsSinceEpoch ~/ 1000;
 
     if (now - unixTime < 10) {
       return 'now';
@@ -56,17 +56,25 @@ class ParseTime {
     }
   }
 
-  static String unixTimeToPreciseDate(int unixTime) {
-    final now = DateTime.fromMillisecondsSinceEpoch(unixTime);
-    final date = DateFormat('MMM dd, y').format(now);
-    final time = DateFormat('hh:mm a').format(now);
+  static String toPreciseDate(DateTime dateTime) {
+    final date = DateFormat('MMM dd, y').format(dateTime);
+    final time = DateFormat('hh:mm a').format(dateTime);
 
     return '$date at $time';
   }
 
-  static String unixTimeToTime(int unixTime) {
-    final date = DateTime.fromMillisecondsSinceEpoch(unixTime);
+  static String toTime(DateTime dateTime) => DateFormat.Hm().format(dateTime);
 
-    return DateFormat.Hm().format(date);
+  static String toDate(DateTime dateTime) {
+    final now = DateTime.now();
+    if (dateTime.day == now.day &&
+        dateTime.month == now.month &&
+        dateTime.year == now.year) {
+      return 'Today';
+    }
+
+    final format = dateTime.year == now.year ? 'MMMM d' : 'MMM d, yyyy';
+
+    return DateFormat(format).format(dateTime);
   }
 }

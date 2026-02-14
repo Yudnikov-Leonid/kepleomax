@@ -4,11 +4,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
 import 'package:kepleomax/core/data/auth_repository.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
+import 'package:kepleomax/core/data/connection_repository.dart';
 import 'package:kepleomax/core/data/files_repository.dart';
-import 'package:kepleomax/core/data/messages_repository.dart';
+import 'package:kepleomax/core/data/local_data_sources/chats_local_data_source.dart';
+import 'package:kepleomax/core/data/local_data_sources/messages_local_data_source.dart';
+import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.dart';
+import 'package:kepleomax/core/data/messenger/messenger_repository.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
-import 'package:kepleomax/core/native/klm_method_channel.dart';
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_api.dart';
 import 'package:kepleomax/core/network/apis/files/files_api.dart';
@@ -20,8 +23,7 @@ import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../data/local/local_database.dart';
+import 'package:sqflite/sqflite.dart';
 
 class Dependencies {
   late final AuthController authController;
@@ -29,7 +31,7 @@ class Dependencies {
   late final SharedPreferences sharedPreferences;
   late final FlutterSecureStorage secureStorage;
   late final PrettyDioLogger prettyDioLogger;
-  late final KlmMethodChannel methodChannel;
+  late final Database database;
 
   late final Dio dio;
   late final AuthApi authApi;
@@ -41,20 +43,23 @@ class Dependencies {
   late final ChatsApi chatsApi;
   late final MessagesWebSocket messagesWebSocket;
 
-  late final IAuthRepository authRepository;
-  late final IUserRepository userRepository;
-  late final IPostRepository postRepository;
-  late final IFilesRepository filesRepository;
-  late final IMessagesRepository messagesRepository;
-  late final IChatsRepository chatsRepository;
-  late final LocalDatabase localDatabase;
+  late final UsersLocalDataSource usersLocalDataSource;
+  late final MessagesLocalDataSource messagesLocalDataSource;
+  late final ChatsLocalDataSource chatsLocalDataSource;
+
+  late final AuthRepository authRepository;
+  late final UserRepository userRepository;
+  late final PostRepository postRepository;
+  late final FilesRepository filesRepository;
+  late final ConnectionRepository connectionRepository;
+  late final MessengerRepository messengerRepository;
+  late final ChatsRepository chatsRepository;
 
   Widget inject({required Widget child}) =>
       InheritedDependencies(dependencies: this, child: child);
 
-  static Dependencies of(BuildContext context) => context
-      .getInheritedWidgetOfExactType<InheritedDependencies>()!
-      .dependencies;
+  static Dependencies of(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<InheritedDependencies>()!.dependencies;
 }
 
 class InheritedDependencies extends InheritedWidget {

@@ -1,43 +1,81 @@
 import 'dart:async';
-import 'package:kepleomax/core/data/local/local_database.dart';
-import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
-import 'package:kepleomax/main.dart';
+import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 
-class MessagesWebSocket {
+import '../../logger.dart';
+import 'models/read_messages_update.dart';
+
+abstract class MessagesWebSocket {
+  /// streams
+  Stream<MessageDto> get newMessageStream;
+
+  Stream<ReadMessagesUpdate> get readMessagesStream;
+
+  Stream<DeletedMessageUpdate> get deletedMessageStream;
+
+  Stream<bool> get connectionStateStream;
+
+  /// manage
+  Future<void> init();
+
+  void reinit();
+
+  void connectIfNot();
+
+  void disconnect();
+
+  bool get isConnected;
+
+  /// events
+  void sendMessage({required String message, required int recipientId});
+
+  void deleteMessage({required int messageId});
+
+  void readAllMessages({required int chatId});
+
+  void readMessagesBeforeTime({required int chatId, required DateTime time});
+}
+
+class MessagesWebSocketImpl implements MessagesWebSocket {
   final String _baseUrl;
   final TokenProvider _tokenProvider;
-  final LocalDatabase _localDatabase;
 
-  MessagesWebSocket({
+  MessagesWebSocketImpl({
     required String baseUrl,
     required TokenProvider tokenProvider,
-    required LocalDatabase localDatabase,
-  }) : _localDatabase = localDatabase,
-       _tokenProvider = tokenProvider,
+  }) : _tokenProvider = tokenProvider,
        _baseUrl = baseUrl;
 
   /// streams
-  final StreamController<Message> _messageController =
-      StreamController<Message>.broadcast();
+  final StreamController<MessageDto> _messageController =
+      StreamController.broadcast();
   final StreamController<ReadMessagesUpdate> _readMessagesController =
-      StreamController<ReadMessagesUpdate>.broadcast();
-  final StreamController<bool> _connectionController =
-      StreamController<bool>.broadcast();
+      StreamController.broadcast();
+  final StreamController<DeletedMessageUpdate> _deletedMessageController =
+      StreamController.broadcast();
+  final StreamController<bool> _connectionController = StreamController.broadcast();
 
-  Stream<Message> get newMessageStream => _messageController.stream;
+  @override
+  Stream<MessageDto> get newMessageStream => _messageController.stream;
 
+  @override
   Stream<ReadMessagesUpdate> get readMessagesStream =>
       _readMessagesController.stream;
 
+  @override
+  Stream<DeletedMessageUpdate> get deletedMessageStream =>
+      _deletedMessageController.stream;
+
+  @override
   Stream<bool> get connectionStateStream => _connectionController.stream;
 
   /// socket
   Socket? _socket;
 
-  void init() async {
+  @override
+  Future<void> init() async {
     logger.d('WebSocketLog! init, _socket != null: ${_socket != null}');
     if (_socket != null) {
       _socket!.disconnect();
@@ -71,18 +109,8 @@ class MessagesWebSocket {
     _socket!.onReconnect((_) async {
       logger.d('WebSocketLog Reconnect');
     });
-    _socket!.on('new_message', (data) {
-      logger.d('WebSocketLog new_message: $data');
-      final messageDto = MessageDto.fromJson(data);
-      _localDatabase.insertMessage(messageDto).ignore();
-      _messageController.add(Message.fromDto(messageDto));
-    });
-    _socket!.on('read_messages', (data) {
-      logger.d('WebSocketLog read_messages: $data');
-      final updates = ReadMessagesUpdate.fromJson(data);
-      _localDatabase.readMessages(updates.messagesIds);
-      _readMessagesController.add(updates);
-    });
+
+    /// errors events
     _socket!.onError((error) {
       logger.e('WebSocketLog error: $error');
     });
@@ -100,14 +128,33 @@ class MessagesWebSocket {
         _socket!.connect();
       }
     });
+
+    /// logic events
+    _socket!.on('new_message', (data) {
+      logger.d('WebSocketLog new_message: $data');
+      final messageDto = MessageDto.fromJson(data, fromCache: false);
+      _messageController.add(messageDto);
+    });
+    _socket!.on('read_messages', (data) {
+      logger.d('WebSocketLog read_messages: $data');
+      final update = ReadMessagesUpdate.fromJson(data);
+      _readMessagesController.add(update);
+    });
+    _socket!.on('deleted_message', (data) {
+      logger.d('WebSocketLog deleted_message: $data');
+      final update = DeletedMessageUpdate.fromJson(data);
+      _deletedMessageController.add(update);
+    });
   }
 
-  void reconnect() {
+  @override
+  Future<void> reinit() async {
     logger.d('WebSocketLog! reconnect');
     disconnect();
-    init();
+    await init();
   }
 
+  @override
   void connectIfNot() {
     logger.d(
       'WebSocketLog! connectIfNot, _socket != null: ${_socket != null}, _socket.disconnected: ${_socket?.disconnected}',
@@ -117,6 +164,7 @@ class MessagesWebSocket {
     }
   }
 
+  @override
   void disconnect() {
     logger.d('WebSocketLog! disconnect, socket != null: ${_socket != null}');
     if (_socket != null) {
@@ -124,46 +172,38 @@ class MessagesWebSocket {
     }
   }
 
+  @override
   bool get isConnected => _socket?.connected ?? false;
 
   /// events
+  @override
   void sendMessage({required String message, required int recipientId}) {
-    if (_socket?.connected ?? false) {
+    if (_socket?.connected == true) {
       _socket!.emit('message', {'recipient_id': recipientId, 'message': message});
     }
   }
 
+  @override
+  void deleteMessage({required int messageId}) {
+    if (_socket?.connected == true) {
+      _socket!.emit('delete_message', {'message_id': messageId});
+    }
+  }
+
+  @override
   void readAllMessages({required int chatId}) {
-    print('WebSocketLog readAllMessages from chat: $chatId');
-    if (_socket?.connected ?? false) {
+    if (_socket?.connected == true) {
       _socket!.emit('read_all', {'chat_id': chatId});
     }
   }
 
-  void readMessageBeforeTime({required int chatId, required int time}) {
-    if (_socket?.connected ?? false) {
-      _socket!.emit('read_before_time', {'chat_id': chatId, 'time': time});
+  @override
+  void readMessagesBeforeTime({required int chatId, required DateTime time}) {
+    if (_socket?.connected == true) {
+      _socket!.emit('read_before_time', {
+        'chat_id': chatId,
+        'time': time.millisecondsSinceEpoch,
+      });
     }
   }
-}
-
-class ReadMessagesUpdate {
-  final int chatId;
-  final int senderId;
-  final List<int> messagesIds;
-
-  ReadMessagesUpdate({
-    required this.chatId,
-    required this.senderId,
-    required this.messagesIds,
-  });
-
-  factory ReadMessagesUpdate.fromJson(Map<String, dynamic> json) =>
-      ReadMessagesUpdate(
-        chatId: json['chat_id'],
-        senderId: json['sender_id'],
-        messagesIds: json['messages_ids']
-            .map<int>((id) => int.parse(id.toString()))
-            .toList(),
-      );
 }

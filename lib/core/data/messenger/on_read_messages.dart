@@ -1,0 +1,41 @@
+part of 'messenger_repository.dart';
+
+extension OnReadMessagesExtension on MessengerRepositoryImpl {
+  void _onReadMessages(ReadMessagesUpdate update) {
+    _messagesLocal.readMessages(update);
+
+    if (_lastMessagesCollection != null &&
+        _lastMessagesCollection!.chatId == update.chatId) {
+      final newList = _lastMessagesCollection!.messages.map(
+            (m) => update.messagesIds.contains(m.id) ? m.copyWith(isRead: true) : m,
+      );
+      _emitMessages(newList);
+    }
+
+    if (_lastChatsCollection != null) {
+      if (!update.isCurrentUser) {
+        _chatsLocal.decreaseUnreadCount(update.chatId, update.messagesIds.length);
+        final newList = _lastChatsCollection!.chats.map(
+              (chat) => chat.id == update.chatId
+              ? chat.copyWith(
+            unreadCount: chat.unreadCount - update.messagesIds.length,
+          )
+              : chat,
+        );
+        _emitChatsCollection(ChatsCollection(chats: newList));
+      } else if (update.messagesIds.contains(
+        _lastChatsCollection!.chats
+            .firstWhereOrNull((c) => c.id == update.chatId)
+            ?.lastMessage
+            ?.id,
+      )) {
+        final newList = _lastChatsCollection!.chats.map(
+              (chat) => chat.id == update.chatId
+              ? chat.copyWith(lastMessage: chat.lastMessage!.copyWith(isRead: true))
+              : chat,
+        );
+        _emitChatsCollection(ChatsCollection(chats: newList));
+      }
+    }
+  }
+}

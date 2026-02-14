@@ -40,6 +40,7 @@ class _ChatBottomState extends State<_ChatBottom> {
             children: [
               Expanded(
                 child: KlmTextField(
+                  key: const Key('message_input_field'),
                   controller: _controller,
                   hint: 'Message',
                   onChanged: (newText) {},
@@ -50,6 +51,7 @@ class _ChatBottomState extends State<_ChatBottom> {
               ),
               const SizedBox(width: 6),
               IconButton(
+                key: const Key('submit_message_button'),
                 onPressed: widget._onSend == null
                     ? null
                     : () {

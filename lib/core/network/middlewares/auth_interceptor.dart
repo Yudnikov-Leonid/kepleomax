@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
-import 'package:kepleomax/main.dart';
+
+import '../../logger.dart';
 
 class AuthInterceptor extends QueuedInterceptorsWrapper {
   final TokenProvider _tokenProvider;

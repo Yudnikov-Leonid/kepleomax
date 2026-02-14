@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_cached_image.dart';
 import 'package:kepleomax/generated/images_keys.images_keys.dart';
-import 'package:kepleomax/main.dart';
+import 'package:kepleomax/core/flavor.dart';
 
 class UserImage extends StatelessWidget {
   const UserImage({required this.url, this.size, this.isLoading = false, super.key});

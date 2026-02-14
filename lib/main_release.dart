@@ -1,7 +1,8 @@
 import 'package:kepleomax/main.dart' as app;
 
-import 'core/flavor/flavor.dart';
+import 'core/flavor.dart';
 
-void main() => app.main(
-  fv: Flavor.release(),
-);
+void main() {
+  Flavor.setFlavor(Flavor.release());
+  app.main();
+}

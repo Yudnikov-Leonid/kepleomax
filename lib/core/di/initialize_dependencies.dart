@@ -4,16 +4,26 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
-import 'package:kepleomax/core/auth/user_provider.dart';
 import 'package:kepleomax/core/data/auth_repository.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
+import 'package:kepleomax/core/data/connection_repository.dart';
+import 'package:kepleomax/core/data/data_sources/chats_api_data_sources.dart';
+import 'package:kepleomax/core/data/data_sources/messages_api_data_sources.dart';
+import 'package:kepleomax/core/data/db/local_database_manager.dart';
 import 'package:kepleomax/core/data/files_repository.dart';
-import 'package:kepleomax/core/data/local/local_database.dart';
-import 'package:kepleomax/core/data/messages_repository.dart';
+import 'package:kepleomax/core/data/local_data_sources/chats_local_data_source.dart';
+import 'package:kepleomax/core/data/local_data_sources/messages_local_data_source.dart';
+import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.dart';
+import 'package:kepleomax/core/data/messenger/combine_cache_and_api.dart';
+import 'package:kepleomax/core/data/messenger/messenger_repository.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
-import 'package:kepleomax/core/native/klm_method_channel.dart';
+import 'package:kepleomax/core/flavor.dart';
+import 'package:kepleomax/core/mocks/fake_user_api.dart';
+import 'package:kepleomax/core/mocks/mock_messages_web_socket.dart';
+import 'package:kepleomax/core/mocks/mock_token_provider.dart';
+import 'package:kepleomax/core/mocks/mockito_mocks.mocks.dart';
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_api.dart';
 import 'package:kepleomax/core/network/apis/files/files_api.dart';
@@ -25,15 +35,21 @@ import 'package:kepleomax/core/network/middlewares/auth_interceptor.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/firebase_options.dart';
-import 'package:kepleomax/main.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
-Future<Dependencies> initializeDependencies() async {
+import '../logger.dart';
+
+Future<Dependencies> initializeDependencies({bool useMocks = false}) async {
   final dp = Dependencies();
 
   for (final step in _steps) {
     try {
+      if (useMocks && step.callForTests != null) {
+        await step.callForTests!(dp);
+        continue;
+      }
       await step.call(dp);
     } catch (e, st) {
       logger.e('Error while initializing step ${step.name}: $e', stackTrace: st);
@@ -45,121 +61,172 @@ Future<Dependencies> initializeDependencies() async {
 }
 
 List<_InitializationStep> _steps = [
+  _InitializationStep('storages', (dp) async {
+    dp.sharedPreferences = await SharedPreferences.getInstance();
+    dp.secureStorage = const FlutterSecureStorage();
+    CachedNetworkImage.logLevel = CacheManagerLogLevel.verbose;
+  }),
+
+  _InitializationStep('local_data_sources', (dp) async {
+    final db = await LocalDatabaseManager.getDatabase();
+    dp.database = db;
+    dp.usersLocalDataSource = UsersLocalDataSourceImpl(
+      database: db,
+      prefs: dp.sharedPreferences,
+    );
+    dp.messagesLocalDataSource = MessagesLocalDataSourceImpl(database: db);
+    dp.chatsLocalDataSource = ChatsLocalDataSourceImpl(database: db);
+  }),
+
+  _InitializationStep('dioLogger, dio', (dp) async {
+    dp.prettyDioLogger = PrettyDioLogger(
+      request: kDebugMode,
+      requestHeader: kDebugMode,
+      requestBody: kDebugMode,
+      responseHeader: kDebugMode,
+      responseBody: kDebugMode,
+      error: kDebugMode,
+      logPrint: (Object object) => debugPrint(object.toString(), wrapWidth: 1024),
+    );
+
+    final dio = Dio(
+      BaseOptions(
+        validateStatus: (_) => true,
+        connectTimeout: const Duration(seconds: 5),
+        receiveTimeout: const Duration(seconds: 10),
+        sendTimeout: const Duration(seconds: 10),
+      ),
+    )..interceptors.add(dp.prettyDioLogger);
+
+    dp.dio = dio;
+  }),
+
   _InitializationStep(
-    name: 'storages',
-    call: (dependencies) async {
-      dependencies.sharedPreferences = await SharedPreferences.getInstance();
-      dependencies.secureStorage = const FlutterSecureStorage();
-      dependencies.methodChannel = KlmMethodChannel();
-      CachedNetworkImage.logLevel = CacheManagerLogLevel.verbose;
+    'token_provider',
+    (dp) {
+      dp.tokenProvider = TokenProviderImpl(
+        prefs: dp.sharedPreferences,
+        secureStorage: dp.secureStorage,
+        // needs its own dio, cause the current one will be locked
+        dio: Dio(
+          BaseOptions(
+            validateStatus: (_) => true,
+            connectTimeout: const Duration(seconds: 5),
+            receiveTimeout: const Duration(seconds: 10),
+          ),
+        )..interceptors.add(dp.prettyDioLogger),
+      );
+    },
+    callForTests: (dp) {
+      dp.tokenProvider = MockTokenProvider();
     },
   ),
 
   _InitializationStep(
-    name: 'local_db',
-    call: (dependencies) async {
-      final db = LocalDatabase();
-      await db.init();
-      dependencies.localDatabase = db;
+    'auth_apis',
+    (dp) {
+      dp.authApi = AuthApi(dp.dio, flavor.baseUrl);
+      dp.userApi = UserApi(dp.dio, flavor.baseUrl);
+      dp.profileApi = ProfileApi(dp.dio, flavor.baseUrl);
+      dp.filesApi = FilesApi(dp.dio, flavor.baseUrl);
+    },
+    callForTests: (dp) {
+      dp.authApi = AuthApi(dp.dio, flavor.baseUrl);
+      dp.userApi = FakeUserApi();
+      dp.profileApi = ProfileApi(dp.dio, flavor.baseUrl);
+      dp.filesApi = FilesApi(dp.dio, flavor.baseUrl);
     },
   ),
 
-  _InitializationStep(
-    name: 'dio, authController',
-    call: (dependencies) async {
-      dependencies.prettyDioLogger = PrettyDioLogger(
-        request: kDebugMode,
-        requestHeader: kDebugMode,
-        requestBody: kDebugMode,
-        responseHeader: kDebugMode,
-        responseBody: kDebugMode,
-        error: kDebugMode,
-        logPrint: (Object object) => debugPrint(object.toString(), wrapWidth: 1024),
-      );
+  _InitializationStep('auth', (dp) async {
+    dp.authRepository = AuthRepositoryImpl(authApi: dp.authApi);
+    dp.userRepository = UserRepositoryImpl(
+      profileApi: dp.profileApi,
+      filesApi: dp.filesApi,
+      userApi: dp.userApi,
+      usersLocalDataSource: dp.usersLocalDataSource,
+    );
 
-      final dio = Dio(BaseOptions(validateStatus: (_) => true));
+    final authController = AuthControllerImpl(
+      authRepository: dp.authRepository,
+      userRepository: dp.userRepository,
+      tokenProvider: dp.tokenProvider,
+      prefs: dp.sharedPreferences,
+    );
+    authController.init();
+    dp.authController = authController;
 
-      /// cause need prettyDioLogger here
-      dependencies.tokenProvider = TokenProvider(
-        prefs: dependencies.sharedPreferences,
-        secureStorage: dependencies.secureStorage,
-        dio: Dio(BaseOptions(validateStatus: (_) => true))
-          ..interceptors.add(dependencies.prettyDioLogger),
-      );
-
-      /// cause need dio in authController and need authController in dio
-      dependencies.authApi = AuthApi(dio, flavor.baseUrl);
-      dependencies.authRepository = AuthRepository(authApi: dependencies.authApi);
-      dependencies.userApi = UserApi(dio, flavor.baseUrl);
-      dependencies.profileApi = ProfileApi(dio, flavor.baseUrl);
-      dependencies.filesApi = FilesApi(dio, flavor.baseUrl);
-      dependencies.userRepository = UserRepository(
-        profileApi: dependencies.profileApi,
-        filesApi: dependencies.filesApi,
-        userApi: dependencies.userApi,
-      );
-      final authController = AuthController(
-        authRepository: dependencies.authRepository,
-        userRepository: dependencies.userRepository,
-        tokenProvider: dependencies.tokenProvider,
-        userProvider: UserProvider(prefs: dependencies.sharedPreferences),
-        prefs: dependencies.sharedPreferences,
-        localDatabase: dependencies.localDatabase,
-      );
-      await authController.init();
-      dependencies.authController = authController;
-
-      dio.interceptors.addAll([
-        dependencies.prettyDioLogger,
-        AuthInterceptor(
-          tokenProvider: dependencies.tokenProvider,
-          authController: dependencies.authController,
-        ),
-      ]);
-
-      dependencies.dio = dio;
-    },
-  ),
+    dp.dio.interceptors.add(
+      AuthInterceptor(
+        tokenProvider: dp.tokenProvider,
+        authController: dp.authController,
+      ),
+    );
+  }),
 
   _InitializationStep(
-    name: 'apis, repositories',
-    call: (dependencies) {
-      dependencies.postApi = PostApi(dependencies.dio, flavor.baseUrl);
-      dependencies.messagesApi = MessagesApi(dependencies.dio, flavor.baseUrl);
-      dependencies.chatsApi = ChatsApi(dependencies.dio, flavor.baseUrl);
-      dependencies.messagesWebSocket = MessagesWebSocket(
+    'web_socket',
+    (dp) {
+      dp.messagesWebSocket = MessagesWebSocketImpl(
         baseUrl: flavor.baseUrl,
-        tokenProvider: dependencies.tokenProvider,
-        localDatabase: dependencies.localDatabase,
+        tokenProvider: dp.tokenProvider,
       );
-
-      dependencies.filesRepository = FilesRepository(
-        filesApi: dependencies.filesApi,
-      );
-      dependencies.postRepository = PostRepository(postApi: dependencies.postApi);
-      dependencies.messagesRepository = MessagesRepository(
-        messagesApi: dependencies.messagesApi,
-        messagesWebSocket: dependencies.messagesWebSocket,
-        localDatabase: dependencies.localDatabase,
-      );
-      dependencies.chatsRepository = ChatsRepository(
-        chatsApi: dependencies.chatsApi,
-        localDatabase: dependencies.localDatabase,
-      );
+    },
+    callForTests: (dp) {
+      dp.messagesWebSocket = MockMessagesWebSocket();
     },
   ),
 
   _InitializationStep(
-    name: ('firebase'),
-    call: (dependencies) async {
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    'apis',
+    (dp) {
+      dp.postApi = PostApi(dp.dio, flavor.baseUrl);
+      dp.messagesApi = MessagesApi(dp.dio, flavor.baseUrl);
+      dp.chatsApi = ChatsApi(dp.dio, flavor.baseUrl);
+    },
+    callForTests: (dp) {
+      dp.postApi = PostApi(dp.dio, flavor.baseUrl);
+      dp.messagesApi = MockMessagesApi();
+      dp.chatsApi = MockChatsApi();
     },
   ),
+
+  _InitializationStep('repositories', (dp) {
+    dp.filesRepository = FilesRepositoryImpl(filesApi: dp.filesApi);
+    dp.postRepository = PostRepositoryImpl(postApi: dp.postApi);
+    dp.connectionRepository = ConnectionRepositoryImpl(
+      webSocket: dp.messagesWebSocket,
+    );
+    dp.messengerRepository = MessengerRepositoryImpl(
+      webSocket: dp.messagesWebSocket,
+      messagesApiDataSource: MessagesApiDataSourceImpl(messagesApi: dp.messagesApi),
+      chatsApiDataSource: ChatsApiDataSourceImpl(chatsApi: dp.chatsApi),
+      messagesLocalDataSource: dp.messagesLocalDataSource,
+      chatsLocalDataSource: dp.chatsLocalDataSource,
+      usersLocalDataSource: dp.usersLocalDataSource,
+      combiner: CombineCacheAndApi(dp.messagesLocalDataSource),
+    );
+    dp.chatsRepository = ChatsRepositoryImpl(
+      chatsApi: dp.chatsApi,
+      chatsLocalDataSource: dp.chatsLocalDataSource,
+    );
+  }),
+
+  _InitializationStep(('firebase'), (_) async {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  }),
+
+  _InitializationStep('global_settings', (_) {
+    VisibilityDetectorController.instance.updateInterval = const Duration(
+      milliseconds: 100,
+    );
+  }),
 ];
 
 class _InitializationStep {
   final String name;
   final Function(Dependencies) call;
+  final Function(Dependencies)? callForTests;
 
-  _InitializationStep({required this.name, required this.call});
+  _InitializationStep(this.name, this.call, {this.callForTests});
 }

@@ -1,3 +1,4 @@
+import 'package:kepleomax/core/logger.dart';
 import 'dart:io';
 
 import 'package:bloc_concurrency/bloc_concurrency.dart';
@@ -10,18 +11,17 @@ import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/presentation/image_url_or_file.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/post_editor/bloc/post_editor_state.dart';
-import 'package:kepleomax/main.dart';
 
 const imagesCountLimit = 5;
 
 class PostEditorBloc extends Bloc<PostEditorEvent, PostEditorState> {
   late PostEditorData _data = PostEditorData.initial();
-  final IPostRepository _repository;
-  final IFilesRepository _filesRepository;
+  final PostRepository _repository;
+  final FilesRepository _filesRepository;
 
   PostEditorBloc({
-    required IPostRepository postRepository,
-    required IFilesRepository filesRepository,
+    required PostRepository postRepository,
+    required FilesRepository filesRepository,
   }) : _repository = postRepository,
        _filesRepository = filesRepository,
        super(PostEditorStateBase.initial()) {

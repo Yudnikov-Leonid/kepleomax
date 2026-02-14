@@ -31,6 +31,7 @@ abstract class ChatData with _$ChatData implements ChatState {
     /// if user in chat was null
     required User? otherUser,
     required List<Message> messages,
+    required int unreadCount,
     required bool isAllMessagesLoaded,
     @Default(true) bool isLoading,
     @Default(false) bool isConnected,
@@ -39,6 +40,7 @@ abstract class ChatData with _$ChatData implements ChatState {
   factory ChatData.initial() => const ChatData(
     chatId: -1,
     otherUser: null,
+    unreadCount: 0,
     messages: [],
     isAllMessagesLoaded: false,
   );

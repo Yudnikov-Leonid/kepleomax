@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:focus_detector/focus_detector.dart';
-import 'package:kepleomax/core/data/messages_repository.dart';
+import 'package:kepleomax/core/data/connection_repository.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/notifications/notifications_service.dart';
-import 'package:kepleomax/core/scopes/auth_scope.dart';
 import 'package:kepleomax/features/chats/bloc/chats_bloc.dart';
 import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 
@@ -19,12 +18,12 @@ class ChatScope extends StatefulWidget {
 
 class _ChatScopeState extends State<ChatScope> {
   bool _isScreenInited = false;
-  late final IMessagesRepository _repository;
+  late final ConnectionRepository _repository;
 
   /// callbacks
   @override
   void initState() {
-    _repository = Dependencies.of(context).messagesRepository;
+    _repository = Dependencies.of(context).connectionRepository;
     _repository.initSocket();
     NotificationService.instance.init().ignore();
     super.initState();
@@ -55,9 +54,8 @@ class _ChatScopeState extends State<ChatScope> {
     /// ChatsBloc should be provided here cause it's used in bottomNavBar
     return BlocProvider(
       create: (context) => ChatsBloc(
-        userId: AuthScope.userOf(context).id,
-        chatsRepository: Dependencies.of(context).chatsRepository,
-        messagesRepository: Dependencies.of(context).messagesRepository,
+        messengerRepository: Dependencies.of(context).messengerRepository,
+        connectionRepository: Dependencies.of(context).connectionRepository,
       )..add(const ChatsEventLoadCache()),
       child: BlocBuilder<ChatsBloc, ChatsState>(
         builder: (context, state) => FocusDetector(
