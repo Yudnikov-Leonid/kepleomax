@@ -10,17 +10,13 @@ import 'package:kepleomax/core/data/data_sources/chats_api_data_sources.dart'
 import 'package:kepleomax/core/data/data_sources/messages_api_data_sources.dart'
     as _i5;
 import 'package:kepleomax/core/data/local_data_sources/chats_local_data_source.dart'
-    as _i9;
-import 'package:kepleomax/core/data/local_data_sources/messages_local_data_source.dart'
     as _i7;
 import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.dart'
-    as _i10;
-import 'package:kepleomax/core/models/user.dart' as _i12;
+    as _i8;
+import 'package:kepleomax/core/models/user.dart' as _i10;
 import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart' as _i4;
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart' as _i6;
-import 'package:kepleomax/core/network/common/user_dto.dart' as _i11;
-import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart'
-    as _i8;
+import 'package:kepleomax/core/network/common/user_dto.dart' as _i9;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -94,94 +90,11 @@ class MockMessagesApiDataSource extends _i1.Mock
           as _i3.Future<List<_i6.MessageDto>>);
 }
 
-/// A class which mocks [MessagesLocalDataSource].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockMessagesLocalDataSource extends _i1.Mock
-    implements _i7.MessagesLocalDataSource {
-  MockMessagesLocalDataSource() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  _i3.Future<List<_i6.MessageDto>> getMessagesByChatId(int? chatId) =>
-      (super.noSuchMethod(
-            Invocation.method(#getMessagesByChatId, [chatId]),
-            returnValue: _i3.Future<List<_i6.MessageDto>>.value(
-              <_i6.MessageDto>[],
-            ),
-          )
-          as _i3.Future<List<_i6.MessageDto>>);
-
-  @override
-  _i3.Future<void> insert(_i6.MessageDto? message) =>
-      (super.noSuchMethod(
-            Invocation.method(#insert, [message]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
-          )
-          as _i3.Future<void>);
-
-  @override
-  _i3.Future<void> insertAll(Iterable<_i6.MessageDto>? messages) =>
-      (super.noSuchMethod(
-            Invocation.method(#insertAll, [messages]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
-          )
-          as _i3.Future<void>);
-
-  @override
-  _i3.Future<void> readMessages(_i8.ReadMessagesUpdate? data) =>
-      (super.noSuchMethod(
-            Invocation.method(#readMessages, [data]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
-          )
-          as _i3.Future<void>);
-
-  @override
-  _i3.Future<void> update(_i6.MessageDto? message) =>
-      (super.noSuchMethod(
-            Invocation.method(#update, [message]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
-          )
-          as _i3.Future<void>);
-
-  @override
-  _i3.Future<void> deleteById(int? id) =>
-      (super.noSuchMethod(
-            Invocation.method(#deleteById, [id]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
-          )
-          as _i3.Future<void>);
-
-  @override
-  _i3.Future<void> deleteAllWithIds(Iterable<int>? ids) =>
-      (super.noSuchMethod(
-            Invocation.method(#deleteAllByIds, [ids]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
-          )
-          as _i3.Future<void>);
-
-  @override
-  _i3.Future<void> deleteAllByChatId(int? chatId) =>
-      (super.noSuchMethod(
-            Invocation.method(#deleteAllByChatId, [chatId]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
-          )
-          as _i3.Future<void>);
-}
-
 /// A class which mocks [ChatsLocalDataSource].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockChatsLocalDataSource extends _i1.Mock
-    implements _i9.ChatsLocalDataSource {
+    implements _i7.ChatsLocalDataSource {
   MockChatsLocalDataSource() {
     _i1.throwOnMissingStub(this);
   }
@@ -252,13 +165,13 @@ class MockChatsLocalDataSource extends _i1.Mock
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockUsersLocalDataSource extends _i1.Mock
-    implements _i10.UsersLocalDataSource {
+    implements _i8.UsersLocalDataSource {
   MockUsersLocalDataSource() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<void> insert(_i11.UserDto? user) =>
+  _i3.Future<void> insert(_i9.UserDto? user) =>
       (super.noSuchMethod(
             Invocation.method(#insert, [user]),
             returnValue: _i3.Future<void>.value(),
@@ -267,7 +180,7 @@ class MockUsersLocalDataSource extends _i1.Mock
           as _i3.Future<void>);
 
   @override
-  _i3.Future<void> insertAll(Iterable<_i11.UserDto>? users) =>
+  _i3.Future<void> insertAll(Iterable<_i9.UserDto>? users) =>
       (super.noSuchMethod(
             Invocation.method(#insertAll, [users]),
             returnValue: _i3.Future<void>.value(),
@@ -276,7 +189,7 @@ class MockUsersLocalDataSource extends _i1.Mock
           as _i3.Future<void>);
 
   @override
-  _i3.Future<void> setCurrentUser(_i12.User? user) =>
+  _i3.Future<void> setCurrentUser(_i10.User? user) =>
       (super.noSuchMethod(
             Invocation.method(#setCurrentUser, [user]),
             returnValue: _i3.Future<void>.value(),

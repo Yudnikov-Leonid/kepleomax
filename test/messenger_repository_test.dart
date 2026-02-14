@@ -6,8 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kepleomax/core/data/data_sources/chats_api_data_sources.dart';
 import 'package:kepleomax/core/data/data_sources/messages_api_data_sources.dart';
 import 'package:kepleomax/core/data/local_data_sources/chats_local_data_source.dart';
-import 'package:kepleomax/core/data/local_data_sources/messages_local_data_source.dart';
 import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.dart';
+import 'package:kepleomax/core/data/messenger/combine_cache_and_api.dart';
 import 'package:kepleomax/core/data/messenger/messenger_repository.dart';
 import 'package:kepleomax/core/data/models/messages_collection.dart';
 import 'package:kepleomax/core/mocks/mock_messages_web_socket.dart';
@@ -17,10 +17,11 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
 import 'messenger_repository_test.mocks.dart';
+import 'mocks/mock_messages_local_data_source.dart';
 
-@GenerateMocks([ChatsApiDataSource, MessagesApiDataSource, MessagesLocalDataSource, ChatsLocalDataSource, UsersLocalDataSource])
+@GenerateMocks([ChatsApiDataSource, MessagesApiDataSource, ChatsLocalDataSource, UsersLocalDataSource])
 void main() {
-  group('messenger_repository_test', () {
+  group('messenger_repository_messages_test', () {
     late MessengerRepository repository;
     late StreamIterator<MessagesCollection> iterator;
     late MockMessagesWebSocket ws;
@@ -39,9 +40,14 @@ void main() {
         messagesLocalDataSource: messagesLocal,
         chatsLocalDataSource: MockChatsLocalDataSource(),
         usersLocalDataSource: MockUsersLocalDataSource(),
+        combiner: CombineCacheAndApi(messagesLocal),
       );
 
       iterator = StreamIterator(repository.messagesUpdatesStream);
+    });
+
+    tearDown(() {
+      messagesLocal.deleteAllByChatId(0);
     });
 
     List<MessageDto> generateMessages(int from, int count, {int chatId = 0, bool fromCache = false}) => List.generate(
@@ -60,7 +66,7 @@ void main() {
     );
 
     void getMessagesFromCacheMustReturn(List<MessageDto> messages, {int chatId = 0}) {
-      when(messagesLocal.getMessagesByChatId(chatId)).thenAnswer((_) async => messages);
+      messagesLocal.getMessagesMustReturn(messages);
     }
 
     void getMessagesMustReturn(List<MessageDto> messages, {int chatId = 0, int limit = 15, int? cursor}) {
@@ -79,7 +85,7 @@ void main() {
       return list;
     }
 
-    Future<void> checkNextState(List<MessageDto> messages, {bool maintainLoading = false, bool? allMessagesLoaded = false}) async {
+    Future<void> checkNextState(List<MessageDto> messages, {bool maintainLoading = false, bool? allMessagesLoaded = false, bool checkLocal = false}) async {
       await iterator.moveNext();
       expect(
         iterator.current,
@@ -87,6 +93,9 @@ void main() {
         reason:
             '\nExpected messages (id, fromCache): ${messages.map((m) => '(${m.id}, ${m.fromCache})').toList()}\nActual messages (id, fromCache): ${iterator.current.messages.map((m) => '(${m.id}, ${m.fromCache})').toList()}',
       );
+      if (checkLocal) {
+        messagesLocal.checkCache(messages);
+      }
     }
 
     Future<void> setupFirstLoad(List<MessageDto> cacheMessages, List<MessageDto> apiMessages) async {
@@ -105,7 +114,7 @@ void main() {
 
       repository.loadMessages(chatId: 0);
       await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
-      await checkNextState(apiMessages);
+      await checkNextState(apiMessages, checkLocal: true);
     });
 
     test('load_messages_n_out_test', () async {
@@ -114,7 +123,7 @@ void main() {
 
       repository.loadMessages(chatId: 0);
       await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
-      await checkNextState(apiMessages);
+      await checkNextState(apiMessages, checkLocal: true);
     });
 
     test('load_messages_n_in_test', () async {
@@ -123,7 +132,7 @@ void main() {
 
       repository.loadMessages(chatId: 0);
       await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
-      await checkNextState([...apiMessages, ...generateMessages(15, 5, fromCache: true)]);
+      await checkNextState([...apiMessages, ...generateMessages(15, 5, fromCache: true)], checkLocal: true);
     });
 
     test('load_messages_n_in_all_messages_loaded_test', () async {
@@ -132,7 +141,7 @@ void main() {
 
       repository.loadMessages(chatId: 0);
       await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
-      await checkNextState([...apiMessages], allMessagesLoaded: true);
+      await checkNextState([...apiMessages], allMessagesLoaded: true, checkLocal: true);
     });
 
     test('load_messages_out_n_test', () async {
@@ -141,7 +150,7 @@ void main() {
 
       repository.loadMessages(chatId: 0);
       await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
-      await checkNextState(apiMessages);
+      await checkNextState(apiMessages, checkLocal: true);
     });
 
     /// not passing now
@@ -151,7 +160,7 @@ void main() {
 
       repository.loadMessages(chatId: 0);
       await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
-      await checkNextState(apiMessages);
+      await checkNextState(apiMessages, checkLocal: true);
     });
 
     test('load_messages_out_in_test', () async {
@@ -160,7 +169,7 @@ void main() {
 
       repository.loadMessages(chatId: 0);
       await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
-      await checkNextState([...apiMessages, ...generateMessages(15, 10, fromCache: true)]);
+      await checkNextState([...apiMessages, ...generateMessages(15, 10, fromCache: true)], checkLocal: true);
     });
 
     test('load_messages_out_in_all_messages_loaded_test', () async {
@@ -169,7 +178,7 @@ void main() {
 
       repository.loadMessages(chatId: 0);
       await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
-      await checkNextState(apiMessages, allMessagesLoaded: true);
+      await checkNextState(apiMessages, allMessagesLoaded: true, checkLocal: true);
     });
 
     test('load_messages_in_n_test', () async {
@@ -178,7 +187,7 @@ void main() {
 
       repository.loadMessages(chatId: 0);
       await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
-      await checkNextState(apiMessages);
+      await checkNextState(apiMessages, checkLocal: true);
     });
 
     test('load_messages_in_out_test', () async {
@@ -187,7 +196,7 @@ void main() {
 
       repository.loadMessages(chatId: 0);
       await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
-      await checkNextState(apiMessages);
+      await checkNextState(apiMessages, checkLocal: true);
     });
 
     test('load_messages_in_in_test', () async {
@@ -196,7 +205,7 @@ void main() {
 
       repository.loadMessages(chatId: 0);
       await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
-      await checkNextState([...apiMessages, ...generateMessages(20, 5, fromCache: true)]);
+      await checkNextState([...apiMessages, ...generateMessages(20, 5, fromCache: true)], checkLocal: true);
     });
 
     test('load_messages_in_in_all_messages_loaded_test', () async {
@@ -205,7 +214,7 @@ void main() {
 
       repository.loadMessages(chatId: 0);
       await checkNextState(cacheMessages, maintainLoading: true, allMessagesLoaded: null);
-      await checkNextState(apiMessages, allMessagesLoaded: true);
+      await checkNextState(apiMessages, allMessagesLoaded: true, checkLocal: true);
     });
 
     /// loadMoreMessages() tests ----------------------------------------------------
@@ -217,7 +226,7 @@ void main() {
       final nextApiMessages = generateMessages(15, 15);
       getMessagesMustReturn(nextApiMessages, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 15);
-      await checkNextState([...apiMessages, ...nextApiMessages]);
+      await checkNextState([...apiMessages, ...nextApiMessages], checkLocal: true);
     });
 
     test('load_more_messages_n_n_conflict_test', () async {
@@ -228,7 +237,7 @@ void main() {
       final nextApiMessages = [...generateMessages(15, 5), ...generateMessages(25, 10)];
       getMessagesMustReturn(nextApiMessages, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 15);
-      await checkNextState([...apiMessages, ...nextApiMessages]);
+      await checkNextState([...apiMessages, ...nextApiMessages], checkLocal: true);
     });
 
     test('load_more_messages_n_n_all_messages_loaded_test', () async {
@@ -239,7 +248,7 @@ void main() {
       final nextApiMessages = generateMessages(15, 5);
       getMessagesMustReturn(nextApiMessages, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 15);
-      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true);
+      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true, checkLocal: true);
     });
 
     test('load_more_messages_n_out_test', () async {
@@ -250,7 +259,7 @@ void main() {
       final nextApiMessages = generateMessages(15, 30);
       getMessagesMustReturn(nextApiMessages, limit: 30, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: null);
-      await checkNextState([...apiMessages, ...nextApiMessages]);
+      await checkNextState([...apiMessages, ...nextApiMessages], checkLocal: true);
     });
 
     test('load_more_messages_n_out_conflict_test', () async {
@@ -261,7 +270,7 @@ void main() {
       final nextApiMessages = [...generateMessages(15, 15), ...generateMessages(50, 15)];
       getMessagesMustReturn(nextApiMessages, limit: 30, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: null);
-      await checkNextState([...apiMessages, ...nextApiMessages]);
+      await checkNextState([...apiMessages, ...nextApiMessages], checkLocal: true);
     });
 
     test('load_more_messages_n_out_all_messages_loaded_test', () async {
@@ -272,7 +281,7 @@ void main() {
       final nextApiMessages = generateMessages(15, 15);
       getMessagesMustReturn(nextApiMessages, limit: 25, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: null);
-      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true);
+      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true, checkLocal: true);
     });
 
     test('load_more_messages_n_in_test', () async {
@@ -283,7 +292,7 @@ void main() {
       final nextApiMessages = generateMessages(15, 15);
       getMessagesMustReturn(nextApiMessages, limit: 15, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 15);
-      await checkNextState([...apiMessages, ...nextApiMessages, ...generateMessages(30, 15, fromCache: true)]);
+      await checkNextState([...apiMessages, ...nextApiMessages, ...generateMessages(30, 15, fromCache: true)], checkLocal: true);
     });
 
     test('load_more_messages_n_in_conflict_test', () async {
@@ -294,7 +303,7 @@ void main() {
       final nextApiMessages = [...generateMessages(15, 10), ...generateMessages(30, 5)];
       getMessagesMustReturn(nextApiMessages, limit: 15, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 15);
-      await checkNextState([...apiMessages, ...nextApiMessages, ...generateMessages(35, 10, fromCache: true)]);
+      await checkNextState([...apiMessages, ...nextApiMessages, ...generateMessages(35, 10, fromCache: true)], checkLocal: true);
     });
 
     /// not passing now
@@ -306,7 +315,7 @@ void main() {
       final nextApiMessages = generateMessages(15, 10);
       getMessagesMustReturn(nextApiMessages, limit: 15, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 15);
-      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true);
+      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true, checkLocal: true);
     });
 
     test('load_more_messages_without_cache_test', () async {
@@ -317,7 +326,7 @@ void main() {
       final nextApiMessages = generateMessages(15, 15);
       getMessagesMustReturn(nextApiMessages, limit: 15, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 15);
-      await checkNextState([...apiMessages, ...nextApiMessages]);
+      await checkNextState([...apiMessages, ...nextApiMessages], checkLocal: true);
     });
 
     test('load_more_messages_without_cache_all_messages_loaded_test', () async {
@@ -328,7 +337,7 @@ void main() {
       final nextApiMessages = generateMessages(15, 10);
       getMessagesMustReturn(nextApiMessages, limit: 15, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 15);
-      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true);
+      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true, checkLocal: true);
     });
 
     test('load_more_messages_n_out_gap_conflict_test', () async {
@@ -339,7 +348,7 @@ void main() {
       final nextApiMessages = generateMessages(20, 15);
       getMessagesMustReturn(nextApiMessages, limit: 15, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 15);
-      await checkNextState([...apiMessages, ...nextApiMessages]);
+      await checkNextState([...apiMessages, ...nextApiMessages], checkLocal: true);
     });
 
     /// now passing now
@@ -351,7 +360,7 @@ void main() {
       final nextApiMessages = generateMessages(20, 10);
       getMessagesMustReturn(nextApiMessages, limit: 15, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 15);
-      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true);
+      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true, checkLocal: true);
     });
 
     test('load_more_messages_n_n_gap_conflict_test', () async {
@@ -362,7 +371,7 @@ void main() {
       final nextApiMessages = generateMessages(20, 15);
       getMessagesMustReturn(nextApiMessages, limit: 15, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 15);
-      await checkNextState([...apiMessages, ...nextApiMessages]);
+      await checkNextState([...apiMessages, ...nextApiMessages], checkLocal: true);
     });
 
     test('load_more_messages_n_n_gap_conflict_all_messages_loaded_test', () async {
@@ -373,7 +382,7 @@ void main() {
       final nextApiMessages = generateMessages(20, 10);
       getMessagesMustReturn(nextApiMessages, limit: 15, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 15);
-      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true);
+      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true, checkLocal: true);
     });
 
     test('load_more_messages_n_in_gap_conflict_test', () async {
@@ -384,7 +393,7 @@ void main() {
       final nextApiMessages = generateMessages(20, 15);
       getMessagesMustReturn(nextApiMessages, limit: 15, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 15);
-      await checkNextState([...apiMessages, ...nextApiMessages, ...generateMessages(35, 10, fromCache: true)]);
+      await checkNextState([...apiMessages, ...nextApiMessages, ...generateMessages(35, 10, fromCache: true)], checkLocal: true);
     });
 
     /// not passing now
@@ -396,7 +405,7 @@ void main() {
       final nextApiMessages = generateMessages(20, 10);
       getMessagesMustReturn(nextApiMessages, limit: 15, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 15);
-      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true);
+      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true, checkLocal: true);
     });
 
     /// if messageId == null -> must load all cached messages + 15 more
@@ -409,7 +418,7 @@ void main() {
       final nextApiMessages = generateMessages(15, 25);
       getMessagesMustReturn(nextApiMessages, limit: 25, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 25);
-      await checkNextState([...apiMessages, ...nextApiMessages, ...generateMessages(40, 5, fromCache: true)]);
+      await checkNextState([...apiMessages, ...nextApiMessages, ...generateMessages(40, 5, fromCache: true)], checkLocal: true);
     });
 
     /// not passing now
@@ -421,7 +430,7 @@ void main() {
       final nextApiMessages = generateMessages(15, 20);
       getMessagesMustReturn(nextApiMessages, limit: 25, cursor: 14);
       repository.loadMoreMessages(chatId: 0, toMessageId: 25);
-      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true);
+      await checkNextState([...apiMessages, ...nextApiMessages], allMessagesLoaded: true, checkLocal: true);
     });
 
     /// TODO local_db_tests

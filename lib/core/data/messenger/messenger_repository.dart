@@ -51,6 +51,8 @@ class MessengerRepositoryImpl implements MessengerRepository {
   final ChatsLocalDataSource _chatsLocal;
   final UsersLocalDataSource _usersLocal;
 
+  final CombineCacheAndApi _combiner;
+
   final _messagesUpdatesController =
       StreamController<MessagesCollection>.broadcast();
   final _chatsUpdatesController = StreamController<ChatsCollection>.broadcast();
@@ -64,12 +66,14 @@ class MessengerRepositoryImpl implements MessengerRepository {
     required MessagesLocalDataSource messagesLocalDataSource,
     required ChatsLocalDataSource chatsLocalDataSource,
     required UsersLocalDataSource usersLocalDataSource,
+    required CombineCacheAndApi combiner,
   }) : _webSocket = webSocket,
        _chatsApi = chatsApiDataSource,
        _messagesApi = messagesApiDataSource,
        _chatsLocal = chatsLocalDataSource,
        _messagesLocal = messagesLocalDataSource,
-       _usersLocal = usersLocalDataSource {
+       _usersLocal = usersLocalDataSource,
+       _combiner = combiner {
     _webSocket.newMessageStream.listen(_onNewMessage, cancelOnError: false);
     _webSocket.readMessagesStream.listen(_onReadMessages, cancelOnError: false);
     _webSocket.deletedMessageStream.listen(_onDeletedMessage, cancelOnError: false);
@@ -147,10 +151,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
       chatId: chatId,
       limit: AppConstants.msgPagingLimit,
     );
-    var newList = (CombineCacheAndApi().combineLoad(
-      cache,
-      apiMessagesDtos,
-    )).toList();
+    final newList = _combiner.combineLoad(cache, apiMessagesDtos);
 
     /// TODO add unreadMessages
     _emitMessagesCollection(
@@ -161,7 +162,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
         maintainLoading: false,
       ),
     );
-    _messagesLocal.insertAll(apiMessagesDtos);
+    // _messagesLocal.insertAll(apiMessagesDtos);
   }
 
   @override
@@ -199,7 +200,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
       return;
     }
 
-    final newList = CombineCacheAndApi.combineLoadMore(
+    final newList = _combiner.combineLoadMore(
       messages.toList(),
       api,
       limit: newLimit,
