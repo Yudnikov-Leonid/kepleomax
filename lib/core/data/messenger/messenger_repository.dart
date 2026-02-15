@@ -39,6 +39,8 @@ abstract class MessengerRepository {
   Stream<MessagesCollection> get messagesUpdatesStream;
 
   Stream<ChatsCollection> get chatsUpdatesStream;
+
+  ChatsCollection get currentChatsCollection;
 }
 
 class MessengerRepositoryImpl implements MessengerRepository {
@@ -58,6 +60,9 @@ class MessengerRepositoryImpl implements MessengerRepository {
   final _chatsUpdatesController = StreamController<ChatsCollection>.broadcast();
   MessagesCollection? _lastMessagesCollection;
   ChatsCollection? _lastChatsCollection;
+
+  @override
+  ChatsCollection get currentChatsCollection => _lastChatsCollection!;
 
   MessengerRepositoryImpl({
     required MessagesWebSocket webSocket,
@@ -131,7 +136,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
 
   @override
   Future<void> loadMessages({required int chatId, bool withCache = true}) async {
-    /// add to the stream data from cache
+    /// emit data from cache
     List<MessageDto> cache = [];
     if (withCache) {
       cache = await _messagesLocal.getMessagesByChatId(chatId);
@@ -146,7 +151,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
       );
     }
 
-    /// add to the stream data from api
+    /// emit data from api
     final apiMessagesDtos = await _messagesApi.getMessages(
       chatId: chatId,
       limit: AppConstants.msgPagingLimit,
@@ -162,7 +167,6 @@ class MessengerRepositoryImpl implements MessengerRepository {
         maintainLoading: false,
       ),
     );
-    // _messagesLocal.insertAll(apiMessagesDtos);
   }
 
   @override
@@ -170,10 +174,11 @@ class MessengerRepositoryImpl implements MessengerRepository {
     required int chatId,
     required int? toMessageId,
   }) async {
-    // await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 500));
     if (_lastMessagesCollection == null) return;
     final messages = _lastMessagesCollection!.messages;
 
+    /// TODO refactor
     /// if toMessageId is null, it means we are on top and have to load more
     /// messages AND all that have not been loaded
     final messagesFromCache = messages.where((m) => m.fromCache).toList();

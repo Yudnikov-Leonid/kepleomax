@@ -157,6 +157,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       // print(
       //   'MyLog loadMessages with chatId: $chatId, withCache: ${event.withCache}',
       // );
+      _data = _data.copyWith(
+        unreadCount:
+            _messengerRepository.currentChatsCollection.chats
+                .where((c) => c.id == chatId)
+                .firstOrNull
+                ?.unreadCount ??
+            0,
+      );
+      emit(ChatStateBase(data: _data));
       await _messengerRepository.loadMessages(
         chatId: chatId,
         withCache: event.withCache,
@@ -276,10 +285,57 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   void _onEmitMessages(ChatEventEmitMessages event, Emitter<ChatState> emit) {
     final messages = event.data.messages.toList(growable: false);
     final newMessages = <Message>[];
+
+    /// save unreadMessages widget position
+    final unreadMessagesIsRequired =
+        messages.isNotEmpty && !messages[0].isCurrentUser && !messages[0].isRead;
+    final handleUnreadMessages =
+        messages.isNotEmpty &&
+        !_data.unreadMessagesValue.isLocked &&
+        (event.data.maintainLoading == false || messages.length > 1);
+
+    /// event.data.maintainLoading == false || messages.length > 1 means:
+    /// either messages are from api, not from cache, OR messages from cache, but
+    /// if there is only 1 message -> that means the message from chat.lastMessage
+    /// and chat is not loaded
+    if (unreadMessagesIsRequired && handleUnreadMessages) {
+      _data = _data.copyWith(
+        unreadMessagesValue: UnreadMessagesValue(
+          isLocked: !event.data.maintainLoading,
+          firstReadMessageCreatedAt:
+              messages.firstWhereOrNull((m) => m.isRead)?.createdAt ??
+              DateTime.fromMillisecondsSinceEpoch(0),
+        ),
+      );
+    } else if (handleUnreadMessages) {
+      _data = _data.copyWith(
+        unreadMessagesValue: UnreadMessagesValue(
+          isLocked: !event.data.maintainLoading,
+          firstReadMessageCreatedAt: null,
+        ),
+      );
+    }
+    // here after first emit not from cache, unreadMessages will be established, and will never change
+
     for (int i = 0; i < messages.length; i++) {
       newMessages.add(messages[i]);
+
       final createdAt1 = messages[i].createdAt;
       final createdAt2 = messages.elementAtOrNull(i + 1)?.createdAt;
+
+      /// add unreadMessages widget
+      if (_data.unreadMessagesValue.firstReadMessageCreatedAt != null) {
+        final firstReadMessageCreatedAt = _data
+            .unreadMessagesValue
+            .firstReadMessageCreatedAt!
+            .millisecondsSinceEpoch;
+        if (createdAt1.millisecondsSinceEpoch > firstReadMessageCreatedAt &&
+            (createdAt2?.millisecondsSinceEpoch ?? 0) <= firstReadMessageCreatedAt) {
+          newMessages.add(Message.unreadMessages());
+        }
+      }
+
+      /// add date widgets
       if (createdAt2 == null ||
           createdAt1.day > createdAt2.day ||
           createdAt1.month > createdAt2.month ||
@@ -287,6 +343,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         newMessages.add(Message.date(createdAt1));
       }
     }
+
+    /// emit
     _data = _data.copyWith(
       messages: newMessages,
       isLoading: event.data.maintainLoading,

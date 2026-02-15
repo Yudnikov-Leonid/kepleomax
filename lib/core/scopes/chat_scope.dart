@@ -43,7 +43,7 @@ class _ChatScopeState extends State<ChatScope> {
     if (state is ChatsStateBase && !state.data.isConnected) {
       print('MyLog chatScope onResume');
       Future.delayed(const Duration(seconds: 1), () {
-        _repository.reconnect(onlyIfNot: true);
+        _repository.reconnect(onlyIfDisconnected: true);
       });
     }
   }

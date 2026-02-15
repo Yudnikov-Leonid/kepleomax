@@ -42,27 +42,25 @@ class _ReadButtonState extends State<_ReadButton> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ChatsBloc, ChatsState>(
+    return BlocBuilder<ChatBloc, ChatState>(
       buildWhen: (oldState, newState) {
-        if (newState is! ChatsStateBase) return false;
+        if (newState is! ChatStateBase) return false;
 
-        if (oldState is! ChatsStateBase) return true;
+        if (oldState is! ChatStateBase) return true;
 
         return oldState.data != newState.data;
       },
       builder: (context, state) {
-        if (state is! ChatsStateBase) return const SizedBox();
+        if (state is! ChatStateBase) return const SizedBox();
 
         final data = state.data;
-        final unreadCount =
-            data.chats
-                .firstWhereOrNull((chat) => chat.id == widget.chatId)
-                ?.unreadCount ??
-            0;
+        final unreadCount = data.unreadCount;
         final isScrolledUp = widget._scrollController.positions.length == 1
             ? widget._scrollController.offset > _offsetToShow
             : false;
-        if (unreadCount <= 0 && !isScrolledUp) {
+        if (unreadCount < 0 && !flavor.isRelease) {
+          logger.e('unreadCount < 0');
+        } else if (unreadCount <= 0 && !isScrolledUp) {
           return const SizedBox();
         }
 

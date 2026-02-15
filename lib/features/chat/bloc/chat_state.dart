@@ -28,20 +28,37 @@ abstract class ChatStateMessage with _$ChatStateMessage implements ChatState {
 abstract class ChatData with _$ChatData implements ChatState {
   const factory ChatData({
     required int chatId,
-    /// if user in chat was null
+
+    /// if user in chat was null, this user will be used
     required User? otherUser,
     required List<Message> messages,
     required int unreadCount,
     required bool isAllMessagesLoaded,
+    required UnreadMessagesValue unreadMessagesValue,
     @Default(true) bool isLoading,
     @Default(false) bool isConnected,
   }) = _ChatData;
 
-  factory ChatData.initial() => const ChatData(
+  factory ChatData.initial() => ChatData(
     chatId: -1,
     otherUser: null,
     unreadCount: 0,
     messages: [],
     isAllMessagesLoaded: false,
+    unreadMessagesValue: UnreadMessagesValue.initial(),
   );
+}
+
+@freezed
+abstract class UnreadMessagesValue with _$UnreadMessagesValue {
+  const factory UnreadMessagesValue({
+    /// if data from cache - set isLocked to false
+    /// if data from api - set isLocked to true, in that firstReadMessageCreatedAt
+    /// won't change for that ChatState (is handled by chat_bloc)
+    required bool isLocked,
+    required DateTime? firstReadMessageCreatedAt,
+  }) = _UnreadMessagesValue;
+
+  factory UnreadMessagesValue.initial() =>
+      const UnreadMessagesValue(isLocked: false, firstReadMessageCreatedAt: null);
 }

@@ -14,6 +14,7 @@ import 'package:kepleomax/core/di/initialize_dependencies.dart';
 import 'package:kepleomax/core/flavor.dart';
 import 'package:kepleomax/core/mocks/mock_messages_web_socket.dart';
 import 'package:kepleomax/core/mocks/mockito_mocks.mocks.dart';
+import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
@@ -95,7 +96,7 @@ void main() {
       });
     }
 
-    testWidgets('connection_test',(tester) async {
+    testWidgets('connection_test', (tester) async {
       /// after setup app will be connected to the ws, because the app must be connected to open the chat
       await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4], getMessagesAsyncControl: true);
 
@@ -177,16 +178,24 @@ void main() {
       tester.checkMessagesOrder([0, 1, 2, 3, 4]);
     });
 
-    testWidgets('check_read_messages', (tester) async {
-      await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
+    testWidgets('read_messages_test', (tester) async {
+      await setupApp(tester, chatDto0, [messageDto0, messageDto2, messageDto3, messageDto4]);
 
       /// check
-      // await tester.pumpAndSettle(const Duration(milliseconds: 500)); think I don't need this
       expect(ws.readBeforeTimeCalledTimes, 1);
       expect(ws.isRaadBeforeTimeWasCalledWith(0, DateTime.fromMillisecondsSinceEpoch(messageDto0.createdAt)), true);
     });
 
-    testWidgets('check_read_all_button', (tester) async {
+    /// readBeforeTimeCalledTimes will be called two times, one time for each widget
+    // testWidgets('read_messages_two_messages_test', (tester) async {
+    //   await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
+    //
+    //   /// check
+    //   expect(ws.readBeforeTimeCalledTimes, 1);
+    //   expect(ws.isRaadBeforeTimeWasCalledWith(0, DateTime.fromMillisecondsSinceEpoch(messageDto0.createdAt)), true);
+    // });
+
+    testWidgets('read_all_button_test', (tester) async {
       await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
 
       /// check, tap, check
@@ -242,7 +251,38 @@ void main() {
       tester.checkChatAppBarStatus(ChatAppBarStatus.none);
     });
 
-    /// TODO test system messages (dates, unreadCount)
+    testWidgets('unread_messages_widget_test', (tester) async {
+      await setupApp(tester, chatDto0, [messageDto1, messageDto2, messageDto3, messageDto4]);
+
+      tester.checkMessagesOrder([1, Message.unreadMessagesId, 2, 3, 4, Message.dateId], countSystem: true);
+      ws.addMessage(messageDto0);
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([0, 1, Message.unreadMessagesId, 2, 3, 4, Message.dateId], countSystem: true);
+    });
+
+    testWidgets('no_unread_messages_widget_test', (tester) async {
+      await setupApp(tester, chatDto0, [messageDto2, messageDto3, messageDto4]);
+
+      tester.checkMessagesOrder([2, 3, 4, Message.dateId], countSystem: true);
+      ws.addMessage(messageDto1);
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([1, 2, 3, 4, Message.dateId], countSystem: true);
+    });
+
+    testWidgets('unread_messages_widget_test_empty_chat_test', (tester) async {
+      await setupApp(tester, chatDto0, []);
+
+      tester.checkMessagesOrder([], countSystem: true);
+      ws.addMessage(messageDto1);
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([1, Message.unreadMessagesId, Message.dateId], countSystem: true);
+
+      ws.addMessage(messageDto0);
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([0, 1, Message.unreadMessagesId, Message.dateId], countSystem: true);
+    });
+
+    /// TODO system dates messages test
     /// TODO base paging test
     /// paging is tested via unit-tests
   });

@@ -128,12 +128,12 @@ extension TesterExtension on WidgetTester {
     MessageWidget,
   ).where((w) => !w.message.isSystem).length;
 
-  void checkMessagesOrder(List<int> ids) {
+  void checkMessagesOrder(List<int> ids, {bool countSystem = false}) {
     expect(
       childrenOfListByKey<MessageWidget>(
         const Key('messages_list_view'),
         MessageWidget,
-      ).where((w) => !w.message.isSystem).map((w) => w.key),
+      ).where((w) => !w.message.isSystem || countSystem).map((w) => w.key),
       equals(ids.map((id) => Key('message_$id'))),
     );
   }

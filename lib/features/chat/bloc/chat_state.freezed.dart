@@ -806,8 +806,8 @@ as bool,
 /// @nodoc
 mixin _$ChatData {
 
- int get chatId;/// if user in chat was null
- User? get otherUser; List<Message> get messages; int get unreadCount; bool get isAllMessagesLoaded; bool get isLoading; bool get isConnected;
+ int get chatId;/// if user in chat was null, this user will be used
+ User? get otherUser; List<Message> get messages; int get unreadCount; bool get isAllMessagesLoaded; UnreadMessagesValue get unreadMessagesValue; bool get isLoading; bool get isConnected;
 /// Create a copy of ChatData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -818,16 +818,16 @@ $ChatDataCopyWith<ChatData> get copyWith => _$ChatDataCopyWithImpl<ChatData>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChatData&&(identical(other.chatId, chatId) || other.chatId == chatId)&&(identical(other.otherUser, otherUser) || other.otherUser == otherUser)&&const DeepCollectionEquality().equals(other.messages, messages)&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount)&&(identical(other.isAllMessagesLoaded, isAllMessagesLoaded) || other.isAllMessagesLoaded == isAllMessagesLoaded)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChatData&&(identical(other.chatId, chatId) || other.chatId == chatId)&&(identical(other.otherUser, otherUser) || other.otherUser == otherUser)&&const DeepCollectionEquality().equals(other.messages, messages)&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount)&&(identical(other.isAllMessagesLoaded, isAllMessagesLoaded) || other.isAllMessagesLoaded == isAllMessagesLoaded)&&(identical(other.unreadMessagesValue, unreadMessagesValue) || other.unreadMessagesValue == unreadMessagesValue)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,chatId,otherUser,const DeepCollectionEquality().hash(messages),unreadCount,isAllMessagesLoaded,isLoading,isConnected);
+int get hashCode => Object.hash(runtimeType,chatId,otherUser,const DeepCollectionEquality().hash(messages),unreadCount,isAllMessagesLoaded,unreadMessagesValue,isLoading,isConnected);
 
 @override
 String toString() {
-  return 'ChatData(chatId: $chatId, otherUser: $otherUser, messages: $messages, unreadCount: $unreadCount, isAllMessagesLoaded: $isAllMessagesLoaded, isLoading: $isLoading, isConnected: $isConnected)';
+  return 'ChatData(chatId: $chatId, otherUser: $otherUser, messages: $messages, unreadCount: $unreadCount, isAllMessagesLoaded: $isAllMessagesLoaded, unreadMessagesValue: $unreadMessagesValue, isLoading: $isLoading, isConnected: $isConnected)';
 }
 
 
@@ -838,11 +838,11 @@ abstract mixin class $ChatDataCopyWith<$Res>  {
   factory $ChatDataCopyWith(ChatData value, $Res Function(ChatData) _then) = _$ChatDataCopyWithImpl;
 @useResult
 $Res call({
- int chatId, User? otherUser, List<Message> messages, int unreadCount, bool isAllMessagesLoaded, bool isLoading, bool isConnected
+ int chatId, User? otherUser, List<Message> messages, int unreadCount, bool isAllMessagesLoaded, UnreadMessagesValue unreadMessagesValue, bool isLoading, bool isConnected
 });
 
 
-$UserCopyWith<$Res>? get otherUser;
+$UserCopyWith<$Res>? get otherUser;$UnreadMessagesValueCopyWith<$Res> get unreadMessagesValue;
 
 }
 /// @nodoc
@@ -855,14 +855,15 @@ class _$ChatDataCopyWithImpl<$Res>
 
 /// Create a copy of ChatData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? chatId = null,Object? otherUser = freezed,Object? messages = null,Object? unreadCount = null,Object? isAllMessagesLoaded = null,Object? isLoading = null,Object? isConnected = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? chatId = null,Object? otherUser = freezed,Object? messages = null,Object? unreadCount = null,Object? isAllMessagesLoaded = null,Object? unreadMessagesValue = null,Object? isLoading = null,Object? isConnected = null,}) {
   return _then(_self.copyWith(
 chatId: null == chatId ? _self.chatId : chatId // ignore: cast_nullable_to_non_nullable
 as int,otherUser: freezed == otherUser ? _self.otherUser : otherUser // ignore: cast_nullable_to_non_nullable
 as User?,messages: null == messages ? _self.messages : messages // ignore: cast_nullable_to_non_nullable
 as List<Message>,unreadCount: null == unreadCount ? _self.unreadCount : unreadCount // ignore: cast_nullable_to_non_nullable
 as int,isAllMessagesLoaded: null == isAllMessagesLoaded ? _self.isAllMessagesLoaded : isAllMessagesLoaded // ignore: cast_nullable_to_non_nullable
-as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
+as bool,unreadMessagesValue: null == unreadMessagesValue ? _self.unreadMessagesValue : unreadMessagesValue // ignore: cast_nullable_to_non_nullable
+as UnreadMessagesValue,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,isConnected: null == isConnected ? _self.isConnected : isConnected // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
@@ -878,6 +879,15 @@ $UserCopyWith<$Res>? get otherUser {
 
   return $UserCopyWith<$Res>(_self.otherUser!, (value) {
     return _then(_self.copyWith(otherUser: value));
+  });
+}/// Create a copy of ChatData
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$UnreadMessagesValueCopyWith<$Res> get unreadMessagesValue {
+  
+  return $UnreadMessagesValueCopyWith<$Res>(_self.unreadMessagesValue, (value) {
+    return _then(_self.copyWith(unreadMessagesValue: value));
   });
 }
 }
@@ -961,10 +971,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int chatId,  User? otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  bool isLoading,  bool isConnected)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int chatId,  User? otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  UnreadMessagesValue unreadMessagesValue,  bool isLoading,  bool isConnected)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ChatData() when $default != null:
-return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_that.isAllMessagesLoaded,_that.isLoading,_that.isConnected);case _:
+return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_that.isAllMessagesLoaded,_that.unreadMessagesValue,_that.isLoading,_that.isConnected);case _:
   return orElse();
 
 }
@@ -982,10 +992,10 @@ return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int chatId,  User? otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  bool isLoading,  bool isConnected)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int chatId,  User? otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  UnreadMessagesValue unreadMessagesValue,  bool isLoading,  bool isConnected)  $default,) {final _that = this;
 switch (_that) {
 case _ChatData():
-return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_that.isAllMessagesLoaded,_that.isLoading,_that.isConnected);case _:
+return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_that.isAllMessagesLoaded,_that.unreadMessagesValue,_that.isLoading,_that.isConnected);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1002,10 +1012,10 @@ return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int chatId,  User? otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  bool isLoading,  bool isConnected)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int chatId,  User? otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  UnreadMessagesValue unreadMessagesValue,  bool isLoading,  bool isConnected)?  $default,) {final _that = this;
 switch (_that) {
 case _ChatData() when $default != null:
-return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_that.isAllMessagesLoaded,_that.isLoading,_that.isConnected);case _:
+return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_that.isAllMessagesLoaded,_that.unreadMessagesValue,_that.isLoading,_that.isConnected);case _:
   return null;
 
 }
@@ -1017,11 +1027,11 @@ return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_t
 
 
 class _ChatData implements ChatData {
-  const _ChatData({required this.chatId, required this.otherUser, required final  List<Message> messages, required this.unreadCount, required this.isAllMessagesLoaded, this.isLoading = true, this.isConnected = false}): _messages = messages;
+  const _ChatData({required this.chatId, required this.otherUser, required final  List<Message> messages, required this.unreadCount, required this.isAllMessagesLoaded, required this.unreadMessagesValue, this.isLoading = true, this.isConnected = false}): _messages = messages;
   
 
 @override final  int chatId;
-/// if user in chat was null
+/// if user in chat was null, this user will be used
 @override final  User? otherUser;
  final  List<Message> _messages;
 @override List<Message> get messages {
@@ -1032,6 +1042,7 @@ class _ChatData implements ChatData {
 
 @override final  int unreadCount;
 @override final  bool isAllMessagesLoaded;
+@override final  UnreadMessagesValue unreadMessagesValue;
 @override@JsonKey() final  bool isLoading;
 @override@JsonKey() final  bool isConnected;
 
@@ -1045,16 +1056,16 @@ _$ChatDataCopyWith<_ChatData> get copyWith => __$ChatDataCopyWithImpl<_ChatData>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChatData&&(identical(other.chatId, chatId) || other.chatId == chatId)&&(identical(other.otherUser, otherUser) || other.otherUser == otherUser)&&const DeepCollectionEquality().equals(other._messages, _messages)&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount)&&(identical(other.isAllMessagesLoaded, isAllMessagesLoaded) || other.isAllMessagesLoaded == isAllMessagesLoaded)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChatData&&(identical(other.chatId, chatId) || other.chatId == chatId)&&(identical(other.otherUser, otherUser) || other.otherUser == otherUser)&&const DeepCollectionEquality().equals(other._messages, _messages)&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount)&&(identical(other.isAllMessagesLoaded, isAllMessagesLoaded) || other.isAllMessagesLoaded == isAllMessagesLoaded)&&(identical(other.unreadMessagesValue, unreadMessagesValue) || other.unreadMessagesValue == unreadMessagesValue)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,chatId,otherUser,const DeepCollectionEquality().hash(_messages),unreadCount,isAllMessagesLoaded,isLoading,isConnected);
+int get hashCode => Object.hash(runtimeType,chatId,otherUser,const DeepCollectionEquality().hash(_messages),unreadCount,isAllMessagesLoaded,unreadMessagesValue,isLoading,isConnected);
 
 @override
 String toString() {
-  return 'ChatData(chatId: $chatId, otherUser: $otherUser, messages: $messages, unreadCount: $unreadCount, isAllMessagesLoaded: $isAllMessagesLoaded, isLoading: $isLoading, isConnected: $isConnected)';
+  return 'ChatData(chatId: $chatId, otherUser: $otherUser, messages: $messages, unreadCount: $unreadCount, isAllMessagesLoaded: $isAllMessagesLoaded, unreadMessagesValue: $unreadMessagesValue, isLoading: $isLoading, isConnected: $isConnected)';
 }
 
 
@@ -1065,11 +1076,11 @@ abstract mixin class _$ChatDataCopyWith<$Res> implements $ChatDataCopyWith<$Res>
   factory _$ChatDataCopyWith(_ChatData value, $Res Function(_ChatData) _then) = __$ChatDataCopyWithImpl;
 @override @useResult
 $Res call({
- int chatId, User? otherUser, List<Message> messages, int unreadCount, bool isAllMessagesLoaded, bool isLoading, bool isConnected
+ int chatId, User? otherUser, List<Message> messages, int unreadCount, bool isAllMessagesLoaded, UnreadMessagesValue unreadMessagesValue, bool isLoading, bool isConnected
 });
 
 
-@override $UserCopyWith<$Res>? get otherUser;
+@override $UserCopyWith<$Res>? get otherUser;@override $UnreadMessagesValueCopyWith<$Res> get unreadMessagesValue;
 
 }
 /// @nodoc
@@ -1082,14 +1093,15 @@ class __$ChatDataCopyWithImpl<$Res>
 
 /// Create a copy of ChatData
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? chatId = null,Object? otherUser = freezed,Object? messages = null,Object? unreadCount = null,Object? isAllMessagesLoaded = null,Object? isLoading = null,Object? isConnected = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? chatId = null,Object? otherUser = freezed,Object? messages = null,Object? unreadCount = null,Object? isAllMessagesLoaded = null,Object? unreadMessagesValue = null,Object? isLoading = null,Object? isConnected = null,}) {
   return _then(_ChatData(
 chatId: null == chatId ? _self.chatId : chatId // ignore: cast_nullable_to_non_nullable
 as int,otherUser: freezed == otherUser ? _self.otherUser : otherUser // ignore: cast_nullable_to_non_nullable
 as User?,messages: null == messages ? _self._messages : messages // ignore: cast_nullable_to_non_nullable
 as List<Message>,unreadCount: null == unreadCount ? _self.unreadCount : unreadCount // ignore: cast_nullable_to_non_nullable
 as int,isAllMessagesLoaded: null == isAllMessagesLoaded ? _self.isAllMessagesLoaded : isAllMessagesLoaded // ignore: cast_nullable_to_non_nullable
-as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
+as bool,unreadMessagesValue: null == unreadMessagesValue ? _self.unreadMessagesValue : unreadMessagesValue // ignore: cast_nullable_to_non_nullable
+as UnreadMessagesValue,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,isConnected: null == isConnected ? _self.isConnected : isConnected // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
@@ -1107,7 +1119,276 @@ $UserCopyWith<$Res>? get otherUser {
   return $UserCopyWith<$Res>(_self.otherUser!, (value) {
     return _then(_self.copyWith(otherUser: value));
   });
+}/// Create a copy of ChatData
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$UnreadMessagesValueCopyWith<$Res> get unreadMessagesValue {
+  
+  return $UnreadMessagesValueCopyWith<$Res>(_self.unreadMessagesValue, (value) {
+    return _then(_self.copyWith(unreadMessagesValue: value));
+  });
 }
+}
+
+/// @nodoc
+mixin _$UnreadMessagesValue {
+
+ bool get isLocked; DateTime? get firstReadMessageCreatedAt;
+/// Create a copy of UnreadMessagesValue
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$UnreadMessagesValueCopyWith<UnreadMessagesValue> get copyWith => _$UnreadMessagesValueCopyWithImpl<UnreadMessagesValue>(this as UnreadMessagesValue, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UnreadMessagesValue&&(identical(other.isLocked, isLocked) || other.isLocked == isLocked)&&(identical(other.firstReadMessageCreatedAt, firstReadMessageCreatedAt) || other.firstReadMessageCreatedAt == firstReadMessageCreatedAt));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,isLocked,firstReadMessageCreatedAt);
+
+@override
+String toString() {
+  return 'UnreadMessagesValue(isLocked: $isLocked, firstReadMessageCreatedAt: $firstReadMessageCreatedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $UnreadMessagesValueCopyWith<$Res>  {
+  factory $UnreadMessagesValueCopyWith(UnreadMessagesValue value, $Res Function(UnreadMessagesValue) _then) = _$UnreadMessagesValueCopyWithImpl;
+@useResult
+$Res call({
+ bool isLocked, DateTime? firstReadMessageCreatedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$UnreadMessagesValueCopyWithImpl<$Res>
+    implements $UnreadMessagesValueCopyWith<$Res> {
+  _$UnreadMessagesValueCopyWithImpl(this._self, this._then);
+
+  final UnreadMessagesValue _self;
+  final $Res Function(UnreadMessagesValue) _then;
+
+/// Create a copy of UnreadMessagesValue
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? isLocked = null,Object? firstReadMessageCreatedAt = freezed,}) {
+  return _then(_self.copyWith(
+isLocked: null == isLocked ? _self.isLocked : isLocked // ignore: cast_nullable_to_non_nullable
+as bool,firstReadMessageCreatedAt: freezed == firstReadMessageCreatedAt ? _self.firstReadMessageCreatedAt : firstReadMessageCreatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [UnreadMessagesValue].
+extension UnreadMessagesValuePatterns on UnreadMessagesValue {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _UnreadMessagesValue value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _UnreadMessagesValue() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _UnreadMessagesValue value)  $default,){
+final _that = this;
+switch (_that) {
+case _UnreadMessagesValue():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _UnreadMessagesValue value)?  $default,){
+final _that = this;
+switch (_that) {
+case _UnreadMessagesValue() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLocked,  DateTime? firstReadMessageCreatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _UnreadMessagesValue() when $default != null:
+return $default(_that.isLocked,_that.firstReadMessageCreatedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLocked,  DateTime? firstReadMessageCreatedAt)  $default,) {final _that = this;
+switch (_that) {
+case _UnreadMessagesValue():
+return $default(_that.isLocked,_that.firstReadMessageCreatedAt);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLocked,  DateTime? firstReadMessageCreatedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _UnreadMessagesValue() when $default != null:
+return $default(_that.isLocked,_that.firstReadMessageCreatedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _UnreadMessagesValue implements UnreadMessagesValue {
+  const _UnreadMessagesValue({required this.isLocked, required this.firstReadMessageCreatedAt});
+  
+
+@override final  bool isLocked;
+@override final  DateTime? firstReadMessageCreatedAt;
+
+/// Create a copy of UnreadMessagesValue
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$UnreadMessagesValueCopyWith<_UnreadMessagesValue> get copyWith => __$UnreadMessagesValueCopyWithImpl<_UnreadMessagesValue>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UnreadMessagesValue&&(identical(other.isLocked, isLocked) || other.isLocked == isLocked)&&(identical(other.firstReadMessageCreatedAt, firstReadMessageCreatedAt) || other.firstReadMessageCreatedAt == firstReadMessageCreatedAt));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,isLocked,firstReadMessageCreatedAt);
+
+@override
+String toString() {
+  return 'UnreadMessagesValue(isLocked: $isLocked, firstReadMessageCreatedAt: $firstReadMessageCreatedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$UnreadMessagesValueCopyWith<$Res> implements $UnreadMessagesValueCopyWith<$Res> {
+  factory _$UnreadMessagesValueCopyWith(_UnreadMessagesValue value, $Res Function(_UnreadMessagesValue) _then) = __$UnreadMessagesValueCopyWithImpl;
+@override @useResult
+$Res call({
+ bool isLocked, DateTime? firstReadMessageCreatedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$UnreadMessagesValueCopyWithImpl<$Res>
+    implements _$UnreadMessagesValueCopyWith<$Res> {
+  __$UnreadMessagesValueCopyWithImpl(this._self, this._then);
+
+  final _UnreadMessagesValue _self;
+  final $Res Function(_UnreadMessagesValue) _then;
+
+/// Create a copy of UnreadMessagesValue
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? isLocked = null,Object? firstReadMessageCreatedAt = freezed,}) {
+  return _then(_UnreadMessagesValue(
+isLocked: null == isLocked ? _self.isLocked : isLocked // ignore: cast_nullable_to_non_nullable
+as bool,firstReadMessageCreatedAt: freezed == firstReadMessageCreatedAt ? _self.firstReadMessageCreatedAt : firstReadMessageCreatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
 }
 
 // dart format on

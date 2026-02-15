@@ -38,34 +38,16 @@ class CombineCacheAndApi {
       return _Any_NOut(_messagesLocal);
     }
 
-    final firstIndex = cache.indexWhere((e) => e.id == api.first.id);
-    var lastIndex = cache.indexWhere((e) => e.id == api.last.id);
+    final isInCase =
+        cache.where((m) => m.id == api.last.id).isNotEmpty &&
+        cache.last.id != api.last.id;
 
-    if (lastIndex > -1) {
-      if (cache.last.id == api.last.id) {
-        lastIndex = 0;
-      } else {
-        lastIndex = 1;
-      }
+    if (isInCase) {
+      return _Any_In(_messagesLocal);
+    } else {
+      return _Any_NOut(_messagesLocal);
     }
-
-    final combiner = _cases[(firstIndex.clamp(-1, 1), lastIndex)]!;
-    // print('type: ${combiner.runtimeType}');
-    return combiner;
   }
-
-  /// 0 => 0, -1 => -1, 1 => >0
-  late final Map<(int, int), _Combiner> _cases = {
-    (0, 0): _Any_NOut(_messagesLocal),
-    (0, -1): _Any_NOut(_messagesLocal),
-    (0, 1): _Any_In(_messagesLocal),
-    (-1, 0): _Any_NOut(_messagesLocal),
-    (-1, -1): _Any_NOut(_messagesLocal),
-    (-1, 1): _Any_In(_messagesLocal),
-    (1, 0): _Any_NOut(_messagesLocal),
-    (1, -1): _Any_NOut(_messagesLocal),
-    (1, 1): _Any_In(_messagesLocal),
-  };
 }
 
 abstract class _Combiner {

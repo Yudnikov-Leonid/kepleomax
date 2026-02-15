@@ -5,7 +5,7 @@ abstract class ConnectionRepository {
 
   void disconnect();
 
-  void reconnect({bool onlyIfNot = false});
+  void reconnect({bool onlyIfDisconnected = false});
 
   void sendMessage({required String messageBody, required int recipientId});
 
@@ -20,6 +20,7 @@ abstract class ConnectionRepository {
   bool get isConnected;
 }
 
+/// TODO why does this class exist?
 class ConnectionRepositoryImpl implements ConnectionRepository {
   final MessagesWebSocket _webSocket;
 
@@ -34,8 +35,8 @@ class ConnectionRepositoryImpl implements ConnectionRepository {
   void disconnect() => _webSocket.disconnect();
 
   @override
-  void reconnect({bool onlyIfNot = false}) =>
-      onlyIfNot ? _webSocket.connectIfNot() : _webSocket.reinit();
+  void reconnect({bool onlyIfDisconnected = false}) =>
+      onlyIfDisconnected ? _webSocket.connectIfNot() : _webSocket.reinit();
 
   /// ws sends
   @override

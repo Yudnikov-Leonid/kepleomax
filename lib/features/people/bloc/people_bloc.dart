@@ -105,6 +105,15 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
 /// events
 abstract class PeopleEvent {}
 
+/// used when needs to call load without debounce
+class PeopleEventInstantLoad implements PeopleEvent {
+  const PeopleEventInstantLoad();
+}
+
+class PeopleEventLoadMore implements PeopleEvent {
+  const PeopleEventLoadMore();
+}
+
 class PeopleEventEditSearch implements PeopleEvent {
   final String text;
 
@@ -113,15 +122,6 @@ class PeopleEventEditSearch implements PeopleEvent {
 
 class _PeopleEventLoad implements PeopleEvent {
   const _PeopleEventLoad();
-}
-
-/// used when needs to call load without debounce
-class PeopleEventInstantLoad implements PeopleEvent {
-  const PeopleEventInstantLoad();
-}
-
-class PeopleEventLoadMore implements PeopleEvent {
-  const PeopleEventLoadMore();
 }
 
 class _PeopleEventEmitUsers implements PeopleEvent {
