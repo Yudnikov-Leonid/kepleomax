@@ -372,7 +372,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
               enabled: data.otherUser == null,
               child: Row(
                 children: [
-                  UserImage(size: 40, url: data.otherUser?.profileImage),
+                  UserImage(size: 40, user: data.otherUser),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(

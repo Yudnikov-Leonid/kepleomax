@@ -25,7 +25,7 @@ class KlmAppBar extends AppBar {
                leading ??
                Container(
                  margin: const EdgeInsets.all(12),
-                 child: UserImage(url: AuthScope.userOf(context).profileImage),
+                 child: UserImage(user: AuthScope.userOf(context)),
                ),
          ),
          titleSpacing: 5,
@@ -59,7 +59,7 @@ class KlmSliverAppBar extends SliverAppBar {
                leading ??
                Container(
                  margin: const EdgeInsets.all(12),
-                 child: UserImage(url: AuthScope.userOf(context).profileImage),
+                 child: UserImage(user: AuthScope.userOf(context)),
                ),
          ),
          titleSpacing: 5,

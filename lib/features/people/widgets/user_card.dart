@@ -28,7 +28,7 @@ class _UserCard extends StatelessWidget {
                     SizedBox(
                       height: 55,
                       width: 55,
-                      child: UserImage(url: user.profileImage),
+                      child: UserImage(user: user),
                     ),
                     const SizedBox(width: 10),
                     Expanded(

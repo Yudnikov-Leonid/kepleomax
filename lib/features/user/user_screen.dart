@@ -162,10 +162,10 @@ class _Body extends StatelessWidget {
                                 );
                               },
                         child: UserImage(
-                          url: data.profile?.user.profileImage,
+                          user: data.profile?.user,
                           size: 130,
                           isLoading: data.isLoading,
-                          showIsOnline: data.profile?.user.showOnlineStatus ?? false,
+                          showOnlineIndicator: true,
                           onlineIconSize: 18,
                           onlineIconPadding: 10,
                         ),

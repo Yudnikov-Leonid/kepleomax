@@ -56,7 +56,7 @@ class PostWidget extends StatelessWidget {
                     child: Row(
                       children: [
                         UserImage(
-                          url: post.user.profileImage,
+                          user: post.user,
                           size: 34,
                           isLoading: post.isMockLoadingPost,
                         ),

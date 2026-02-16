@@ -22,11 +22,12 @@ abstract class User with _$User {
   }) = _User;
 
   /// TODO write what is it
-  bool get showOnlineStatus =>
-      isOnline &&
-      lastActivityTime +
-              (AppConstants.markAsOfflineAfterInactivityInSeconds * 1000) >
-          DateTime.now().millisecondsSinceEpoch;
+  bool get showOnlineStatus {
+    return isOnline &&
+        lastActivityTime +
+                (AppConstants.markAsOfflineAfterInactivityInSeconds * 1000) >
+            DateTime.now().millisecondsSinceEpoch;
+  }
 
   factory User.fromDto(UserDto dto) => User(
     id: dto.id,

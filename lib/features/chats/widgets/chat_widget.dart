@@ -26,11 +26,12 @@ class ChatWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               SizedBox(
+                key: ValueKey(chat.otherUser.showOnlineStatus),
                 height: 60,
                 width: 60,
                 child: UserImage(
-                  url: chat.otherUser.profileImage,
-                  showIsOnline: chat.otherUser.showOnlineStatus,
+                  user: chat.otherUser,
+                  showOnlineIndicator: true,
                 ),
               ),
               const SizedBox(width: 10),

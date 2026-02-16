@@ -45,7 +45,7 @@ class MessageWidget extends StatelessWidget {
                     mainNavigatorKey,
                   )!.push(UserPage(userId: user.id));
                 },
-                child: UserImage(size: 35, url: user.profileImage),
+                child: UserImage(size: 35, user: user),
               ),
             ),
             const SizedBox(width: 10),

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_cached_image.dart';
 import 'package:kepleomax/generated/images_keys.images_keys.dart';
@@ -7,21 +10,21 @@ import 'package:kepleomax/core/flavor.dart';
 
 class UserImage extends StatelessWidget {
   const UserImage({
-    required this.url,
+    required this.user,
     this.size,
     this.isLoading = false,
-    this.showIsOnline,
     this.onlineIconSize = 10,
     this.onlineIconPadding = 4,
+    this.showOnlineIndicator = false,
     super.key,
   });
 
-  final String? url;
+  final User? user;
   final double? size;
   final bool isLoading;
 
   /// online
-  final bool? showIsOnline;
+  final bool showOnlineIndicator;
   final double onlineIconSize;
   final double onlineIconPadding;
 
@@ -37,10 +40,10 @@ class UserImage extends StatelessWidget {
               child: ClipOval(
                 child: isLoading
                     ? const ColoredBox(color: Colors.grey)
-                    : url == null || url!.isEmpty
+                    : user?.profileImage == null || user!.profileImage!.isEmpty
                     ? const DefaultUserIcon()
                     : KlmCachedImage(
-                        imageUrl: flavor.imageUrl + url!,
+                        imageUrl: flavor.imageUrl + user!.profileImage!,
                         width: context.imageMaxWidth,
                         fit: BoxFit.cover,
                       ),
@@ -70,27 +73,12 @@ class UserImage extends StatelessWidget {
             //     ),
             //   ),
             // ),
-            Positioned(
-              bottom: onlineIconPadding / 4,
-              right: onlineIconPadding,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 100),
-                opacity: showIsOnline == true ? 1 : 0,
-                child: Container(
-                  height: onlineIconSize,
-                  width: onlineIconSize,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.green,
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 2,
-                      strokeAlign: BorderSide.strokeAlignOutside,
-                    ),
-                  ),
-                ),
+            if (user != null && showOnlineIndicator)
+              Positioned(
+                bottom: onlineIconPadding / 4,
+                right: onlineIconPadding,
+                child: _OnlineIndicator(user: user!, onlineIconSize: onlineIconSize),
               ),
-            ),
           ],
         );
       },
@@ -113,6 +101,60 @@ class DefaultUserIcon extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _OnlineIndicator extends StatefulWidget {
+  const _OnlineIndicator({
+    required this.user,
+    required this.onlineIconSize,
+  });
+
+  final User user;
+  final double onlineIconSize;
+
+  @override
+  State<_OnlineIndicator> createState() => _OnlineIndicatorState();
+}
+
+class _OnlineIndicatorState extends State<_OnlineIndicator> {
+  late Timer _timer;
+
+  @override
+  void initState() {
+    /// this timer is needed cause user.showOnlineStatus depends on DateTime.now()
+    /// and can be changed to false at some point
+    _timer = Timer.periodic(const Duration(seconds: 10), (_) {
+      setState(() {});
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 100),
+      opacity: widget.user.showOnlineStatus == true ? 1 : 0,
+      child: Container(
+        height: widget.onlineIconSize,
+        width: widget.onlineIconSize,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.green,
+          border: Border.all(
+            color: Colors.white,
+            width: 2,
+            strokeAlign: BorderSide.strokeAlignOutside,
+          ),
+        ),
+      ),
     );
   }
 }
