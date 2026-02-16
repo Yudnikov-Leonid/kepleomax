@@ -17,6 +17,10 @@ class KlmTextField extends StatefulWidget {
     this.multiline = false,
     this.textCapitalization = TextCapitalization.none,
     this.textInputType,
+    this.showCounter = true,
+    this.backgroundColor = Colors.white,
+    this.borderColor = KlmColors.inactiveColor,
+    this.hintColor = Colors.grey,
     super.key,
   });
 
@@ -33,6 +37,10 @@ class KlmTextField extends StatefulWidget {
   final bool multiline;
   final TextCapitalization textCapitalization;
   final TextInputType? textInputType;
+  final bool showCounter;
+  final Color backgroundColor;
+  final Color borderColor;
+  final Color hintColor;
 
   @override
   State<KlmTextField> createState() => _KlmTextFieldState();
@@ -76,8 +84,9 @@ class _KlmTextFieldState extends State<KlmTextField> {
             obscureText: widget.isPassword,
             maxLines: widget.multiline ? null : 1,
             maxLength: widget.maxLength ?? 50,
-            keyboardType: widget.textInputType ?? (widget.multiline ? TextInputType
-                .multiline : null),
+            keyboardType:
+                widget.textInputType ??
+                (widget.multiline ? TextInputType.multiline : null),
             onChanged: (value) {
               setState(() {});
               widget.onChanged(value);
@@ -94,24 +103,23 @@ class _KlmTextFieldState extends State<KlmTextField> {
                   ? null
                   : widget.controller.text.isNotEmpty
                   ? SizedBox(
-                height: 17,
-                width: 17,
-                child: InkWell(
-                  onTap: () {
-                    widget.controller.clear();
-                    widget.onChanged('');
-                    setState(() {});
-                  },
-                  child: const Icon(
-                    Icons.close,
-                    color: Colors.black,
-                    size: 17,
-                  ),
-                ),
-              )
+                      height: 17,
+                      width: 17,
+                      child: InkWell(
+                        onTap: () {
+                          widget.controller.clear();
+                          widget.onChanged('');
+                          setState(() {});
+                        },
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.black,
+                          size: 17,
+                        ),
+                      ),
+                    )
                   : null,
               counter: const SizedBox(),
-              contentPadding: const EdgeInsets.all(15),
               isDense: true,
               focusedBorder: _getFocusedBorder(),
               focusedErrorBorder: _getBorder(_error() != null),
@@ -122,20 +130,20 @@ class _KlmTextFieldState extends State<KlmTextField> {
               label: widget.label == null
                   ? null
                   : Container(
-                color: Colors.white,
-                child: Text(
-                  widget.label!,
-                  style: context.textTheme.bodyMedium,
-                ),
-              ),
+                      color: Colors.white,
+                      child: Text(
+                        widget.label!,
+                        style: context.textTheme.bodyMedium,
+                      ),
+                    ),
               hintText: widget.hint,
-              hintStyle: const TextStyle(color: Colors.grey),
+              hintStyle: TextStyle(color: widget.hintColor),
               labelStyle: context.textTheme.titleLarge?.copyWith(color: Colors.grey),
-              fillColor: Colors.white,
+              fillColor: widget.backgroundColor,
               filled: true,
             ),
           ),
-          if (widget.maxLength != null)
+          if (widget.maxLength != null && widget.showCounter)
             Positioned(
               bottom: _error() != null ? 32 : 4,
               right: 10,
@@ -149,17 +157,16 @@ class _KlmTextFieldState extends State<KlmTextField> {
     );
   }
 
-  InputBorder? _getFocusedBorder() =>
-      widget.readOnly
-          ? _getBorder(false)
-          : OutlineInputBorder(
-        borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(
-          color: Colors.blue,
-          width: 3,
-          strokeAlign: BorderSide.strokeAlignOutside,
-        ),
-      );
+  InputBorder? _getFocusedBorder() => widget.readOnly
+      ? _getBorder(false)
+      : OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: const BorderSide(
+            color: Colors.blue,
+            width: 3,
+            strokeAlign: BorderSide.strokeAlignOutside,
+          ),
+        );
 
   InputBorder? _getBorder(bool isError) {
     if (isError) {
@@ -176,7 +183,7 @@ class _KlmTextFieldState extends State<KlmTextField> {
       borderRadius: BorderRadius.circular(20),
       borderSide: BorderSide(
         color: widget.controller.text.isEmpty || widget.readOnly
-            ? KlmColors.inactiveColor
+            ? widget.borderColor
             : KlmColors.primaryColor,
         width: 2,
         strokeAlign: BorderSide.strokeAlignOutside,

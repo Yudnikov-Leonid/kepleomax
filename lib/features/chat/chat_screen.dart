@@ -401,8 +401,21 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                               color: Colors.grey,
                             ),
                           ),
+                        if (!data.isLoading && data.isConnected)
+                          Text(
+                            'last seen 19 minutes ago',
+                            style: context.textTheme.bodyMedium?.copyWith(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
                       ],
                     ),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.call, color: KlmColors.primaryColor),
                   ),
                 ],
               ),

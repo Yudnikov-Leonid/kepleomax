@@ -81,21 +81,6 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    void setupGetMessages(List<MessageDto> messages, {Duration delay = Duration.zero, int chatId = 0}) {
-      when(dp.messagesApi.getMessages(chatId: chatId, limit: AppConstants.msgPagingLimit, cursor: null)).thenAnswer((_) async {
-        await Future.delayed(delay);
-        return HttpResponse(MessagesResponse(data: messages, message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
-      });
-    }
-
-    void setupPaging(List<MessageDto> messages, {required int cursor, int limit = AppConstants.msgPagingLimit, Duration delay = Duration.zero, int chatId = 0}) {
-      when(dp.messagesApi.getMessages(chatId: chatId, limit: limit, cursor: cursor)).thenAnswer((_) async {
-        await Future.delayed(delay);
-        print('MyLog getPaging, limit: $limit, cursor: $cursor');
-        return HttpResponse(MessagesResponse(data: messages, message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
-      });
-    }
-
     testWidgets('connection_test', (tester) async {
       /// after setup app will be connected to the ws, because the app must be connected to open the chat
       await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4], getMessagesAsyncControl: true);
@@ -147,17 +132,15 @@ void main() {
     testWidgets('new_message_test', (tester) async {
       await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
 
-      /// check messages, click submit (with empty text), check
+      /// check messages, check send_button is missing
       tester.checkMessagesOrder([0, 1, 2, 3, 4]);
-      await tester.tap(find.byKey(const Key('submit_message_button')));
-      await tester.pumpAndSettle();
-      tester.checkMessagesOrder([0, 1, 2, 3, 4]);
+      expect(find.byKey(const Key('send_message_button')), findsNothing);
 
       /// enter text, send, check
       ws.setNextSendMessageId(10);
       await tester.enterText(find.byKey(const Key('message_input_field')), 'NEW_MSG');
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('submit_message_button')));
+      await tester.tap(find.byKey(const Key('send_message_button')));
       await tester.pumpAndSettle();
       tester.checkMessagesOrder([10, 0, 1, 2, 3, 4]);
       tester.getMessage(10).check(fromCurrentUser: true, isRead: false, message: 'NEW_MSG');
