@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
+import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
 
 class MockMessagesWebSocket implements MessagesWebSocket {
@@ -123,5 +124,18 @@ class MockMessagesWebSocket implements MessagesWebSocket {
   @override
   void readMessagesBeforeTime({required int chatId, required DateTime time}) {
     _readMessagesBeforeTimeWasCalls.add((chatId, time));
+  }
+
+  @override
+  void subscribeOnOnlineStatusUpdates({required Iterable<int> usersIds}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<OnlineStatusUpdate> get onlineUpdatesStream => throw UnimplementedError();
+
+  @override
+  void activityDetected() {
+    throw UnimplementedError();
   }
 }

@@ -15,11 +15,11 @@ class ChatWidget extends StatelessWidget {
         onTap: isLoading
             ? null
             : () {
-          AppNavigator.withKeyOf(
-            context,
-            mainNavigatorKey,
-          )!.push(ChatPage(chatId: chat.id, otherUser: chat.otherUser));
-        },
+                AppNavigator.withKeyOf(
+                  context,
+                  mainNavigatorKey,
+                )!.push(ChatPage(chatId: chat.id, otherUser: chat.otherUser));
+              },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
@@ -28,7 +28,10 @@ class ChatWidget extends StatelessWidget {
               SizedBox(
                 height: 60,
                 width: 60,
-                child: UserImage(url: chat.otherUser.profileImage),
+                child: UserImage(
+                  url: chat.otherUser.profileImage,
+                  showIsOnline: chat.otherUser.showOnlineStatus,
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -72,7 +75,7 @@ class ChatWidget extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              ' • ${ParseTime.toPassTimeSlim(chat.lastMessage!.createdAt)}',
+                              ' • ${ParseTime.toShortPassTime(chat.lastMessage!.createdAt)}',
                               style: context.textTheme.bodyLarge?.copyWith(
                                 color: Colors.grey,
                               ),

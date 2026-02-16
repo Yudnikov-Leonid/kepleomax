@@ -1,4 +1,5 @@
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
+import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 
 abstract class ConnectionRepository {
   void initSocket();
@@ -15,9 +16,15 @@ abstract class ConnectionRepository {
 
   void readMessageBeforeTime({required int chatId, required DateTime time});
 
+  void subscribeOnOnlineStatusUpdates({required List<int> usersIds});
+
+  void activityDetected();
+
   Stream<bool> get connectionStateStream;
 
   bool get isConnected;
+
+  Stream<OnlineStatusUpdate> get onlineUpdatesStream;
 }
 
 /// TODO why does this class exist?
@@ -56,8 +63,19 @@ class ConnectionRepositoryImpl implements ConnectionRepository {
       _webSocket.readMessagesBeforeTime(chatId: chatId, time: time);
 
   @override
+  void subscribeOnOnlineStatusUpdates({required List<int> usersIds}) =>
+      _webSocket.subscribeOnOnlineStatusUpdates(usersIds: usersIds);
+
+  @override
+  void activityDetected() => _webSocket.activityDetected();
+
+  @override
   Stream<bool> get connectionStateStream => _webSocket.connectionStateStream;
 
   @override
   bool get isConnected => _webSocket.isConnected;
+
+  @override
+  Stream<OnlineStatusUpdate> get onlineUpdatesStream =>
+      _webSocket.onlineUpdatesStream;
 }

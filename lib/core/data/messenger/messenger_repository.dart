@@ -11,6 +11,7 @@ import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
+import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
 
 import '../local_data_sources/chats_local_data_source.dart';
@@ -23,6 +24,8 @@ part 'on_new_message.dart';
 part 'on_read_messages.dart';
 
 part 'on_delete_message.dart';
+
+part 'on_online_update.dart';
 
 abstract class MessengerRepository {
   /// api/db calls
@@ -82,6 +85,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
     _webSocket.newMessageStream.listen(_onNewMessage, cancelOnError: false);
     _webSocket.readMessagesStream.listen(_onReadMessages, cancelOnError: false);
     _webSocket.deletedMessageStream.listen(_onDeletedMessage, cancelOnError: false);
+    _webSocket.onlineUpdatesStream.listen(_onOnlineUpdate, cancelOnError: false);
   }
 
   /// emitters
@@ -117,7 +121,6 @@ class MessengerRepositoryImpl implements MessengerRepository {
 
   @override
   Future<void> loadChats() async {
-    //await Future.delayed(const Duration(seconds: 1));
     final chats = await _chatsApi.getChats();
     _emitChatsCollection(
       ChatsCollection(
@@ -126,6 +129,9 @@ class MessengerRepositoryImpl implements MessengerRepository {
       ),
     );
     _chatsLocal.clearAndInsertChats(chats);
+    _webSocket.subscribeOnOnlineStatusUpdates(
+      usersIds: chats.map((c) => c.otherUser.id),
+    );
     for (final chat in chats) {
       if (chat.lastMessage != null) {
         _messagesLocal.insert(chat.lastMessage!);
@@ -220,7 +226,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
     );
   }
 
-  /// ws streams
+  /// streams
   @override
   Stream<MessagesCollection> get messagesUpdatesStream =>
       _messagesUpdatesController.stream;

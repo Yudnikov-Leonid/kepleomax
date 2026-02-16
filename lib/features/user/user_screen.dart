@@ -7,6 +7,7 @@ import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
 import 'package:kepleomax/core/presentation/klm_button.dart';
+import 'package:kepleomax/core/presentation/parse_time.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
 import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
@@ -57,6 +58,7 @@ class _UserScreenState extends State<UserScreen> {
     return BlocProvider<UserBloc>(
       create: (context) => UserBloc(
         userRepository: Dependencies.of(context).userRepository,
+        connectionRepository: Dependencies.of(context).connectionRepository,
         userId: widget.userId,
       )..add(const UserEventLoad()),
       child: Scaffold(
@@ -163,6 +165,9 @@ class _Body extends StatelessWidget {
                           url: data.profile?.user.profileImage,
                           size: 130,
                           isLoading: data.isLoading,
+                          showIsOnline: data.profile?.user.showOnlineStatus ?? false,
+                          onlineIconSize: 18,
+                          onlineIconPadding: 10,
                         ),
                       ),
                     ),
@@ -189,6 +194,26 @@ class _Body extends StatelessWidget {
                       ),
                     ),
                   ),
+
+                  /// "last seen at" widget
+                  if (!data.isLoading && data.profile?.user != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        data.profile!.user.showOnlineStatus
+                            ? 'online'
+                            : ParseTime.toOnlineStatus(
+                                DateTime.fromMillisecondsSinceEpoch(
+                                  data.profile!.user.lastActivityTime,
+                                ),
+                              ),
+                        textAlign: TextAlign.center,
+                        style: context.textTheme.bodyLarge?.copyWith(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
 
                   /// description
                   if (data.isLoading ||

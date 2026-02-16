@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
+import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 
 import '../../logger.dart';
@@ -16,6 +17,8 @@ abstract class MessagesWebSocket {
   Stream<DeletedMessageUpdate> get deletedMessageStream;
 
   Stream<bool> get connectionStateStream;
+
+  Stream<OnlineStatusUpdate> get onlineUpdatesStream;
 
   /// manage
   Future<void> init();
@@ -36,6 +39,10 @@ abstract class MessagesWebSocket {
   void readAllMessages({required int chatId});
 
   void readMessagesBeforeTime({required int chatId, required DateTime time});
+
+  void subscribeOnOnlineStatusUpdates({required Iterable<int> usersIds});
+
+  void activityDetected();
 }
 
 class MessagesWebSocketImpl implements MessagesWebSocket {
@@ -56,6 +63,8 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
   final StreamController<DeletedMessageUpdate> _deletedMessageController =
       StreamController.broadcast();
   final StreamController<bool> _connectionController = StreamController.broadcast();
+  final StreamController<OnlineStatusUpdate> _onlineUpdatesController =
+      StreamController.broadcast();
 
   @override
   Stream<MessageDto> get newMessageStream => _messageController.stream;
@@ -70,6 +79,10 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
 
   @override
   Stream<bool> get connectionStateStream => _connectionController.stream;
+
+  @override
+  Stream<OnlineStatusUpdate> get onlineUpdatesStream =>
+      _onlineUpdatesController.stream;
 
   /// socket
   Socket? _socket;
@@ -145,6 +158,11 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
       final update = DeletedMessageUpdate.fromJson(data);
       _deletedMessageController.add(update);
     });
+    _socket!.on('online_status_update', (data) {
+      logger.d('WebSocketLog online_status_update: $data');
+      final update = OnlineStatusUpdate.fromJson(data);
+      _onlineUpdatesController.add(update);
+    });
   }
 
   @override
@@ -204,6 +222,22 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
         'chat_id': chatId,
         'time': time.millisecondsSinceEpoch,
       });
+    }
+  }
+
+  @override
+  void subscribeOnOnlineStatusUpdates({required Iterable<int> usersIds}) {
+    if (_socket?.connected == true) {
+      _socket!.emit('subscribe_on_online_status_updates', {
+        'users_ids': usersIds.toList(),
+      });
+    }
+  }
+
+  @override
+  void activityDetected() {
+    if (_socket?.connected == true) {
+      _socket!.emit('activity_detected');
     }
   }
 }

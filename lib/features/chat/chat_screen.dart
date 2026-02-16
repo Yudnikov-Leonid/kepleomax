@@ -401,9 +401,11 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                               color: Colors.grey,
                             ),
                           ),
-                        if (!data.isLoading && data.isConnected)
+                        if (!data.isLoading &&
+                            data.isConnected &&
+                            data.otherUser != null)
                           Text(
-                            'last seen 19 minutes ago',
+                            _onlineStatusText(data.otherUser!),
                             style: context.textTheme.bodyMedium?.copyWith(
                               fontSize: 13,
                               fontWeight: FontWeight.w400,
@@ -424,6 +426,16 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
         );
       },
     );
+  }
+
+  String _onlineStatusText(User user) {
+    if (user.showOnlineStatus) {
+      return 'online';
+    } else {
+      return ParseTime.toOnlineStatus(
+        DateTime.fromMillisecondsSinceEpoch(user.lastActivityTime),
+      );
+    }
   }
 
   @override

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/network/common/user_dto.dart';
+import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -9,6 +10,8 @@ abstract class UsersLocalDataSource {
   Future<void> insert(UserDto user);
 
   Future<void> insertAll(Iterable<UserDto> users);
+
+  Future<void> updateOnlineStatus(OnlineStatusUpdate update);
 
   // Future<UserDto?> getUserById(int id);
 
@@ -51,16 +54,20 @@ class UsersLocalDataSourceImpl implements UsersLocalDataSource {
     });
   }
 
-  static const _currentUserKey = '__current_user_info_key__';
-
   @override
-  User? getCurrentUser() {
-    final userInfo = _prefs.getString(_currentUserKey);
-
-    if (userInfo == null) return null;
-
-    return User.fromJson(jsonDecode(userInfo));
+  Future<void> updateOnlineStatus(OnlineStatusUpdate update) async {
+    await _database.update(
+      'users',
+      {
+        'is_online': update.isOnline ? 1 : 0,
+        'last_activity_time': update.lastActivityTime,
+      },
+      where: 'id = ?',
+      whereArgs: [update.userId],
+    );
   }
+
+  static const _currentUserKey = '__current_user_info_key__';
 
   @override
   Future<void> setCurrentUser(User? user) async {
@@ -72,6 +79,15 @@ class UsersLocalDataSourceImpl implements UsersLocalDataSource {
     final userInfo = jsonEncode(user.toJson());
 
     await _prefs.setString(_currentUserKey, userInfo);
+  }
+
+  @override
+  User? getCurrentUser() {
+    final userInfo = _prefs.getString(_currentUserKey);
+
+    if (userInfo == null) return null;
+
+    return User.fromJson(jsonDecode(userInfo));
   }
 
   // @override

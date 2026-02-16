@@ -1134,6 +1134,9 @@ $UnreadMessagesValueCopyWith<$Res> get unreadMessagesValue {
 /// @nodoc
 mixin _$UnreadMessagesValue {
 
+/// if data from cache - set isLocked to false
+/// if data from api - set isLocked to true, in that firstReadMessageCreatedAt
+/// won't change for that ChatState (is handled by chat_bloc)
  bool get isLocked; DateTime? get firstReadMessageCreatedAt;
 /// Create a copy of UnreadMessagesValue
 /// with the given fields replaced by the non-null parameter values.
@@ -1330,6 +1333,9 @@ class _UnreadMessagesValue implements UnreadMessagesValue {
   const _UnreadMessagesValue({required this.isLocked, required this.firstReadMessageCreatedAt});
   
 
+/// if data from cache - set isLocked to false
+/// if data from api - set isLocked to true, in that firstReadMessageCreatedAt
+/// won't change for that ChatState (is handled by chat_bloc)
 @override final  bool isLocked;
 @override final  DateTime? firstReadMessageCreatedAt;
 

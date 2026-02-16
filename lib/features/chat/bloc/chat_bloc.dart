@@ -10,6 +10,7 @@ import 'package:kepleomax/core/data/models/messages_collection.dart';
 import 'package:kepleomax/core/flavor.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
+import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:kepleomax/core/logger.dart';
@@ -24,6 +25,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   late StreamSubscription _messagesUpdatesSub;
   late StreamSubscription _connectionStateSub;
   late StreamSubscription _chatUpdatesSub;
+  late StreamSubscription _onlineUpdatesSub;
 
   ChatBloc({
     required MessengerRepository messengerRepository,
@@ -34,25 +36,28 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
        _chatsRepository = chatsRepository,
        _connectionRepository = connectionRepository,
        super(ChatStateBase.initial()) {
+    _messagesUpdatesSub = _messengerRepository.messagesUpdatesStream.listen(
+      (data) {
+        add(_ChatEventEmitMessages(data: data));
+      },
+      onError: (e, st) {
+        add(_ChatEventEmitError(error: e, stackTrace: st));
+      },
+      cancelOnError: false,
+    );
     _chatUpdatesSub = _messengerRepository.chatsUpdatesStream.listen((newList) {
       final currentChat = newList.chats.where((e) => e.id == chatId).firstOrNull;
       if (currentChat != null) {
-        add(ChatEventChangeUnreadCount(newCount: currentChat.unreadCount));
+        add(_ChatEventChangeUnreadCount(newCount: currentChat.unreadCount));
       }
     }, cancelOnError: false);
     _connectionStateSub = _connectionRepository.connectionStateStream.listen(
-      (isConnected) => add(ChatEventConnectingChanged(isConnected)),
+      (isConnected) => add(_ChatEventConnectingChanged(isConnected)),
       cancelOnError: false,
     );
-    _messagesUpdatesSub = _messengerRepository.messagesUpdatesStream.listen(
-      (data) {
-        add(ChatEventEmitMessages(data: data));
-      },
-      onError: (e, st) {
-        add(ChatEventEmitError(error: e, stackTrace: st));
-      },
-      cancelOnError: false,
-    );
+    _onlineUpdatesSub = _connectionRepository.onlineUpdatesStream.listen((update) {
+      add(_ChatEventOnlineStatusUpdate(update));
+    });
 
     /// TODO why there is ChatEventReadMessagesBeforeTime here?
     on<ChatEvent>(
@@ -62,6 +67,14 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           event,
           emit,
         ),
+
+        /// local events
+        _ChatEventConnectingChanged event => _onConnectionChanged(event, emit),
+        _ChatEventChangeUnreadCount event => _onChangeUnreadCount(event, emit),
+        _ChatEventEmitMessages event => _onEmitMessages(event, emit),
+        _ChatEventEmitError event => _onEmitError(event, emit),
+        _ChatEventOnlineStatusUpdate event => _onOnlineStatusUpdate(event, emit),
+        _ChatEventEmitOtherUser event => _onEmitOtherUser(event, emit),
         _ => () {},
       },
       transformer: sequential(),
@@ -79,10 +92,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatEventSendMessage>(_onSendMessage);
     on<ChatEventDeleteMessage>(_onDeleteMessage);
     on<ChatEventReadAllMessages>(_onReadAllMessages);
-    on<ChatEventConnectingChanged>(_onConnectionChanged);
-    on<ChatEventChangeUnreadCount>(_onChangeUnreadCount);
-    on<ChatEventEmitMessages>(_onEmitMessages);
-    on<ChatEventEmitError>(_onEmitError);
   }
 
   void _onInit(ChatEventInit event, Emitter<ChatState> emit) {
@@ -148,15 +157,23 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           /// it's existing chat with otherUser, but was opened not from chat page
           _data = _data.copyWith(chatId: chatId);
         }
-      } else if (event.otherUser == null) {
-        /// chat was opened from notification
-        final chat = await _chatsRepository.getChatWithId(event.chatId);
-        _data = _data.copyWith(otherUser: chat!.otherUser);
       }
+      if (event.otherUser == null) {
+        /// chat was opened from notification
 
-      // print(
-      //   'MyLog loadMessages with chatId: $chatId, withCache: ${event.withCache}',
-      // );
+        final chat = await _chatsRepository.getChatWithId(chatId);
+        _data = _data.copyWith(otherUser: chat!.otherUser);
+      } else {
+        /// update user anyway, cause isOnline can be different
+        Future(() async {
+          final otherUser = (await _chatsRepository.getChatWithId(
+            chatId,
+          ))!.otherUser;
+          if (otherUser != _data.otherUser) {
+            add(_ChatEventEmitOtherUser(otherUser));
+          }
+        });
+      }
       _data = _data.copyWith(
         unreadCount:
             _messengerRepository.currentChatsCollection.chats
@@ -166,6 +183,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
             0,
       );
       emit(ChatStateBase(data: _data));
+
+      _connectionRepository.subscribeOnOnlineStatusUpdates(
+        usersIds: [_data.otherUser!.id],
+      );
       await _messengerRepository.loadMessages(
         chatId: chatId,
         withCache: event.withCache,
@@ -177,40 +198,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       emit(ChatStateBase(data: _data));
     }
   }
-
-  // List<Message> _withUnreadMessages(List<Message> messages) {
-  //   if (messages.isEmpty) return [];
-  //
-  //   var newList = <Message>[];
-  //   bool isStopMessageFound = false;
-  //   for (int i = 0; i < messages.length; i++) {
-  //     if (messages[i].isCurrentUser) {
-  //       /// message of current user, unreadMessagesLine can't be above, so end the loop
-  //       newList.addAll(messages.sublist(i));
-  //       isStopMessageFound = true;
-  //       break;
-  //     }
-  //     if (messages[i].isRead) {
-  //       /// message of not current user is read. If it's first message, then
-  //       /// don't need the line. If it's not the first one, then add the line
-  //       if (i != 0) {
-  //         newList.add(Message.unreadMessages());
-  //       }
-  //       newList.addAll(messages.sublist(i));
-  //       isStopMessageFound = true;
-  //       break;
-  //     }
-  //
-  //     /// message of not current user that unread, go to the next one
-  //     newList.add(messages[i]);
-  //   }
-  //   if (!isStopMessageFound) {
-  //     /// means this is new chat with unread messages from other user
-  //     newList.add(Message.unreadMessages());
-  //   }
-  //
-  //   return newList;
-  // }
 
   void _onReadMessagesBeforeTime(
     ChatEventReadMessagesBeforeTime event,
@@ -255,7 +242,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onConnectionChanged(
-    ChatEventConnectingChanged event,
+    _ChatEventConnectingChanged event,
     Emitter<ChatState> emit,
   ) {
     _data = _data.copyWith(isConnected: event.isConnected);
@@ -275,14 +262,14 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onChangeUnreadCount(
-    ChatEventChangeUnreadCount event,
+    _ChatEventChangeUnreadCount event,
     Emitter<ChatState> emit,
   ) {
     _data = _data.copyWith(unreadCount: event.newCount);
     emit(ChatStateBase(data: _data));
   }
 
-  void _onEmitMessages(ChatEventEmitMessages event, Emitter<ChatState> emit) {
+  void _onEmitMessages(_ChatEventEmitMessages event, Emitter<ChatState> emit) {
     final messages = event.data.messages.toList(growable: false);
     final newMessages = <Message>[];
 
@@ -355,11 +342,32 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(ChatStateBase(data: _data));
   }
 
-  void _onEmitError(ChatEventEmitError event, Emitter<ChatState> emit) {
+  void _onOnlineStatusUpdate(
+    _ChatEventOnlineStatusUpdate event,
+    Emitter<ChatState> emit,
+  ) {
+    final update = event.update;
+    if (_data.otherUser?.id == update.userId) {
+      _data = _data.copyWith(
+        otherUser: _data.otherUser?.copyWith(
+          isOnline: update.isOnline,
+          lastActivityTime: update.lastActivityTime,
+        ),
+      );
+      emit(ChatStateBase(data: _data));
+    }
+  }
+
+  void _onEmitError(_ChatEventEmitError event, Emitter<ChatState> emit) {
     final e = event.error;
     final st = event.stackTrace;
     logger.e(e, stackTrace: st);
     emit(ChatStateMessage(message: e.userErrorMessage, isError: true));
+    emit(ChatStateBase(data: _data));
+  }
+
+  void _onEmitOtherUser(_ChatEventEmitOtherUser event, Emitter<ChatState> emit) {
+    _data = _data.copyWith(otherUser: event.otherUser);
     emit(ChatStateBase(data: _data));
   }
 
@@ -368,6 +376,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _messagesUpdatesSub.cancel();
     _connectionStateSub.cancel();
     _chatUpdatesSub.cancel();
+    _onlineUpdatesSub.cancel();
     return super.close();
   }
 }
@@ -397,30 +406,11 @@ class ChatEventLoad implements ChatEvent {
        );
 }
 
-class ChatEventEmitMessages implements ChatEvent {
-  final MessagesCollection data;
-
-  const ChatEventEmitMessages({required this.data});
-}
-
-class ChatEventEmitError implements ChatEvent {
-  final Object error;
-  final StackTrace stackTrace;
-
-  const ChatEventEmitError({required this.error, required this.stackTrace});
-}
-
 class ChatEventLoadMore implements ChatEvent {
   /// to load more if list was significantly scrolled on top
   final int? toMessageId;
 
   const ChatEventLoadMore({required this.toMessageId});
-}
-
-class ChatEventConnectingChanged implements ChatEvent {
-  final bool isConnected;
-
-  const ChatEventConnectingChanged(this.isConnected);
 }
 
 class ChatEventSendMessage implements ChatEvent {
@@ -445,8 +435,39 @@ class ChatEventReadMessagesBeforeTime implements ChatEvent {
   ChatEventReadMessagesBeforeTime({required this.time});
 }
 
-class ChatEventChangeUnreadCount implements ChatEvent {
+class _ChatEventConnectingChanged implements ChatEvent {
+  final bool isConnected;
+
+  const _ChatEventConnectingChanged(this.isConnected);
+}
+
+class _ChatEventEmitOtherUser implements ChatEvent {
+  final User otherUser;
+
+  _ChatEventEmitOtherUser(this.otherUser);
+}
+
+class _ChatEventOnlineStatusUpdate implements ChatEvent {
+  final OnlineStatusUpdate update;
+
+  _ChatEventOnlineStatusUpdate(this.update);
+}
+
+class _ChatEventChangeUnreadCount implements ChatEvent {
   final int newCount;
 
-  ChatEventChangeUnreadCount({required this.newCount});
+  _ChatEventChangeUnreadCount({required this.newCount});
+}
+
+class _ChatEventEmitMessages implements ChatEvent {
+  final MessagesCollection data;
+
+  const _ChatEventEmitMessages({required this.data});
+}
+
+class _ChatEventEmitError implements ChatEvent {
+  final Object error;
+  final StackTrace stackTrace;
+
+  const _ChatEventEmitError({required this.error, required this.stackTrace});
 }
