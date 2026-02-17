@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:kepleomax/core/app.dart';
+import 'package:kepleomax/core/app_constants.dart';
 import 'package:kepleomax/core/data/db/local_database_manager.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/di/initialize_dependencies.dart';
@@ -17,7 +18,9 @@ import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
+import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
+import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retrofit/dio.dart';
 
@@ -49,13 +52,10 @@ void main() {
 
     Future<void> setupAppWithChats(WidgetTester tester, List<ChatDto> chats, {bool getChatsAsyncControl = false, bool connect = true}) async {
       when(dp.chatsApi.getChats()).thenAnswer((_) async {
-        final id = DateTime.now().second;
         if (getChatsAsyncControl) {
-          print('$id setup completer');
           _getChatsCompleter = Completer();
           await _getChatsCompleter.future;
         }
-        print('$id send chats');
         return HttpResponse(ChatsResponse(data: chats, message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
       });
       when((dp.chatsApi as MockChatsApi).getChatWithId(chatId: anyNamed("chatId"))).thenAnswer((inv) async {
@@ -137,11 +137,11 @@ void main() {
 
       /// check
       tester.checkChatsOrder([0, 1, 2, 3, 4]);
-      tester.getChat(0).check(unreadCount: 2, unreadIcon: false, readIcon: false, message: 'MSG_0', msgFromCurrentUser: false, otherUserName: 'OTHER_USERNAME_1');
-      tester.getChat(1).check(unreadCount: 4, unreadIcon: false, readIcon: false, message: 'MSG_1', msgFromCurrentUser: false, otherUserName: 'OTHER_USERNAME_2');
-      tester.getChat(2).check(unreadCount: 0, unreadIcon: true, readIcon: false, message: 'MSG_2', msgFromCurrentUser: true, otherUserName: 'OTHER_USERNAME_3');
-      tester.getChat(3).check(unreadCount: 0, unreadIcon: false, readIcon: true, message: 'MSG_3', msgFromCurrentUser: true, otherUserName: 'OTHER_USERNAME_4');
-      tester.getChat(4).check(unreadCount: 0, unreadIcon: false, readIcon: false, message: 'MSG_4', msgFromCurrentUser: false, otherUserName: 'OTHER_USERNAME_5');
+      tester.getChat(0).check(unreadCount: 2, unreadIcon: false, readIcon: false, message: 'MSG_0', msgFromCurrentUser: false, otherUserName: 'OTHER_USERNAME_1', isOnline: true);
+      tester.getChat(1).check(unreadCount: 4, unreadIcon: false, readIcon: false, message: 'MSG_1', msgFromCurrentUser: false, otherUserName: 'OTHER_USERNAME_2', isOnline: false);
+      tester.getChat(2).check(unreadCount: 0, unreadIcon: true, readIcon: false, message: 'MSG_2', msgFromCurrentUser: true, otherUserName: 'OTHER_USERNAME_3', isOnline: false);
+      tester.getChat(3).check(unreadCount: 0, unreadIcon: false, readIcon: true, message: 'MSG_3', msgFromCurrentUser: true, otherUserName: 'OTHER_USERNAME_4', isOnline: false);
+      tester.getChat(4).check(unreadCount: 0, unreadIcon: false, readIcon: false, message: 'MSG_4', msgFromCurrentUser: false, otherUserName: 'OTHER_USERNAME_5', isOnline: false);
     });
 
     testWidgets('unread_count_test', (tester) async {
@@ -384,13 +384,88 @@ void main() {
     testWidgets('new_message_from_new_chat_test', (tester) async {
       await setupAppWithChats(tester, [chatDto0, chatDto1]);
 
-      /// wait to chats are loaded, check, add message, check
+      /// wait for chats to load, check, add message, check
       await tester.pumpAndSettle(const Duration(milliseconds: 10));
       tester.checkChatsOrder([0, 1]);
       ws.addMessage(chatDto3.lastMessage!);
       await tester.pumpAndSettle();
       tester.checkChatsOrder([3, 0, 1]);
       tester.getChat(3).check(message: chatDto3.lastMessage!.message, msgFromCurrentUser: chatDto3.lastMessage!.isCurrentUser, otherUserName: chatDto3.otherUser.username);
+    });
+
+    testWidgets('online_status_test', (tester) async {
+      await setupAppWithChats(tester, [chatDto1]);
+
+      /// update online status to another user, check
+      tester.getChat(1).check(isOnline: false);
+      ws.addOnlineUpdate(OnlineStatusUpdate(userId: 1, isOnline: true, lastActivityTime: DateTime.now().millisecondsSinceEpoch));
+      await tester.pumpAndSettle();
+      tester.getChat(1).check(isOnline: false);
+
+      /// update online to first chat user, check
+      ws.addOnlineUpdate(OnlineStatusUpdate(userId: 2, isOnline: true, lastActivityTime: DateTime.now().millisecondsSinceEpoch));
+      await tester.pumpAndSettle();
+      tester.getChat(1).check(isOnline: true);
+
+      /// update online to first chat user, check
+      ws.addOnlineUpdate(OnlineStatusUpdate(userId: 2, isOnline: false, lastActivityTime: DateTime.now().millisecondsSinceEpoch));
+      await tester.pumpAndSettle();
+      tester.getChat(1).check(isOnline: false);
+    });
+
+    testWidgets('long_online_status_test', (tester) async {
+      await setupAppWithChats(tester, [chatDto1]);
+
+      /// update online, check, wait, check
+      tester.getChat(1).check(isOnline: false);
+      ws.addOnlineUpdate(OnlineStatusUpdate(userId: 2, isOnline: true, lastActivityTime: DateTime.now().millisecondsSinceEpoch - (AppConstants.markAsOfflineAfterInactivityInSeconds - 1) * 1000));
+      await tester.pumpAndSettle();
+      tester.getChat(1).check(isOnline: true);
+      await tester.pumpAndSettle(const Duration(milliseconds: 1500));
+      tester.getChat(1).check(isOnline: false);
+
+      /// again
+      ws.addOnlineUpdate(OnlineStatusUpdate(userId: 2, isOnline: true, lastActivityTime: DateTime.now().millisecondsSinceEpoch - (AppConstants.markAsOfflineAfterInactivityInSeconds - 1) * 1000));
+      await tester.pumpAndSettle();
+      tester.getChat(1).check(isOnline: true);
+      await tester.pumpAndSettle(const Duration(milliseconds: 1500));
+      tester.getChat(1).check(isOnline: false);
+    });
+
+    testWidgets('typing_and_new_message_test', (tester) async {
+      await setupAppWithChats(tester, [chatDto0]);
+
+      /// add typingUpdate to another chat, check
+      tester.getChat(0).check(isTyping: false);
+      ws.addTypingUpdate(const TypingActivityUpdate(chatId: 1, isTyping: true));
+      await tester.pumpAndSettle();
+      tester.getChat(0).check(isTyping: false);
+
+      /// add typingUpdate to the first chat, check
+      ws.addTypingUpdate(const TypingActivityUpdate(chatId: 0, isTyping: true));
+      await tester.pumpAndSettle();
+      tester.getChat(0).check(isTyping: true);
+
+      /// add newMessage, check
+      ws.addMessage(messageDto0);
+      await tester.pumpAndSettle();
+      tester.getChat(0).check(isTyping: false);
+    });
+
+    testWidgets('typing_long_test', (tester) async {
+      await setupAppWithChats(tester, [chatDto0]);
+
+      /// add typingUpdate, check
+      tester.getChat(0).check(isTyping: false);
+      ws.addTypingUpdate(const TypingActivityUpdate(chatId: 0, isTyping: true));
+      await tester.pumpAndSettle();
+      tester.getChat(0).check(isTyping: true);
+
+      /// wait, check, wait, check
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+      tester.getChat(0).check(isTyping: true);
+      await tester.pumpAndSettle(const Duration(milliseconds: 1200));
+      tester.getChat(0).check(isTyping: false);
     });
 
     /// TODO all messages from chat are deleted

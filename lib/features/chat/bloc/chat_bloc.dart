@@ -73,14 +73,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           event,
           emit,
         ),
-
-        /// local events
-        _ChatEventConnectingChanged event => _onConnectionChanged(event, emit),
-        _ChatEventChangeUnreadCount event => _onChangeUnreadCount(event, emit),
-        _ChatEventEmitMessages event => _onEmitMessages(event, emit),
-        _ChatEventEmitError event => _onEmitError(event, emit),
-        _ChatEventOnlineStatusUpdate event => _onOnlineStatusUpdate(event, emit),
-        _ChatEventEmitOtherUser event => _onEmitOtherUser(event, emit),
         _ => () {},
       },
       transformer: sequential(),
@@ -99,7 +91,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatEventDeleteMessage>(_onDeleteMessage);
     on<ChatEventReadAllMessages>(_onReadAllMessages);
     on<ChatEventEditText>(_onEditText);
+
+    /// local events
     on<_ChatEventTypingUpdate>(_onTypingUpdate, transformer: restartable());
+    on<_ChatEventEmitOtherUser>(_onEmitOtherUser);
+    on<_ChatEventOnlineStatusUpdate>(_onOnlineStatusUpdate);
+    on<_ChatEventEmitError>(_onEmitError);
+    on<_ChatEventEmitMessages>(_onEmitMessages);
+    on<_ChatEventConnectingChanged>(_onConnectionChanged);
+    on<_ChatEventChangeUnreadCount>(_onChangeUnreadCount);
   }
 
   void _onInit(ChatEventInit event, Emitter<ChatState> emit) {

@@ -58,7 +58,6 @@ extension TesterExtension on WidgetTester {
   MessageChecker getMessage(int id) =>
       MessageChecker(find.byKey(Key('message_$id')));
 
-
   void checkChatsAppBarStatus(ChatsAppBarStatus expected) {
     String text;
     switch (expected) {
@@ -88,6 +87,10 @@ extension TesterExtension on WidgetTester {
         return;
     }
     expect(textByKey(const Key('chat_app_bar_status_text')), equals(text));
+  }
+
+  void checkChatOtherUserStatus(String expected) {
+    expect(textByKey(const Key('user_status_text')), contains(expected));
   }
 
   void checkFindPeopleButton({required bool isShown}) {

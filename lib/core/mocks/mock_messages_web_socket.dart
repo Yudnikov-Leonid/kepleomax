@@ -28,6 +28,12 @@ class MockMessagesWebSocket implements MessagesWebSocket {
   void addDeletedMessagesUpdate(DeletedMessageUpdate update) =>
       _deletedMessageController.add(update);
 
+  void addOnlineUpdate(OnlineStatusUpdate update) =>
+      _onlineUpdatesController.add(update);
+
+  void addTypingUpdate(TypingActivityUpdate update) =>
+      _typingUpdatesController.add(update);
+
   void setNextSendMessageId(int value) {
     _nextSendMessageId = value;
   }
@@ -59,6 +65,10 @@ class MockMessagesWebSocket implements MessagesWebSocket {
   final StreamController<DeletedMessageUpdate> _deletedMessageController =
       StreamController.broadcast();
   final StreamController<bool> _connectionController = StreamController.broadcast();
+  final StreamController<OnlineStatusUpdate> _onlineUpdatesController =
+      StreamController.broadcast();
+  final StreamController<TypingActivityUpdate> _typingUpdatesController =
+      StreamController.broadcast();
 
   @override
   Stream<MessageDto> get newMessageStream => _messageController.stream;
@@ -73,6 +83,14 @@ class MockMessagesWebSocket implements MessagesWebSocket {
 
   @override
   Stream<bool> get connectionStateStream => _connectionController.stream;
+
+  @override
+  Stream<OnlineStatusUpdate> get onlineUpdatesStream =>
+      _onlineUpdatesController.stream;
+
+  @override
+  Stream<TypingActivityUpdate> get typingUpdatesStream =>
+      _typingUpdatesController.stream;
 
   /// websocket
   @override
@@ -128,23 +146,11 @@ class MockMessagesWebSocket implements MessagesWebSocket {
   }
 
   @override
-  void subscribeOnOnlineStatusUpdates({required Iterable<int> usersIds}) {
-    throw UnimplementedError();
-  }
+  void subscribeOnOnlineStatusUpdates({required Iterable<int> usersIds}) {}
 
   @override
-  Stream<OnlineStatusUpdate> get onlineUpdatesStream => throw UnimplementedError();
+  void activityDetected() {}
 
   @override
-  Stream<TypingActivityUpdate> get typingUpdatesStream => throw UnimplementedError();
-
-  @override
-  void activityDetected() {
-    throw UnimplementedError();
-  }
-
-  @override
-  void typingActivityDetected({required int chatId}) {
-    throw UnimplementedError();
-  }
+  void typingActivityDetected({required int chatId}) {}
 }

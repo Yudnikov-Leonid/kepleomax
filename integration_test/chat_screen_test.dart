@@ -19,6 +19,8 @@ import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
+import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
+import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retrofit/dio.dart';
 
@@ -263,6 +265,50 @@ void main() {
       ws.addMessage(messageDto0);
       await tester.pumpAndSettle();
       tester.checkMessagesOrder([0, 1, Message.unreadMessagesId, Message.dateId], countSystem: true);
+    });
+
+    testWidgets('online_status_test', (tester) async {
+      await setupApp(tester, chatDto0, []);
+
+      /// check, add onlineUpdate: false, check
+      tester.checkChatOtherUserStatus('online');
+      ws.addOnlineUpdate(const OnlineStatusUpdate(userId: 1, isOnline: false, lastActivityTime: 0));
+      await tester.pumpAndSettle();
+      tester.checkChatOtherUserStatus('last seen a long time ago');
+
+      /// add onlineUpdate: true, check, wait, check
+      ws.addOnlineUpdate(OnlineStatusUpdate(userId: 1, isOnline: true, lastActivityTime: DateTime.now().millisecondsSinceEpoch - (AppConstants.markAsOfflineAfterInactivityInSeconds - 1) * 1000));
+      await tester.pumpAndSettle();
+      tester.checkChatOtherUserStatus('online');
+      await tester.pumpAndSettle(const Duration(milliseconds: 1500));
+      tester.checkChatOtherUserStatus('last seen at');
+    });
+
+    /// can't check newMessage here, cause when new_message event is received,
+    /// websocket handles it as both newMessage and typingActivity: set to false
+    /// there is a mockWebsocket, so can't check its own handlers of events
+    testWidgets('typing_test', (tester) async {
+      await setupApp(tester, chatDto0, []);
+
+      /// check, add typingUpdate, check
+      tester.checkChatOtherUserStatus('online');
+      ws.addTypingUpdate(const TypingActivityUpdate(chatId: 0, isTyping: true));
+      await tester.pumpAndSettle();
+      tester.checkChatOtherUserStatus('typing..');
+
+      /// add typingUpdate, check
+      ws.addTypingUpdate(const TypingActivityUpdate(chatId: 0, isTyping: false));
+      await tester.pumpAndSettle();
+      tester.checkChatOtherUserStatus('online');
+
+      /// add typingUpdate, check, wait, check
+      ws.addTypingUpdate(const TypingActivityUpdate(chatId: 0, isTyping: true));
+      await tester.pumpAndSettle();
+      tester.checkChatOtherUserStatus('typing..');
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+      tester.checkChatOtherUserStatus('typing..');
+      await tester.pumpAndSettle(const Duration(milliseconds: 1500));
+      tester.checkChatOtherUserStatus('online');
     });
 
     /// TODO system dates messages test

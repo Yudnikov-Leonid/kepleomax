@@ -101,7 +101,7 @@ class _MessageTextWidgetState extends State<_MessageTextWidget> {
 
   @override
   void initState() {
-    _timer = Timer.periodic(const Duration(seconds: 3), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (widget.chat.lastTypingActivityTime == null) {
         return;
       }

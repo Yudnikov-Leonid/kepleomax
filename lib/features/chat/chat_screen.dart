@@ -455,6 +455,7 @@ class _UserStatusWidgetState extends State<_UserStatusWidget> {
   Widget build(BuildContext context) {
     return Text(
       widget.data.isTyping ? 'typing..' : _onlineStatusText(widget.data.otherUser!),
+      key: const Key('user_status_text'),
       style: context.textTheme.bodyMedium?.copyWith(
         fontSize: 13,
         fontWeight: FontWeight.w400,
@@ -465,14 +466,16 @@ class _UserStatusWidgetState extends State<_UserStatusWidget> {
 
   String _onlineStatusText(User user) {
     if (user.showOnlineStatus) {
-      _timer ??= Timer.periodic(const Duration(seconds: 5), (t) {
+      _timer ??= Timer.periodic(const Duration(seconds: 1), (timer) {
         if (!user.showOnlineStatus) {
           setState(() {});
-          t.cancel();
+          timer.cancel();
         }
       });
       return 'online';
     } else {
+      _timer?.cancel();
+      _timer = null;
       return ParseTime.toOnlineStatus(
         DateTime.fromMillisecondsSinceEpoch(user.lastActivityTime),
       );

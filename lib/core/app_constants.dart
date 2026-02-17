@@ -3,7 +3,7 @@ class AppConstants {
 
   static const sendActivityDelayInSeconds = 30;
   static const markAsOfflineAfterInactivityInSeconds = 60;
-  static const showTypingAfterActivityForSeconds = 5;
+  static const showTypingAfterActivityForSeconds = 3;
 
   /// TODO change it for tests
   static const msgPagingLimit = 15;

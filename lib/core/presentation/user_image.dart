@@ -106,10 +106,7 @@ class DefaultUserIcon extends StatelessWidget {
 }
 
 class _OnlineIndicator extends StatefulWidget {
-  const _OnlineIndicator({
-    required this.user,
-    required this.onlineIconSize,
-  });
+  const _OnlineIndicator({required this.user, required this.onlineIconSize});
 
   final User user;
   final double onlineIconSize;
@@ -120,13 +117,19 @@ class _OnlineIndicator extends StatefulWidget {
 
 class _OnlineIndicatorState extends State<_OnlineIndicator> {
   late Timer _timer;
+  bool _isOnline = false;
 
   @override
   void initState() {
+    _isOnline = widget.user.showOnlineStatus;
+
     /// this timer is needed cause user.showOnlineStatus depends on DateTime.now()
     /// and can be changed to false at some point
-    _timer = Timer.periodic(const Duration(seconds: 10), (_) {
-      setState(() {});
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (widget.user.showOnlineStatus != _isOnline) {
+        setState(() {});
+        /// isOnline will be changed in build()
+      }
     });
     super.initState();
   }
@@ -139,10 +142,12 @@ class _OnlineIndicatorState extends State<_OnlineIndicator> {
 
   @override
   Widget build(BuildContext context) {
+    _isOnline = widget.user.showOnlineStatus;
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 100),
-      opacity: widget.user.showOnlineStatus == true ? 1 : 0,
+      opacity: _isOnline == true ? 1 : 0,
       child: Container(
+        key: Key(_isOnline ? 'online_indicator' : 'hidden_online_indicator'),
         height: widget.onlineIconSize,
         width: widget.onlineIconSize,
         decoration: BoxDecoration(

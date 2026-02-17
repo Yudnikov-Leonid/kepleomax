@@ -25,6 +25,7 @@ extension _OnNewMessageExtension on MessengerRepositoryImpl {
           0,
           affectedChat.copyWith(
             lastMessage: Message.fromDto(messageDto),
+            lastTypingActivityTime: null,
             unreadCount:
                 affectedChat.unreadCount +
                 (!messageDto.isCurrentUser && !messageDto.isRead ? 1 : 0),

@@ -3,7 +3,7 @@ class OnlineStatusUpdate {
   final bool isOnline;
   final int lastActivityTime;
 
-  OnlineStatusUpdate({
+  const OnlineStatusUpdate({
     required this.userId,
     required this.isOnline,
     required this.lastActivityTime,
