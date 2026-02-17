@@ -34,6 +34,7 @@ import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/middlewares/auth_interceptor.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
+import 'package:kepleomax/core/settings/app_settings.dart';
 import 'package:kepleomax/firebase_options.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -63,6 +64,7 @@ Future<Dependencies> initializeDependencies({bool useMocks = false}) async {
 List<_InitializationStep> _steps = [
   _InitializationStep('storages', (dp) async {
     dp.sharedPreferences = await SharedPreferences.getInstance();
+    dp.appSettings = AppSettingsImpl(prefs: dp.sharedPreferences);
     dp.secureStorage = const FlutterSecureStorage();
     CachedNetworkImage.logLevel = CacheManagerLogLevel.verbose;
   }),

@@ -21,6 +21,7 @@ import 'package:kepleomax/core/network/apis/profile/profile_api.dart';
 import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
+import 'package:kepleomax/core/settings/app_settings.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
@@ -32,6 +33,7 @@ class Dependencies {
   late final FlutterSecureStorage secureStorage;
   late final PrettyDioLogger prettyDioLogger;
   late final Database database;
+  late final AppSettings appSettings;
 
   late final Dio dio;
   late final AuthApi authApi;

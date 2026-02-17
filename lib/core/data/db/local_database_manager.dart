@@ -50,9 +50,11 @@ class LocalDatabaseManager {
     if (_db != null) {
       // await deleteDatabase(_db!.path);
       // _db = null;
-      await _db!.delete('messages');
-      await _db!.delete('chats');
-      await _db!.delete('users');
+      await _db!.transaction((transaction) async {
+        await transaction.delete('messages');
+        await transaction.delete('chats');
+        await transaction.delete('users');
+      });
     }
   }
 }

@@ -24,6 +24,10 @@ class MessageWidget extends StatelessWidget {
       return _ChatDateWidget(date: message.createdAt);
     }
 
+    final bool highlightCacheMessages = Dependencies.of(
+      context,
+    ).appSettings.highlightCacheMessages;
+
     final globalKey = GlobalKey();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -81,7 +85,9 @@ class MessageWidget extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: (_isCurrent ? KlmColors.currentUserBg : Colors.white)
-                    .withGreen(message.fromCache ? 150 : 255),
+                    .withGreen(
+                      message.fromCache && highlightCacheMessages ? 150 : 255,
+                    ),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),

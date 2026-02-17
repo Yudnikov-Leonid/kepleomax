@@ -279,11 +279,14 @@ class _LastSeenWidget extends StatefulWidget {
 
 class _LastSeenWidgetState extends State<_LastSeenWidget> {
   late Timer _timer;
+  bool _showOnline = false;
 
   @override
   void initState() {
-    _timer = Timer.periodic(const Duration(seconds: 10), (_) {
-      setState(() {});
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (_showOnline != widget.user.showOnlineStatus) {
+        setState(() {});
+      }
     });
     super.initState();
   }
@@ -296,10 +299,11 @@ class _LastSeenWidgetState extends State<_LastSeenWidget> {
 
   @override
   Widget build(BuildContext context) {
+    _showOnline = widget.user.showOnlineStatus;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Text(
-        widget.user.showOnlineStatus
+        _showOnline
             ? 'online'
             : ParseTime.toOnlineStatus(
                 DateTime.fromMillisecondsSinceEpoch(widget.user.lastActivityTime),
