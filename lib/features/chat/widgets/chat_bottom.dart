@@ -2,12 +2,14 @@ part of '../chat_screen.dart';
 
 class _ChatBottom extends StatefulWidget {
   const _ChatBottom({
-    required ValueChanged<String>? onSend,
+    required this.onSend,
+    required this.onEdit,
     required this.isLoading,
     super.key,
-  }) : _onSend = onSend;
+  });
 
-  final ValueChanged<String>? _onSend;
+  final ValueChanged<String>? onSend;
+  final ValueChanged<String>? onEdit;
   final bool isLoading;
 
   @override
@@ -55,7 +57,7 @@ class _ChatBottomState extends State<_ChatBottom> {
                 key: const Key('message_input_field'),
                 controller: _controller,
                 hint: 'Message',
-                onChanged: (newText) {},
+                onChanged: widget.onEdit,
                 multiline: true,
                 maxLength: 4000,
                 textCapitalization: TextCapitalization.sentences,
@@ -72,7 +74,7 @@ class _ChatBottomState extends State<_ChatBottom> {
               duration: const Duration(milliseconds: 100),
               child: _controller.text.isNotEmpty && !widget.isLoading
                   ? _SendMessageButton(
-                      onPressed: widget._onSend == null ? null : _sendButtonOnPress,
+                      onPressed: widget.onSend == null ? null : _sendButtonOnPress,
                     )
                   : _VoiceMessageButton(onPressed: () {}),
             ),
@@ -84,7 +86,7 @@ class _ChatBottomState extends State<_ChatBottom> {
 
   void _sendButtonOnPress() {
     if (_controller.text.isEmpty || widget.isLoading) return;
-    widget._onSend!(_controller.text.trim());
+    widget.onSend!(_controller.text.trim());
     _controller.clear();
     setState(() {});
   }

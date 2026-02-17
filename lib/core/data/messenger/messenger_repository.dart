@@ -13,6 +13,7 @@ import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
 import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
+import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 
 import '../local_data_sources/chats_local_data_source.dart';
 import '../local_data_sources/messages_local_data_source.dart';
@@ -26,6 +27,8 @@ part 'on_read_messages.dart';
 part 'on_delete_message.dart';
 
 part 'on_online_update.dart';
+
+part 'on_typing_update.dart';
 
 abstract class MessengerRepository {
   /// api/db calls
@@ -82,10 +85,11 @@ class MessengerRepositoryImpl implements MessengerRepository {
        _messagesLocal = messagesLocalDataSource,
        _usersLocal = usersLocalDataSource,
        _combiner = combiner {
-    _webSocket.newMessageStream.listen(_onNewMessage, cancelOnError: false);
-    _webSocket.readMessagesStream.listen(_onReadMessages, cancelOnError: false);
-    _webSocket.deletedMessageStream.listen(_onDeletedMessage, cancelOnError: false);
-    _webSocket.onlineUpdatesStream.listen(_onOnlineUpdate, cancelOnError: false);
+    _webSocket.newMessageStream.listen(_onNewMessage);
+    _webSocket.readMessagesStream.listen(_onReadMessages);
+    _webSocket.deletedMessageStream.listen(_onDeletedMessage);
+    _webSocket.onlineUpdatesStream.listen(_onOnlineUpdate);
+    _webSocket.typingUpdatesStream.listen(_onTypingUpdate);
   }
 
   /// emitters

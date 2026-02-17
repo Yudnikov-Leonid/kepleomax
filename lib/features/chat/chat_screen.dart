@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
@@ -267,12 +268,16 @@ class _BodyState extends State<_Body> {
               ),
               _ChatBottom(
                 onSend: (message) {
+                  if (data.isLoading || !data.isConnected) return;
                   widget.scrollController.animateTo(
                     0,
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeOut,
                   );
-                  _chatBloc.add(ChatEventSendMessage(messageBody: message));
+                  _chatBloc.add(ChatEventSendMessage(value: message));
+                },
+                onEdit: (message) {
+                  _chatBloc.add(ChatEventEditText(value: message));
                 },
                 isLoading: data.isLoading,
                 key: const Key('chat_bottom'),
@@ -343,9 +348,12 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
 
         if (oldState is! ChatStateBase) return true;
 
-        return oldState.data.otherUser != newState.data.otherUser ||
-            oldState.data.isLoading != newState.data.isLoading ||
-            oldState.data.isConnected != newState.data.isConnected;
+        final oldData = oldState.data;
+        final newData = newState.data;
+        return oldData.otherUser != newData.otherUser ||
+            oldData.isLoading != newData.isLoading ||
+            oldData.isConnected != newData.isConnected ||
+            oldData.isTyping != newData.isTyping;
       },
       builder: (context, state) {
         if (state is! ChatStateBase) return const SizedBox();
@@ -404,14 +412,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                         if (!data.isLoading &&
                             data.isConnected &&
                             data.otherUser != null)
-                          Text(
-                            _onlineStatusText(data.otherUser!),
-                            style: context.textTheme.bodyMedium?.copyWith(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
+                          _UserStatusWidget(data: data),
                       ],
                     ),
                   ),
@@ -428,8 +429,48 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class _UserStatusWidget extends StatefulWidget {
+  const _UserStatusWidget({required this.data});
+
+  final ChatData data;
+
+  @override
+  State<_UserStatusWidget> createState() => _UserStatusWidgetState();
+}
+
+class _UserStatusWidgetState extends State<_UserStatusWidget> {
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      widget.data.isTyping ? 'typing..' : _onlineStatusText(widget.data.otherUser!),
+      style: context.textTheme.bodyMedium?.copyWith(
+        fontSize: 13,
+        fontWeight: FontWeight.w400,
+        color: Colors.grey.shade600,
+      ),
+    );
+  }
+
   String _onlineStatusText(User user) {
     if (user.showOnlineStatus) {
+      _timer ??= Timer.periodic(const Duration(seconds: 5), (t) {
+        if (!user.showOnlineStatus) {
+          setState(() {});
+          t.cancel();
+        }
+      });
       return 'online';
     } else {
       return ParseTime.toOnlineStatus(
@@ -437,7 +478,4 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
       );
     }
   }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

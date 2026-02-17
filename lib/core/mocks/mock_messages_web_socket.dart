@@ -5,6 +5,7 @@ import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
 import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
+import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 
 class MockMessagesWebSocket implements MessagesWebSocket {
   /// testing stuff
@@ -135,7 +136,15 @@ class MockMessagesWebSocket implements MessagesWebSocket {
   Stream<OnlineStatusUpdate> get onlineUpdatesStream => throw UnimplementedError();
 
   @override
+  Stream<TypingActivityUpdate> get typingUpdatesStream => throw UnimplementedError();
+
+  @override
   void activityDetected() {
+    throw UnimplementedError();
+  }
+
+  @override
+  void typingActivityDetected({required int chatId}) {
     throw UnimplementedError();
   }
 }

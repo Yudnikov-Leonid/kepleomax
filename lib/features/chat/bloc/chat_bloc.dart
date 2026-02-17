@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kepleomax/core/app_constants.dart';
 import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/connection_repository.dart';
 import 'package:kepleomax/core/data/messenger/messenger_repository.dart';
@@ -11,6 +12,7 @@ import 'package:kepleomax/core/flavor.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
+import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:kepleomax/core/logger.dart';
@@ -26,6 +28,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   late StreamSubscription _connectionStateSub;
   late StreamSubscription _chatUpdatesSub;
   late StreamSubscription _onlineUpdatesSub;
+  late StreamSubscription _typingUpdatesSub;
 
   ChatBloc({
     required MessengerRepository messengerRepository,
@@ -43,20 +46,23 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       onError: (e, st) {
         add(_ChatEventEmitError(error: e, stackTrace: st));
       },
-      cancelOnError: false,
     );
     _chatUpdatesSub = _messengerRepository.chatsUpdatesStream.listen((newList) {
       final currentChat = newList.chats.where((e) => e.id == chatId).firstOrNull;
       if (currentChat != null) {
         add(_ChatEventChangeUnreadCount(newCount: currentChat.unreadCount));
       }
-    }, cancelOnError: false);
+    });
     _connectionStateSub = _connectionRepository.connectionStateStream.listen(
       (isConnected) => add(_ChatEventConnectingChanged(isConnected)),
       cancelOnError: false,
     );
     _onlineUpdatesSub = _connectionRepository.onlineUpdatesStream.listen((update) {
       add(_ChatEventOnlineStatusUpdate(update));
+    });
+    _typingUpdatesSub = _connectionRepository.typingUpdatesStream.listen((update) {
+      if (_data.chatId != update.chatId) return;
+      add(_ChatEventTypingUpdate(update));
     });
 
     /// TODO why there is ChatEventReadMessagesBeforeTime here?
@@ -92,6 +98,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatEventSendMessage>(_onSendMessage);
     on<ChatEventDeleteMessage>(_onDeleteMessage);
     on<ChatEventReadAllMessages>(_onReadAllMessages);
+    on<ChatEventEditText>(_onEditText);
+    on<_ChatEventTypingUpdate>(_onTypingUpdate, transformer: restartable());
   }
 
   void _onInit(ChatEventInit event, Emitter<ChatState> emit) {
@@ -174,13 +182,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           }
         });
       }
+      final chat = _messengerRepository.currentChatsCollection.chats
+          .where((c) => c.id == chatId)
+          .firstOrNull;
       _data = _data.copyWith(
-        unreadCount:
-            _messengerRepository.currentChatsCollection.chats
-                .where((c) => c.id == chatId)
-                .firstOrNull
-                ?.unreadCount ??
-            0,
+        isTyping: chat?.isTypingRightNow ?? false,
+        unreadCount: chat?.unreadCount ?? 0,
       );
       emit(ChatStateBase(data: _data));
 
@@ -216,7 +223,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   void _onSendMessage(ChatEventSendMessage event, Emitter<ChatState> emit) {
     _connectionRepository.sendMessage(
-      messageBody: event.messageBody,
+      messageBody: event.value,
       recipientId: _data.otherUser!.id,
     );
   }
@@ -241,6 +248,21 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     }
   }
 
+  int _lastTimeActivityWasSent = 0;
+
+  void _onEditText(ChatEventEditText event, Emitter<ChatState> emit) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (_lastTimeActivityWasSent + 1000 > now) {
+      return;
+    }
+    _lastTimeActivityWasSent = now;
+
+    if (event.value.isNotEmpty) {
+      _connectionRepository.typingActivityDetected(chatId: _data.chatId);
+    }
+  }
+
+  /// private events
   void _onConnectionChanged(
     _ChatEventConnectingChanged event,
     Emitter<ChatState> emit,
@@ -371,12 +393,25 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(ChatStateBase(data: _data));
   }
 
+  void _onTypingUpdate(_ChatEventTypingUpdate event, Emitter<ChatState> emit) async {
+    _data = _data.copyWith(isTyping: event.update.isTyping);
+    emit(ChatStateBase(data: _data));
+    if (!event.update.isTyping) return;
+
+    await Future.delayed(
+      const Duration(seconds: AppConstants.showTypingAfterActivityForSeconds),
+    );
+    _data = _data.copyWith(isTyping: false);
+    emit(ChatStateBase(data: _data));
+  }
+
   @override
   Future<void> close() {
     _messagesUpdatesSub.cancel();
     _connectionStateSub.cancel();
     _chatUpdatesSub.cancel();
     _onlineUpdatesSub.cancel();
+    _typingUpdatesSub.cancel();
     return super.close();
   }
 }
@@ -414,9 +449,9 @@ class ChatEventLoadMore implements ChatEvent {
 }
 
 class ChatEventSendMessage implements ChatEvent {
-  final String messageBody;
+  final String value;
 
-  const ChatEventSendMessage({required this.messageBody});
+  const ChatEventSendMessage({required this.value});
 }
 
 class ChatEventDeleteMessage implements ChatEvent {
@@ -435,6 +470,12 @@ class ChatEventReadMessagesBeforeTime implements ChatEvent {
   ChatEventReadMessagesBeforeTime({required this.time});
 }
 
+class ChatEventEditText implements ChatEvent {
+  final String value;
+
+  ChatEventEditText({required this.value});
+}
+
 class _ChatEventConnectingChanged implements ChatEvent {
   final bool isConnected;
 
@@ -451,6 +492,12 @@ class _ChatEventOnlineStatusUpdate implements ChatEvent {
   final OnlineStatusUpdate update;
 
   _ChatEventOnlineStatusUpdate(this.update);
+}
+
+class _ChatEventTypingUpdate implements ChatEvent {
+  final TypingActivityUpdate update;
+
+  _ChatEventTypingUpdate(this.update);
 }
 
 class _ChatEventChangeUnreadCount implements ChatEvent {

@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$User {
 
- int get id; String get username; String? get profileImage; bool get isCurrent; bool get isOnline; int get lastActivityTime;
+ int get id; String get username; String? get profileImage; bool get isCurrent; bool get isOnline;/// TODO change to DateTime
+ int get lastActivityTime;
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -222,6 +223,7 @@ class _User extends User {
 @override final  String? profileImage;
 @override final  bool isCurrent;
 @override@JsonKey() final  bool isOnline;
+/// TODO change to DateTime
 @override@JsonKey() final  int lastActivityTime;
 
 /// Create a copy of User

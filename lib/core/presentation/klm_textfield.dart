@@ -28,7 +28,7 @@ class KlmTextField extends StatefulWidget {
   final String? label;
   final String? hint;
   final bool isPassword;
-  final ValueChanged<String> onChanged;
+  final ValueChanged<String>? onChanged;
   final bool showErrors;
   final List<String? Function(String)> validators; // for bool showError
   final FormFieldValidator<String>? validator; // for formKey validation
@@ -89,7 +89,7 @@ class _KlmTextFieldState extends State<KlmTextField> {
                 (widget.multiline ? TextInputType.multiline : null),
             onChanged: (value) {
               setState(() {});
-              widget.onChanged(value);
+              widget.onChanged?.call(value);
             },
             validator: widget.validator,
             readOnly: widget.readOnly,
@@ -108,7 +108,7 @@ class _KlmTextFieldState extends State<KlmTextField> {
                       child: InkWell(
                         onTap: () {
                           widget.controller.clear();
-                          widget.onChanged('');
+                          widget.onChanged?.call('');
                           setState(() {});
                         },
                         child: const Icon(

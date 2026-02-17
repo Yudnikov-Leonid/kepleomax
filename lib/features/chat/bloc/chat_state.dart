@@ -35,6 +35,7 @@ abstract class ChatData with _$ChatData implements ChatState {
     required int unreadCount,
     required bool isAllMessagesLoaded,
     required UnreadMessagesValue unreadMessagesValue,
+    @Default(false) bool isTyping,
     @Default(true) bool isLoading,
     @Default(false) bool isConnected,
   }) = _ChatData;

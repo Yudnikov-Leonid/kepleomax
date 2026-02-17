@@ -16,7 +16,7 @@ extension _OnNewMessageExtension on MessengerRepositoryImpl {
     if (_lastChatsCollection != null) {
       final newChats = List<Chat>.from(_lastChatsCollection!.chats);
       final affectedChat = newChats.firstWhereOrNull(
-            (chat) => chat.id == messageDto.chatId,
+        (chat) => chat.id == messageDto.chatId,
       );
       if (affectedChat != null) {
         _chatsLocal.increaseUnreadCountBy1(affectedChat.id);
@@ -26,7 +26,7 @@ extension _OnNewMessageExtension on MessengerRepositoryImpl {
           affectedChat.copyWith(
             lastMessage: Message.fromDto(messageDto),
             unreadCount:
-            affectedChat.unreadCount +
+                affectedChat.unreadCount +
                 (!messageDto.isCurrentUser && !messageDto.isRead ? 1 : 0),
           ),
         );

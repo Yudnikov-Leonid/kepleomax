@@ -29,10 +29,7 @@ class ChatWidget extends StatelessWidget {
                 key: ValueKey(chat.otherUser.showOnlineStatus),
                 height: 60,
                 width: 60,
-                child: UserImage(
-                  user: chat.otherUser,
-                  showOnlineIndicator: true,
-                ),
+                child: UserImage(user: chat.otherUser, showOnlineIndicator: true),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -51,38 +48,10 @@ class ChatWidget extends StatelessWidget {
                     if (chat.lastMessage != null) ...[
                       const SizedBox(height: 4),
                       FittedBox(
-                        child: Row(
-                          children: [
-                            if (chat.lastMessage!.isCurrentUser)
-                              Text(
-                                'You: ',
-                                style: context.textTheme.bodyLarge?.copyWith(
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxWidth: context.screenSize.width * 0.3,
-                              ),
-                              child: Text(
-                                chat.lastMessage!.message,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: context.textTheme.bodyLarge?.copyWith(
-                                  fontSize: 15,
-                                  color: Colors.grey.shade700,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              ' • ${ParseTime.toShortPassTime(chat.lastMessage!.createdAt)}',
-                              style: context.textTheme.bodyLarge?.copyWith(
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
+                        key: ValueKey(
+                          chat.lastTypingActivityTime?.millisecondsSinceEpoch,
                         ),
+                        child: _MessageTextWidget(chat: chat),
                       ),
                     ],
                   ],
@@ -112,5 +81,86 @@ class ChatWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _MessageTextWidget extends StatefulWidget {
+  const _MessageTextWidget({required this.chat});
+
+  final Chat chat;
+
+  @override
+  State<_MessageTextWidget> createState() => _MessageTextWidgetState();
+}
+
+class _MessageTextWidgetState extends State<_MessageTextWidget> {
+  late Timer _timer;
+  bool _isTyping = false;
+
+  bool get _isTypingRightNow => widget.chat.isTypingRightNow;
+
+  @override
+  void initState() {
+    _timer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (widget.chat.lastTypingActivityTime == null) {
+        return;
+      }
+      if (_isTypingRightNow && !_isTyping) {
+        setState(() {
+          _isTyping = true;
+        });
+      } else if (!_isTypingRightNow && _isTyping) {
+        setState(() {
+          _isTyping = false;
+        });
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _isTyping || _isTypingRightNow
+        ? Text(
+            'typing..',
+            style: context.textTheme.bodyLarge?.copyWith(
+              fontSize: 15,
+              color: Colors.grey.shade700,
+            ),
+          )
+        : Row(
+            children: [
+              if (widget.chat.lastMessage!.isCurrentUser)
+                Text(
+                  'You: ',
+                  style: context.textTheme.bodyLarge?.copyWith(color: Colors.grey),
+                ),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: context.screenSize.width * 0.3,
+                ),
+                child: Text(
+                  widget.chat.lastMessage!.message,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.textTheme.bodyLarge?.copyWith(
+                    fontSize: 15,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                ' • ${ParseTime.toShortPassTime(widget.chat.lastMessage!.createdAt)}',
+                style: context.textTheme.bodyLarge?.copyWith(color: Colors.grey),
+              ),
+            ],
+          );
   }
 }

@@ -807,7 +807,7 @@ as bool,
 mixin _$ChatData {
 
  int get chatId;/// if user in chat was null, this user will be used
- User? get otherUser; List<Message> get messages; int get unreadCount; bool get isAllMessagesLoaded; UnreadMessagesValue get unreadMessagesValue; bool get isLoading; bool get isConnected;
+ User? get otherUser; List<Message> get messages; int get unreadCount; bool get isAllMessagesLoaded; UnreadMessagesValue get unreadMessagesValue; bool get isTyping; bool get isLoading; bool get isConnected;
 /// Create a copy of ChatData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -818,16 +818,16 @@ $ChatDataCopyWith<ChatData> get copyWith => _$ChatDataCopyWithImpl<ChatData>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChatData&&(identical(other.chatId, chatId) || other.chatId == chatId)&&(identical(other.otherUser, otherUser) || other.otherUser == otherUser)&&const DeepCollectionEquality().equals(other.messages, messages)&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount)&&(identical(other.isAllMessagesLoaded, isAllMessagesLoaded) || other.isAllMessagesLoaded == isAllMessagesLoaded)&&(identical(other.unreadMessagesValue, unreadMessagesValue) || other.unreadMessagesValue == unreadMessagesValue)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChatData&&(identical(other.chatId, chatId) || other.chatId == chatId)&&(identical(other.otherUser, otherUser) || other.otherUser == otherUser)&&const DeepCollectionEquality().equals(other.messages, messages)&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount)&&(identical(other.isAllMessagesLoaded, isAllMessagesLoaded) || other.isAllMessagesLoaded == isAllMessagesLoaded)&&(identical(other.unreadMessagesValue, unreadMessagesValue) || other.unreadMessagesValue == unreadMessagesValue)&&(identical(other.isTyping, isTyping) || other.isTyping == isTyping)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,chatId,otherUser,const DeepCollectionEquality().hash(messages),unreadCount,isAllMessagesLoaded,unreadMessagesValue,isLoading,isConnected);
+int get hashCode => Object.hash(runtimeType,chatId,otherUser,const DeepCollectionEquality().hash(messages),unreadCount,isAllMessagesLoaded,unreadMessagesValue,isTyping,isLoading,isConnected);
 
 @override
 String toString() {
-  return 'ChatData(chatId: $chatId, otherUser: $otherUser, messages: $messages, unreadCount: $unreadCount, isAllMessagesLoaded: $isAllMessagesLoaded, unreadMessagesValue: $unreadMessagesValue, isLoading: $isLoading, isConnected: $isConnected)';
+  return 'ChatData(chatId: $chatId, otherUser: $otherUser, messages: $messages, unreadCount: $unreadCount, isAllMessagesLoaded: $isAllMessagesLoaded, unreadMessagesValue: $unreadMessagesValue, isTyping: $isTyping, isLoading: $isLoading, isConnected: $isConnected)';
 }
 
 
@@ -838,7 +838,7 @@ abstract mixin class $ChatDataCopyWith<$Res>  {
   factory $ChatDataCopyWith(ChatData value, $Res Function(ChatData) _then) = _$ChatDataCopyWithImpl;
 @useResult
 $Res call({
- int chatId, User? otherUser, List<Message> messages, int unreadCount, bool isAllMessagesLoaded, UnreadMessagesValue unreadMessagesValue, bool isLoading, bool isConnected
+ int chatId, User? otherUser, List<Message> messages, int unreadCount, bool isAllMessagesLoaded, UnreadMessagesValue unreadMessagesValue, bool isTyping, bool isLoading, bool isConnected
 });
 
 
@@ -855,7 +855,7 @@ class _$ChatDataCopyWithImpl<$Res>
 
 /// Create a copy of ChatData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? chatId = null,Object? otherUser = freezed,Object? messages = null,Object? unreadCount = null,Object? isAllMessagesLoaded = null,Object? unreadMessagesValue = null,Object? isLoading = null,Object? isConnected = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? chatId = null,Object? otherUser = freezed,Object? messages = null,Object? unreadCount = null,Object? isAllMessagesLoaded = null,Object? unreadMessagesValue = null,Object? isTyping = null,Object? isLoading = null,Object? isConnected = null,}) {
   return _then(_self.copyWith(
 chatId: null == chatId ? _self.chatId : chatId // ignore: cast_nullable_to_non_nullable
 as int,otherUser: freezed == otherUser ? _self.otherUser : otherUser // ignore: cast_nullable_to_non_nullable
@@ -863,7 +863,8 @@ as User?,messages: null == messages ? _self.messages : messages // ignore: cast_
 as List<Message>,unreadCount: null == unreadCount ? _self.unreadCount : unreadCount // ignore: cast_nullable_to_non_nullable
 as int,isAllMessagesLoaded: null == isAllMessagesLoaded ? _self.isAllMessagesLoaded : isAllMessagesLoaded // ignore: cast_nullable_to_non_nullable
 as bool,unreadMessagesValue: null == unreadMessagesValue ? _self.unreadMessagesValue : unreadMessagesValue // ignore: cast_nullable_to_non_nullable
-as UnreadMessagesValue,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
+as UnreadMessagesValue,isTyping: null == isTyping ? _self.isTyping : isTyping // ignore: cast_nullable_to_non_nullable
+as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,isConnected: null == isConnected ? _self.isConnected : isConnected // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
@@ -971,10 +972,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int chatId,  User? otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  UnreadMessagesValue unreadMessagesValue,  bool isLoading,  bool isConnected)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int chatId,  User? otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  UnreadMessagesValue unreadMessagesValue,  bool isTyping,  bool isLoading,  bool isConnected)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ChatData() when $default != null:
-return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_that.isAllMessagesLoaded,_that.unreadMessagesValue,_that.isLoading,_that.isConnected);case _:
+return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_that.isAllMessagesLoaded,_that.unreadMessagesValue,_that.isTyping,_that.isLoading,_that.isConnected);case _:
   return orElse();
 
 }
@@ -992,10 +993,10 @@ return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int chatId,  User? otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  UnreadMessagesValue unreadMessagesValue,  bool isLoading,  bool isConnected)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int chatId,  User? otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  UnreadMessagesValue unreadMessagesValue,  bool isTyping,  bool isLoading,  bool isConnected)  $default,) {final _that = this;
 switch (_that) {
 case _ChatData():
-return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_that.isAllMessagesLoaded,_that.unreadMessagesValue,_that.isLoading,_that.isConnected);case _:
+return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_that.isAllMessagesLoaded,_that.unreadMessagesValue,_that.isTyping,_that.isLoading,_that.isConnected);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1012,10 +1013,10 @@ return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int chatId,  User? otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  UnreadMessagesValue unreadMessagesValue,  bool isLoading,  bool isConnected)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int chatId,  User? otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  UnreadMessagesValue unreadMessagesValue,  bool isTyping,  bool isLoading,  bool isConnected)?  $default,) {final _that = this;
 switch (_that) {
 case _ChatData() when $default != null:
-return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_that.isAllMessagesLoaded,_that.unreadMessagesValue,_that.isLoading,_that.isConnected);case _:
+return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_that.isAllMessagesLoaded,_that.unreadMessagesValue,_that.isTyping,_that.isLoading,_that.isConnected);case _:
   return null;
 
 }
@@ -1027,7 +1028,7 @@ return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_t
 
 
 class _ChatData implements ChatData {
-  const _ChatData({required this.chatId, required this.otherUser, required final  List<Message> messages, required this.unreadCount, required this.isAllMessagesLoaded, required this.unreadMessagesValue, this.isLoading = true, this.isConnected = false}): _messages = messages;
+  const _ChatData({required this.chatId, required this.otherUser, required final  List<Message> messages, required this.unreadCount, required this.isAllMessagesLoaded, required this.unreadMessagesValue, this.isTyping = false, this.isLoading = true, this.isConnected = false}): _messages = messages;
   
 
 @override final  int chatId;
@@ -1043,6 +1044,7 @@ class _ChatData implements ChatData {
 @override final  int unreadCount;
 @override final  bool isAllMessagesLoaded;
 @override final  UnreadMessagesValue unreadMessagesValue;
+@override@JsonKey() final  bool isTyping;
 @override@JsonKey() final  bool isLoading;
 @override@JsonKey() final  bool isConnected;
 
@@ -1056,16 +1058,16 @@ _$ChatDataCopyWith<_ChatData> get copyWith => __$ChatDataCopyWithImpl<_ChatData>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChatData&&(identical(other.chatId, chatId) || other.chatId == chatId)&&(identical(other.otherUser, otherUser) || other.otherUser == otherUser)&&const DeepCollectionEquality().equals(other._messages, _messages)&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount)&&(identical(other.isAllMessagesLoaded, isAllMessagesLoaded) || other.isAllMessagesLoaded == isAllMessagesLoaded)&&(identical(other.unreadMessagesValue, unreadMessagesValue) || other.unreadMessagesValue == unreadMessagesValue)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChatData&&(identical(other.chatId, chatId) || other.chatId == chatId)&&(identical(other.otherUser, otherUser) || other.otherUser == otherUser)&&const DeepCollectionEquality().equals(other._messages, _messages)&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount)&&(identical(other.isAllMessagesLoaded, isAllMessagesLoaded) || other.isAllMessagesLoaded == isAllMessagesLoaded)&&(identical(other.unreadMessagesValue, unreadMessagesValue) || other.unreadMessagesValue == unreadMessagesValue)&&(identical(other.isTyping, isTyping) || other.isTyping == isTyping)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,chatId,otherUser,const DeepCollectionEquality().hash(_messages),unreadCount,isAllMessagesLoaded,unreadMessagesValue,isLoading,isConnected);
+int get hashCode => Object.hash(runtimeType,chatId,otherUser,const DeepCollectionEquality().hash(_messages),unreadCount,isAllMessagesLoaded,unreadMessagesValue,isTyping,isLoading,isConnected);
 
 @override
 String toString() {
-  return 'ChatData(chatId: $chatId, otherUser: $otherUser, messages: $messages, unreadCount: $unreadCount, isAllMessagesLoaded: $isAllMessagesLoaded, unreadMessagesValue: $unreadMessagesValue, isLoading: $isLoading, isConnected: $isConnected)';
+  return 'ChatData(chatId: $chatId, otherUser: $otherUser, messages: $messages, unreadCount: $unreadCount, isAllMessagesLoaded: $isAllMessagesLoaded, unreadMessagesValue: $unreadMessagesValue, isTyping: $isTyping, isLoading: $isLoading, isConnected: $isConnected)';
 }
 
 
@@ -1076,7 +1078,7 @@ abstract mixin class _$ChatDataCopyWith<$Res> implements $ChatDataCopyWith<$Res>
   factory _$ChatDataCopyWith(_ChatData value, $Res Function(_ChatData) _then) = __$ChatDataCopyWithImpl;
 @override @useResult
 $Res call({
- int chatId, User? otherUser, List<Message> messages, int unreadCount, bool isAllMessagesLoaded, UnreadMessagesValue unreadMessagesValue, bool isLoading, bool isConnected
+ int chatId, User? otherUser, List<Message> messages, int unreadCount, bool isAllMessagesLoaded, UnreadMessagesValue unreadMessagesValue, bool isTyping, bool isLoading, bool isConnected
 });
 
 
@@ -1093,7 +1095,7 @@ class __$ChatDataCopyWithImpl<$Res>
 
 /// Create a copy of ChatData
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? chatId = null,Object? otherUser = freezed,Object? messages = null,Object? unreadCount = null,Object? isAllMessagesLoaded = null,Object? unreadMessagesValue = null,Object? isLoading = null,Object? isConnected = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? chatId = null,Object? otherUser = freezed,Object? messages = null,Object? unreadCount = null,Object? isAllMessagesLoaded = null,Object? unreadMessagesValue = null,Object? isTyping = null,Object? isLoading = null,Object? isConnected = null,}) {
   return _then(_ChatData(
 chatId: null == chatId ? _self.chatId : chatId // ignore: cast_nullable_to_non_nullable
 as int,otherUser: freezed == otherUser ? _self.otherUser : otherUser // ignore: cast_nullable_to_non_nullable
@@ -1101,7 +1103,8 @@ as User?,messages: null == messages ? _self._messages : messages // ignore: cast
 as List<Message>,unreadCount: null == unreadCount ? _self.unreadCount : unreadCount // ignore: cast_nullable_to_non_nullable
 as int,isAllMessagesLoaded: null == isAllMessagesLoaded ? _self.isAllMessagesLoaded : isAllMessagesLoaded // ignore: cast_nullable_to_non_nullable
 as bool,unreadMessagesValue: null == unreadMessagesValue ? _self.unreadMessagesValue : unreadMessagesValue // ignore: cast_nullable_to_non_nullable
-as UnreadMessagesValue,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
+as UnreadMessagesValue,isTyping: null == isTyping ? _self.isTyping : isTyping // ignore: cast_nullable_to_non_nullable
+as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,isConnected: null == isConnected ? _self.isConnected : isConnected // ignore: cast_nullable_to_non_nullable
 as bool,
   ));

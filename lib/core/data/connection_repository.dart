@@ -1,5 +1,6 @@
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
+import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 
 abstract class ConnectionRepository {
   void initSocket();
@@ -20,11 +21,15 @@ abstract class ConnectionRepository {
 
   void activityDetected();
 
+  void typingActivityDetected({required int chatId});
+
   Stream<bool> get connectionStateStream;
 
   bool get isConnected;
 
   Stream<OnlineStatusUpdate> get onlineUpdatesStream;
+
+  Stream<TypingActivityUpdate> get typingUpdatesStream;
 }
 
 /// TODO why does this class exist?
@@ -70,6 +75,10 @@ class ConnectionRepositoryImpl implements ConnectionRepository {
   void activityDetected() => _webSocket.activityDetected();
 
   @override
+  void typingActivityDetected({required int chatId}) =>
+      _webSocket.typingActivityDetected(chatId: chatId);
+
+  @override
   Stream<bool> get connectionStateStream => _webSocket.connectionStateStream;
 
   @override
@@ -78,4 +87,8 @@ class ConnectionRepositoryImpl implements ConnectionRepository {
   @override
   Stream<OnlineStatusUpdate> get onlineUpdatesStream =>
       _webSocket.onlineUpdatesStream;
+
+  @override
+  Stream<TypingActivityUpdate> get typingUpdatesStream =>
+      _webSocket.typingUpdatesStream;
 }
