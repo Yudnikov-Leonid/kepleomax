@@ -2,12 +2,14 @@ part of '../chat_screen.dart';
 
 class _ChatBottom extends StatefulWidget {
   const _ChatBottom({
-    required ValueChanged<String>? onSend,
+    required this.onSend,
+    required this.onEdit,
     required this.isLoading,
     super.key,
-  }) : _onSend = onSend;
+  });
 
-  final ValueChanged<String>? _onSend;
+  final ValueChanged<String>? onSend;
+  final ValueChanged<String>? onEdit;
   final bool isLoading;
 
   @override
@@ -16,6 +18,14 @@ class _ChatBottom extends StatefulWidget {
 
 class _ChatBottomState extends State<_ChatBottom> {
   final _controller = TextEditingController();
+
+  @override
+  void initState() {
+    _controller.addListener(() {
+      setState(() {});
+    });
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -32,38 +42,122 @@ class _ChatBottomState extends State<_ChatBottom> {
       child: Container(
         width: context.screenSize.width,
         color: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 200),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: KlmTextField(
-                  key: const Key('message_input_field'),
-                  controller: _controller,
-                  hint: 'Message',
-                  onChanged: (newText) {},
-                  multiline: true,
-                  maxLength: 4000,
-                  textCapitalization: TextCapitalization.sentences,
-                ),
+        constraints: const BoxConstraints(minHeight: 65, maxHeight: 200),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end, // for multiline input case
+          children: [
+            /// left buttons
+            _AttachFilesButton(onPressed: () {}),
+
+            /// input field
+            const SizedBox(width: 4),
+            Expanded(
+              child: KlmTextField(
+                key: const Key('message_input_field'),
+                controller: _controller,
+                hint: 'Message',
+                onChanged: widget.onEdit,
+                multiline: true,
+                maxLength: 4000,
+                textCapitalization: TextCapitalization.sentences,
+                showCounter: false,
+                backgroundColor: Colors.grey.shade100,
+                borderColor: Colors.grey.shade300,
+                hintColor: Colors.grey.shade500,
               ),
-              const SizedBox(width: 6),
-              IconButton(
-                key: const Key('submit_message_button'),
-                onPressed: widget._onSend == null
-                    ? null
-                    : () {
-                        if (_controller.text.isEmpty || widget.isLoading) return;
-                        widget._onSend!(_controller.text.trim());
-                        _controller.clear();
-                        setState(() {});
-                      },
-                style: IconButton.styleFrom(backgroundColor: KlmColors.primaryColor),
-                icon: const Icon(Icons.arrow_upward, color: Colors.white),
-              ),
-            ],
+            ),
+
+            /// right buttons
+            const SizedBox(width: 3),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 100),
+              child: _controller.text.isNotEmpty && !widget.isLoading
+                  ? _SendMessageButton(
+                      onPressed: widget.onSend == null ? null : _sendButtonOnPress,
+                    )
+                  : _VoiceMessageButton(onPressed: () {}),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _sendButtonOnPress() {
+    if (_controller.text.isEmpty || widget.isLoading) return;
+    widget.onSend!(_controller.text.trim());
+    _controller.clear();
+    setState(() {});
+  }
+}
+
+class _SendMessageButton extends StatelessWidget {
+  const _SendMessageButton({required this.onPressed});
+
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      key: const Key('send_message_button'),
+      onPressed: onPressed,
+      style: IconButton.styleFrom(backgroundColor: KlmColors.primaryColor),
+      icon: const Icon(Icons.arrow_upward, color: Colors.white),
+    );
+  }
+}
+
+class _VoiceMessageButton extends StatelessWidget {
+  const _VoiceMessageButton({required this.onPressed});
+
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      child: IconButton(
+        key: const Key('voice_message_button'),
+        onPressed: onPressed,
+        style: IconButton.styleFrom(
+          backgroundColor: Colors.white,
+          padding: EdgeInsets.zero,
+        ),
+        icon: const Icon(
+          Icons.keyboard_voice_outlined,
+          color: KlmColors.primaryColor,
+          size: 32,
+        ),
+      ),
+    );
+  }
+}
+
+class _AttachFilesButton extends StatelessWidget {
+  const _AttachFilesButton({required this.onPressed});
+
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 40,
+      width: 30,
+      margin: const EdgeInsets.only(bottom: 5),
+      child: IconButton(
+        key: const Key('attach_media_button'),
+        onPressed: onPressed,
+        style: IconButton.styleFrom(
+          minimumSize: Size.zero,
+          padding: EdgeInsets.zero,
+        ),
+        icon: Transform.rotate(
+          angle: math.pi / 180 * 45,
+          child: const Icon(
+            Icons.attach_file_sharp,
+            color: KlmColors.primaryColor,
+            fontWeight: FontWeight.w100,
+            size: 30,
           ),
         ),
       ),

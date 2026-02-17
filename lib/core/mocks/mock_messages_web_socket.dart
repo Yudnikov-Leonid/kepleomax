@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
+import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
+import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 
 class MockMessagesWebSocket implements MessagesWebSocket {
   /// testing stuff
@@ -25,6 +27,12 @@ class MockMessagesWebSocket implements MessagesWebSocket {
 
   void addDeletedMessagesUpdate(DeletedMessageUpdate update) =>
       _deletedMessageController.add(update);
+
+  void addOnlineUpdate(OnlineStatusUpdate update) =>
+      _onlineUpdatesController.add(update);
+
+  void addTypingUpdate(TypingActivityUpdate update) =>
+      _typingUpdatesController.add(update);
 
   void setNextSendMessageId(int value) {
     _nextSendMessageId = value;
@@ -57,6 +65,10 @@ class MockMessagesWebSocket implements MessagesWebSocket {
   final StreamController<DeletedMessageUpdate> _deletedMessageController =
       StreamController.broadcast();
   final StreamController<bool> _connectionController = StreamController.broadcast();
+  final StreamController<OnlineStatusUpdate> _onlineUpdatesController =
+      StreamController.broadcast();
+  final StreamController<TypingActivityUpdate> _typingUpdatesController =
+      StreamController.broadcast();
 
   @override
   Stream<MessageDto> get newMessageStream => _messageController.stream;
@@ -71,6 +83,14 @@ class MockMessagesWebSocket implements MessagesWebSocket {
 
   @override
   Stream<bool> get connectionStateStream => _connectionController.stream;
+
+  @override
+  Stream<OnlineStatusUpdate> get onlineUpdatesStream =>
+      _onlineUpdatesController.stream;
+
+  @override
+  Stream<TypingActivityUpdate> get typingUpdatesStream =>
+      _typingUpdatesController.stream;
 
   /// websocket
   @override
@@ -124,4 +144,13 @@ class MockMessagesWebSocket implements MessagesWebSocket {
   void readMessagesBeforeTime({required int chatId, required DateTime time}) {
     _readMessagesBeforeTimeWasCalls.add((chatId, time));
   }
+
+  @override
+  void subscribeOnOnlineStatusUpdates({required Iterable<int> usersIds}) {}
+
+  @override
+  void activityDetected() {}
+
+  @override
+  void typingActivityDetected({required int chatId}) {}
 }

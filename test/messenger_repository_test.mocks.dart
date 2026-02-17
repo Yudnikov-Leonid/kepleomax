@@ -13,10 +13,12 @@ import 'package:kepleomax/core/data/local_data_sources/chats_local_data_source.d
     as _i7;
 import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.dart'
     as _i8;
-import 'package:kepleomax/core/models/user.dart' as _i10;
+import 'package:kepleomax/core/models/user.dart' as _i11;
 import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart' as _i4;
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart' as _i6;
 import 'package:kepleomax/core/network/common/user_dto.dart' as _i9;
+import 'package:kepleomax/core/network/websockets/models/online_status_update.dart'
+    as _i10;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -189,7 +191,16 @@ class MockUsersLocalDataSource extends _i1.Mock
           as _i3.Future<void>);
 
   @override
-  _i3.Future<void> setCurrentUser(_i10.User? user) =>
+  _i3.Future<void> updateOnlineStatus(_i10.OnlineStatusUpdate? update) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateOnlineStatus, [update]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> setCurrentUser(_i11.User? user) =>
       (super.noSuchMethod(
             Invocation.method(#setCurrentUser, [user]),
             returnValue: _i3.Future<void>.value(),

@@ -107,7 +107,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
   }
 
   void _onReconnect(ChatsEventReconnect event, Emitter<ChatsState> emit) {
-    _connectionRepository.reconnect(onlyIfNot: event.onlyIfNot);
+    _connectionRepository.reconnect(onlyIfDisconnected: event.onlyIfNot);
   }
 
   void _onConnectingChanged(ChatsEventConnectingChanged event,

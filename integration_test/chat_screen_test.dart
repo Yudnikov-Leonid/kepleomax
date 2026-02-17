@@ -14,10 +14,13 @@ import 'package:kepleomax/core/di/initialize_dependencies.dart';
 import 'package:kepleomax/core/flavor.dart';
 import 'package:kepleomax/core/mocks/mock_messages_web_socket.dart';
 import 'package:kepleomax/core/mocks/mockito_mocks.mocks.dart';
+import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
+import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
+import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retrofit/dio.dart';
 
@@ -80,22 +83,7 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    void setupGetMessages(List<MessageDto> messages, {Duration delay = Duration.zero, int chatId = 0}) {
-      when(dp.messagesApi.getMessages(chatId: chatId, limit: AppConstants.msgPagingLimit, cursor: null)).thenAnswer((_) async {
-        await Future.delayed(delay);
-        return HttpResponse(MessagesResponse(data: messages, message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
-      });
-    }
-
-    void setupPaging(List<MessageDto> messages, {required int cursor, int limit = AppConstants.msgPagingLimit, Duration delay = Duration.zero, int chatId = 0}) {
-      when(dp.messagesApi.getMessages(chatId: chatId, limit: limit, cursor: cursor)).thenAnswer((_) async {
-        await Future.delayed(delay);
-        print('MyLog getPaging, limit: $limit, cursor: $cursor');
-        return HttpResponse(MessagesResponse(data: messages, message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
-      });
-    }
-
-    testWidgets('connection_test',(tester) async {
+    testWidgets('connection_test', (tester) async {
       /// after setup app will be connected to the ws, because the app must be connected to open the chat
       await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4], getMessagesAsyncControl: true);
 
@@ -146,17 +134,15 @@ void main() {
     testWidgets('new_message_test', (tester) async {
       await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
 
-      /// check messages, click submit (with empty text), check
+      /// check messages, check send_button is missing
       tester.checkMessagesOrder([0, 1, 2, 3, 4]);
-      await tester.tap(find.byKey(const Key('submit_message_button')));
-      await tester.pumpAndSettle();
-      tester.checkMessagesOrder([0, 1, 2, 3, 4]);
+      expect(find.byKey(const Key('send_message_button')), findsNothing);
 
       /// enter text, send, check
       ws.setNextSendMessageId(10);
       await tester.enterText(find.byKey(const Key('message_input_field')), 'NEW_MSG');
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('submit_message_button')));
+      await tester.tap(find.byKey(const Key('send_message_button')));
       await tester.pumpAndSettle();
       tester.checkMessagesOrder([10, 0, 1, 2, 3, 4]);
       tester.getMessage(10).check(fromCurrentUser: true, isRead: false, message: 'NEW_MSG');
@@ -177,16 +163,24 @@ void main() {
       tester.checkMessagesOrder([0, 1, 2, 3, 4]);
     });
 
-    testWidgets('check_read_messages', (tester) async {
-      await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
+    testWidgets('read_messages_test', (tester) async {
+      await setupApp(tester, chatDto0, [messageDto0, messageDto2, messageDto3, messageDto4]);
 
       /// check
-      // await tester.pumpAndSettle(const Duration(milliseconds: 500)); think I don't need this
       expect(ws.readBeforeTimeCalledTimes, 1);
       expect(ws.isRaadBeforeTimeWasCalledWith(0, DateTime.fromMillisecondsSinceEpoch(messageDto0.createdAt)), true);
     });
 
-    testWidgets('check_read_all_button', (tester) async {
+    /// readBeforeTimeCalledTimes will be called two times, one time for each widget
+    // testWidgets('read_messages_two_messages_test', (tester) async {
+    //   await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
+    //
+    //   /// check
+    //   expect(ws.readBeforeTimeCalledTimes, 1);
+    //   expect(ws.isRaadBeforeTimeWasCalledWith(0, DateTime.fromMillisecondsSinceEpoch(messageDto0.createdAt)), true);
+    // });
+
+    testWidgets('read_all_button_test', (tester) async {
       await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
 
       /// check, tap, check
@@ -242,7 +236,82 @@ void main() {
       tester.checkChatAppBarStatus(ChatAppBarStatus.none);
     });
 
-    /// TODO test system messages (dates, unreadCount)
+    testWidgets('unread_messages_widget_test', (tester) async {
+      await setupApp(tester, chatDto0, [messageDto1, messageDto2, messageDto3, messageDto4]);
+
+      tester.checkMessagesOrder([1, Message.unreadMessagesId, 2, 3, 4, Message.dateId], countSystem: true);
+      ws.addMessage(messageDto0);
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([0, 1, Message.unreadMessagesId, 2, 3, 4, Message.dateId], countSystem: true);
+    });
+
+    testWidgets('no_unread_messages_widget_test', (tester) async {
+      await setupApp(tester, chatDto0, [messageDto2, messageDto3, messageDto4]);
+
+      tester.checkMessagesOrder([2, 3, 4, Message.dateId], countSystem: true);
+      ws.addMessage(messageDto1);
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([1, 2, 3, 4, Message.dateId], countSystem: true);
+    });
+
+    testWidgets('unread_messages_widget_test_empty_chat_test', (tester) async {
+      await setupApp(tester, chatDto0, []);
+
+      tester.checkMessagesOrder([], countSystem: true);
+      ws.addMessage(messageDto1);
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([1, Message.unreadMessagesId, Message.dateId], countSystem: true);
+
+      ws.addMessage(messageDto0);
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([0, 1, Message.unreadMessagesId, Message.dateId], countSystem: true);
+    });
+
+    testWidgets('online_status_test', (tester) async {
+      await setupApp(tester, chatDto0, []);
+
+      /// check, add onlineUpdate: false, check
+      tester.checkChatOtherUserStatus('online');
+      ws.addOnlineUpdate(const OnlineStatusUpdate(userId: 1, isOnline: false, lastActivityTime: 0));
+      await tester.pumpAndSettle();
+      tester.checkChatOtherUserStatus('last seen a long time ago');
+
+      /// add onlineUpdate: true, check, wait, check
+      ws.addOnlineUpdate(OnlineStatusUpdate(userId: 1, isOnline: true, lastActivityTime: DateTime.now().millisecondsSinceEpoch - (AppConstants.markAsOfflineAfterInactivityInSeconds - 1) * 1000));
+      await tester.pumpAndSettle();
+      tester.checkChatOtherUserStatus('online');
+      await tester.pumpAndSettle(const Duration(milliseconds: 1500));
+      tester.checkChatOtherUserStatus('last seen at');
+    });
+
+    /// can't check newMessage here, cause when new_message event is received,
+    /// websocket handles it as both newMessage and typingActivity: set to false
+    /// there is a mockWebsocket, so can't check its own handlers of events
+    testWidgets('typing_test', (tester) async {
+      await setupApp(tester, chatDto0, []);
+
+      /// check, add typingUpdate, check
+      tester.checkChatOtherUserStatus('online');
+      ws.addTypingUpdate(const TypingActivityUpdate(chatId: 0, isTyping: true));
+      await tester.pumpAndSettle();
+      tester.checkChatOtherUserStatus('typing..');
+
+      /// add typingUpdate, check
+      ws.addTypingUpdate(const TypingActivityUpdate(chatId: 0, isTyping: false));
+      await tester.pumpAndSettle();
+      tester.checkChatOtherUserStatus('online');
+
+      /// add typingUpdate, check, wait, check
+      ws.addTypingUpdate(const TypingActivityUpdate(chatId: 0, isTyping: true));
+      await tester.pumpAndSettle();
+      tester.checkChatOtherUserStatus('typing..');
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+      tester.checkChatOtherUserStatus('typing..');
+      await tester.pumpAndSettle(const Duration(milliseconds: 1500));
+      tester.checkChatOtherUserStatus('online');
+    });
+
+    /// TODO system dates messages test
     /// TODO base paging test
     /// paging is tested via unit-tests
   });

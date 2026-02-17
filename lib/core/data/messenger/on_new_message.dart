@@ -1,6 +1,6 @@
 part of 'messenger_repository.dart';
 
-extension OnNewMessageExtension on MessengerRepositoryImpl {
+extension _OnNewMessageExtension on MessengerRepositoryImpl {
   void _onNewMessage(MessageDto messageDto) async {
     _messagesLocal.insert(messageDto);
 
@@ -16,7 +16,7 @@ extension OnNewMessageExtension on MessengerRepositoryImpl {
     if (_lastChatsCollection != null) {
       final newChats = List<Chat>.from(_lastChatsCollection!.chats);
       final affectedChat = newChats.firstWhereOrNull(
-            (chat) => chat.id == messageDto.chatId,
+        (chat) => chat.id == messageDto.chatId,
       );
       if (affectedChat != null) {
         _chatsLocal.increaseUnreadCountBy1(affectedChat.id);
@@ -25,8 +25,9 @@ extension OnNewMessageExtension on MessengerRepositoryImpl {
           0,
           affectedChat.copyWith(
             lastMessage: Message.fromDto(messageDto),
+            lastTypingActivityTime: null,
             unreadCount:
-            affectedChat.unreadCount +
+                affectedChat.unreadCount +
                 (!messageDto.isCurrentUser && !messageDto.isRead ? 1 : 0),
           ),
         );

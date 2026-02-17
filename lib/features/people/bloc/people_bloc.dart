@@ -1,4 +1,7 @@
-import 'package:kepleomax/core/app_constants.dart';
+import 'dart:async';
+
+import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'package:kepleomax/core/data/models/users_collection.dart';
 import 'package:kepleomax/core/logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
@@ -8,13 +11,14 @@ import 'package:rxdart/rxdart.dart';
 
 class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
   final UserRepository _userRepository;
+  late final StreamSubscription _usersSub;
 
   late PeopleData _data = PeopleData.initial();
 
   PeopleBloc({required UserRepository userRepository})
     : _userRepository = userRepository,
       super(PeopleStateBase.initial()) {
-    on<PeopleEventLoad>(
+    on<_PeopleEventLoad>(
       _onLoad,
       transformer: (events, mapper) => Rx.merge([
         events.throttleTime(const Duration(seconds: 3)),
@@ -23,62 +27,39 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
             .throttleTime(const Duration(milliseconds: 750)),
       ]).flatMap(mapper),
     );
-    on<PeopleEventInitialLoad>(_onInitialLoad);
-    on<PeopleEventLoadMore>(_onLoadMore);
+    on<PeopleEventLoadMore>(_onLoadMore, transformer: sequential());
+    on<PeopleEventInstantLoad>(_onInstantLoad);
     on<PeopleEventEditSearch>(_onEditSearch);
+    on<_PeopleEventEmitUsers>(_onEmitUsers);
+
+    _usersSub = _userRepository.usersStream.listen((users) {
+      add(_PeopleEventEmitUsers(users));
+    });
   }
 
-  void _onInitialLoad(
-    PeopleEventInitialLoad event,
+  void _onInstantLoad(
+    PeopleEventInstantLoad event,
     Emitter<PeopleState> emit,
   ) async {
     _data = _data.copyWith(isLoading: true);
     emit(PeopleStateBase(data: _data));
 
     try {
-      final newUsers = await _userRepository.search(
-        search: '',
-        limit: AppConstants.peoplePagingLimit,
-        offset: 0,
-      );
-
-      _data = _data.copyWith(
-        users: newUsers,
-        isAllUsersLoaded: newUsers.length < AppConstants.peoplePagingLimit,
-        isLoading: false,
-      );
+      await _userRepository.loadSearch(search: '');
     } catch (e, st) {
-      logger.e(e, stackTrace: st);
-      emit(PeopleStateError(message: e.userErrorMessage));
-      _data = _data.copyWith(isLoading: false, isAllUsersLoaded: true);
-    } finally {
-      emit(PeopleStateBase(data: _data));
+      _onError(e, st, emit);
     }
   }
 
-  void _onLoad(PeopleEventLoad event, Emitter<PeopleState> emit) async {
+  void _onLoad(_PeopleEventLoad event, Emitter<PeopleState> emit) async {
     _data = _data.copyWith(isLoading: true);
     emit(PeopleStateBase(data: _data));
 
     print('searchEvent: ${_data.searchText}');
     try {
-      final newUsers = await _userRepository.search(
-        search: _data.searchText,
-        limit: AppConstants.peoplePagingLimit,
-        offset: 0,
-      );
-
-      _data = _data.copyWith(
-        users: newUsers,
-        isAllUsersLoaded: newUsers.length < AppConstants.peoplePagingLimit,
-        isLoading: false,
-      );
+      await _userRepository.loadSearch(search: _data.searchText);
     } catch (e, st) {
-      logger.e(e, stackTrace: st);
-      emit(PeopleStateError(message: e.userErrorMessage));
-      _data = _data.copyWith(isLoading: false, isAllUsersLoaded: true);
-    } finally {
-      emit(PeopleStateBase(data: _data));
+      _onError(e, st, emit);
     }
   }
 
@@ -86,33 +67,52 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     if (_data.isLoading || _data.isAllUsersLoaded) return;
 
     try {
-      final newUsers = await _userRepository.search(
-        search: _data.searchText,
-        limit: AppConstants.peoplePagingLimit,
-        offset: _data.users.length,
-      );
-      _data = _data.copyWith(
-        /// todo make paging better as on posts page
-        users: {..._data.users, ...newUsers}.toList(),
-        isAllUsersLoaded: newUsers.length < AppConstants.peoplePagingLimit,
-      );
+      await _userRepository.loadMore();
     } catch (e, st) {
-      logger.e(e, stackTrace: st);
-      emit(PeopleStateError(message: e.userErrorMessage));
-    } finally {
-      emit(PeopleStateBase(data: _data));
+      _onError(e, st, emit);
     }
   }
 
   void _onEditSearch(PeopleEventEditSearch event, Emitter<PeopleState> emit) async {
     _data = _data.copyWith(searchText: event.text);
     emit(PeopleStateBase(data: _data));
-    add(const PeopleEventLoad());
+    add(const _PeopleEventLoad());
+  }
+
+  void _onEmitUsers(_PeopleEventEmitUsers event, Emitter<PeopleState> emit) {
+    final collection = event.collection;
+    _data = _data.copyWith(users: collection.users.toList(), isLoading: false);
+    if (collection.allUsersLoaded != null) {
+      _data = _data.copyWith(isAllUsersLoaded: collection.allUsersLoaded!);
+    }
+    emit(PeopleStateBase(data: _data));
+  }
+
+  void _onError(Object e, StackTrace st, Emitter<PeopleState> emit) {
+    logger.e(e, stackTrace: st);
+    emit(PeopleStateError(message: e.userErrorMessage));
+    _data = _data.copyWith(isLoading: false, isAllUsersLoaded: true);
+    emit(PeopleStateBase(data: _data));
+  }
+
+  @override
+  Future<void> close() {
+    _usersSub.cancel();
+    return super.close();
   }
 }
 
 /// events
 abstract class PeopleEvent {}
+
+/// used when needs to call load without debounce
+class PeopleEventInstantLoad implements PeopleEvent {
+  const PeopleEventInstantLoad();
+}
+
+class PeopleEventLoadMore implements PeopleEvent {
+  const PeopleEventLoadMore();
+}
 
 class PeopleEventEditSearch implements PeopleEvent {
   final String text;
@@ -120,15 +120,12 @@ class PeopleEventEditSearch implements PeopleEvent {
   const PeopleEventEditSearch({required this.text});
 }
 
-class PeopleEventLoad implements PeopleEvent {
-  const PeopleEventLoad();
+class _PeopleEventLoad implements PeopleEvent {
+  const _PeopleEventLoad();
 }
 
-/// used when needs to call load without debounce
-class PeopleEventInitialLoad implements PeopleEvent {
-  const PeopleEventInitialLoad();
-}
+class _PeopleEventEmitUsers implements PeopleEvent {
+  final UsersCollection collection;
 
-class PeopleEventLoadMore implements PeopleEvent {
-  const PeopleEventLoadMore();
+  _PeopleEventEmitUsers(this.collection);
 }

@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$User {
 
- int get id; String get username; String? get profileImage; bool get isCurrent;
+ int get id; String get username; String? get profileImage; bool get isCurrent; bool get isOnline;/// TODO change to DateTime
+ int get lastActivityTime;
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +29,16 @@ $UserCopyWith<User> get copyWith => _$UserCopyWithImpl<User>(this as User, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is User&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.profileImage, profileImage) || other.profileImage == profileImage)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is User&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.profileImage, profileImage) || other.profileImage == profileImage)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.lastActivityTime, lastActivityTime) || other.lastActivityTime == lastActivityTime));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,username,profileImage,isCurrent);
+int get hashCode => Object.hash(runtimeType,id,username,profileImage,isCurrent,isOnline,lastActivityTime);
 
 @override
 String toString() {
-  return 'User(id: $id, username: $username, profileImage: $profileImage, isCurrent: $isCurrent)';
+  return 'User(id: $id, username: $username, profileImage: $profileImage, isCurrent: $isCurrent, isOnline: $isOnline, lastActivityTime: $lastActivityTime)';
 }
 
 
@@ -48,7 +49,7 @@ abstract mixin class $UserCopyWith<$Res>  {
   factory $UserCopyWith(User value, $Res Function(User) _then) = _$UserCopyWithImpl;
 @useResult
 $Res call({
- int id, String username, String? profileImage, bool isCurrent
+ int id, String username, String? profileImage, bool isCurrent, bool isOnline, int lastActivityTime
 });
 
 
@@ -65,13 +66,15 @@ class _$UserCopyWithImpl<$Res>
 
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? username = null,Object? profileImage = freezed,Object? isCurrent = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? username = null,Object? profileImage = freezed,Object? isCurrent = null,Object? isOnline = null,Object? lastActivityTime = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,profileImage: freezed == profileImage ? _self.profileImage : profileImage // ignore: cast_nullable_to_non_nullable
 as String?,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,isOnline: null == isOnline ? _self.isOnline : isOnline // ignore: cast_nullable_to_non_nullable
+as bool,lastActivityTime: null == lastActivityTime ? _self.lastActivityTime : lastActivityTime // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -156,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String username,  String? profileImage,  bool isCurrent)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String username,  String? profileImage,  bool isCurrent,  bool isOnline,  int lastActivityTime)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _User() when $default != null:
-return $default(_that.id,_that.username,_that.profileImage,_that.isCurrent);case _:
+return $default(_that.id,_that.username,_that.profileImage,_that.isCurrent,_that.isOnline,_that.lastActivityTime);case _:
   return orElse();
 
 }
@@ -177,10 +180,10 @@ return $default(_that.id,_that.username,_that.profileImage,_that.isCurrent);case
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String username,  String? profileImage,  bool isCurrent)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String username,  String? profileImage,  bool isCurrent,  bool isOnline,  int lastActivityTime)  $default,) {final _that = this;
 switch (_that) {
 case _User():
-return $default(_that.id,_that.username,_that.profileImage,_that.isCurrent);case _:
+return $default(_that.id,_that.username,_that.profileImage,_that.isCurrent,_that.isOnline,_that.lastActivityTime);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,10 +200,10 @@ return $default(_that.id,_that.username,_that.profileImage,_that.isCurrent);case
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String username,  String? profileImage,  bool isCurrent)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String username,  String? profileImage,  bool isCurrent,  bool isOnline,  int lastActivityTime)?  $default,) {final _that = this;
 switch (_that) {
 case _User() when $default != null:
-return $default(_that.id,_that.username,_that.profileImage,_that.isCurrent);case _:
+return $default(_that.id,_that.username,_that.profileImage,_that.isCurrent,_that.isOnline,_that.lastActivityTime);case _:
   return null;
 
 }
@@ -212,13 +215,16 @@ return $default(_that.id,_that.username,_that.profileImage,_that.isCurrent);case
 @JsonSerializable()
 
 class _User extends User {
-  const _User({required this.id, required this.username, required this.profileImage, required this.isCurrent}): super._();
+  const _User({required this.id, required this.username, required this.profileImage, required this.isCurrent, this.isOnline = false, this.lastActivityTime = 0}): super._();
   factory _User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
 @override final  int id;
 @override final  String username;
 @override final  String? profileImage;
 @override final  bool isCurrent;
+@override@JsonKey() final  bool isOnline;
+/// TODO change to DateTime
+@override@JsonKey() final  int lastActivityTime;
 
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
@@ -233,16 +239,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _User&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.profileImage, profileImage) || other.profileImage == profileImage)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _User&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.profileImage, profileImage) || other.profileImage == profileImage)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.lastActivityTime, lastActivityTime) || other.lastActivityTime == lastActivityTime));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,username,profileImage,isCurrent);
+int get hashCode => Object.hash(runtimeType,id,username,profileImage,isCurrent,isOnline,lastActivityTime);
 
 @override
 String toString() {
-  return 'User(id: $id, username: $username, profileImage: $profileImage, isCurrent: $isCurrent)';
+  return 'User(id: $id, username: $username, profileImage: $profileImage, isCurrent: $isCurrent, isOnline: $isOnline, lastActivityTime: $lastActivityTime)';
 }
 
 
@@ -253,7 +259,7 @@ abstract mixin class _$UserCopyWith<$Res> implements $UserCopyWith<$Res> {
   factory _$UserCopyWith(_User value, $Res Function(_User) _then) = __$UserCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String username, String? profileImage, bool isCurrent
+ int id, String username, String? profileImage, bool isCurrent, bool isOnline, int lastActivityTime
 });
 
 
@@ -270,13 +276,15 @@ class __$UserCopyWithImpl<$Res>
 
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? username = null,Object? profileImage = freezed,Object? isCurrent = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? username = null,Object? profileImage = freezed,Object? isCurrent = null,Object? isOnline = null,Object? lastActivityTime = null,}) {
   return _then(_User(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,profileImage: freezed == profileImage ? _self.profileImage : profileImage // ignore: cast_nullable_to_non_nullable
 as String?,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,isOnline: null == isOnline ? _self.isOnline : isOnline // ignore: cast_nullable_to_non_nullable
+as bool,lastActivityTime: null == lastActivityTime ? _self.lastActivityTime : lastActivityTime // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

@@ -58,7 +58,6 @@ extension TesterExtension on WidgetTester {
   MessageChecker getMessage(int id) =>
       MessageChecker(find.byKey(Key('message_$id')));
 
-
   void checkChatsAppBarStatus(ChatsAppBarStatus expected) {
     String text;
     switch (expected) {
@@ -88,6 +87,10 @@ extension TesterExtension on WidgetTester {
         return;
     }
     expect(textByKey(const Key('chat_app_bar_status_text')), equals(text));
+  }
+
+  void checkChatOtherUserStatus(String expected) {
+    expect(textByKey(const Key('user_status_text')), contains(expected));
   }
 
   void checkFindPeopleButton({required bool isShown}) {
@@ -128,12 +131,12 @@ extension TesterExtension on WidgetTester {
     MessageWidget,
   ).where((w) => !w.message.isSystem).length;
 
-  void checkMessagesOrder(List<int> ids) {
+  void checkMessagesOrder(List<int> ids, {bool countSystem = false}) {
     expect(
       childrenOfListByKey<MessageWidget>(
         const Key('messages_list_view'),
         MessageWidget,
-      ).where((w) => !w.message.isSystem).map((w) => w.key),
+      ).where((w) => !w.message.isSystem || countSystem).map((w) => w.key),
       equals(ids.map((id) => Key('message_$id'))),
     );
   }

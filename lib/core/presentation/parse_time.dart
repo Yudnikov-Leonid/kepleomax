@@ -28,7 +28,7 @@ class ParseTime {
     }
   }
 
-  static String toPassTimeSlim(DateTime dateTime) {
+  static String toShortPassTime(DateTime dateTime) {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final unixTime = dateTime.millisecondsSinceEpoch ~/ 1000;
 
@@ -76,5 +76,21 @@ class ParseTime {
     final format = dateTime.year == now.year ? 'MMMM d' : 'MMM d, yyyy';
 
     return DateFormat(format).format(dateTime);
+  }
+
+  static String toOnlineStatus(DateTime lastActivityTime) {
+    final lastActivityMillis = lastActivityTime.millisecondsSinceEpoch ~/ 1000;
+    final now = DateTime.now();
+    final nowMillis = now.millisecondsSinceEpoch ~/ 1000;
+
+    if (lastActivityMillis + Duration.secondsPerDay > nowMillis) {
+      return 'last seen at ${DateFormat.Hm().format(lastActivityTime)}';
+    } else if (lastActivityTime.year == now.year) {
+      return 'last seen ${DateFormat('dd MMM').format(lastActivityTime)} at ${DateFormat.Hm().format(lastActivityTime)}';
+    } else if (lastActivityTime.year > 2010) {
+      return 'last seen ${DateFormat('d/M/yy').format(lastActivityTime)}';
+    } else {
+      return 'last seen a long time ago';
+    }
   }
 }

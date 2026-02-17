@@ -36,7 +36,9 @@ class LocalDatabaseManager {
           id SERIAL PRIMARY KEY, 
           username VARCHAR(50) NOT NULL,
           profile_image VARCHAR(32),
-          is_current BIT NOT NULL)
+          is_current BIT NOT NULL,
+          is_online BIT NOT NULL,
+          last_activity_time BIGINT NOT NULL)
           ''');
 
       // don't forget to add each new table into reset()

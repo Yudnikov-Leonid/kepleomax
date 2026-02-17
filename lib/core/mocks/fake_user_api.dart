@@ -30,7 +30,7 @@ class FakeUserApi implements UserApi {
   Future<HttpResponse<GetUsersResponse>> searchUsers({
     required String search,
     required int limit,
-    required int offset,
+    required int? cursor,
   })  async =>
       HttpResponse(
         const GetUsersResponse(data: [], message: 'No users found'),

@@ -1,12 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
+import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
 import 'package:kepleomax/core/presentation/klm_button.dart';
+import 'package:kepleomax/core/presentation/parse_time.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
 import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
@@ -57,6 +61,7 @@ class _UserScreenState extends State<UserScreen> {
     return BlocProvider<UserBloc>(
       create: (context) => UserBloc(
         userRepository: Dependencies.of(context).userRepository,
+        connectionRepository: Dependencies.of(context).connectionRepository,
         userId: widget.userId,
       )..add(const UserEventLoad()),
       child: Scaffold(
@@ -160,9 +165,12 @@ class _Body extends StatelessWidget {
                                 );
                               },
                         child: UserImage(
-                          url: data.profile?.user.profileImage,
+                          user: data.profile?.user,
                           size: 130,
                           isLoading: data.isLoading,
+                          showOnlineIndicator: true,
+                          onlineIconSize: 18,
+                          onlineIconPadding: 10,
                         ),
                       ),
                     ),
@@ -189,6 +197,10 @@ class _Body extends StatelessWidget {
                       ),
                     ),
                   ),
+
+                  /// "last seen at" widget
+                  if (!data.isLoading && data.profile?.user != null)
+                    _LastSeenWidget(user: data.profile!.user),
 
                   /// description
                   if (data.isLoading ||
@@ -251,6 +263,53 @@ class _Body extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// widgets
+class _LastSeenWidget extends StatefulWidget {
+  const _LastSeenWidget({required this.user});
+
+  final User user;
+
+  @override
+  State<_LastSeenWidget> createState() => _LastSeenWidgetState();
+}
+
+class _LastSeenWidgetState extends State<_LastSeenWidget> {
+  late Timer _timer;
+
+  @override
+  void initState() {
+    _timer = Timer.periodic(const Duration(seconds: 10), (_) {
+      setState(() {});
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Text(
+        widget.user.showOnlineStatus
+            ? 'online'
+            : ParseTime.toOnlineStatus(
+                DateTime.fromMillisecondsSinceEpoch(widget.user.lastActivityTime),
+              ),
+        textAlign: TextAlign.center,
+        style: context.textTheme.bodyLarge?.copyWith(
+          fontSize: 14,
+          color: Colors.grey.shade600,
+        ),
+      ),
     );
   }
 }

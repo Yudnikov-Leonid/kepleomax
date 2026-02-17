@@ -16,7 +16,7 @@ abstract class UserApi {
   Future<HttpResponse<GetUsersResponse>> searchUsers({
     @Query('search') required String search,
     @Query('limit') required int limit,
-    @Query('offset') required int offset,
+    @Query('cursor') required int? cursor,
   });
 
   @POST('/fcmToken')

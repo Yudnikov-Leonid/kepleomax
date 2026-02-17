@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
@@ -8,6 +9,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:focus_detector/focus_detector.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
+import 'package:kepleomax/core/flavor.dart';
+import 'package:kepleomax/core/logger.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
@@ -22,8 +25,6 @@ import 'package:kepleomax/core/presentation/parse_time.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/features/chat/bloc/chat_bloc.dart';
 import 'package:kepleomax/features/chat/bloc/chat_state.dart';
-import 'package:kepleomax/features/chats/bloc/chats_bloc.dart';
-import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -267,12 +268,16 @@ class _BodyState extends State<_Body> {
               ),
               _ChatBottom(
                 onSend: (message) {
+                  if (data.isLoading || !data.isConnected) return;
                   widget.scrollController.animateTo(
                     0,
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeOut,
                   );
-                  _chatBloc.add(ChatEventSendMessage(messageBody: message));
+                  _chatBloc.add(ChatEventSendMessage(value: message));
+                },
+                onEdit: (message) {
+                  _chatBloc.add(ChatEventEditText(value: message));
                 },
                 isLoading: data.isLoading,
                 key: const Key('chat_bottom'),
@@ -343,9 +348,12 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
 
         if (oldState is! ChatStateBase) return true;
 
-        return oldState.data.otherUser != newState.data.otherUser ||
-            oldState.data.isLoading != newState.data.isLoading ||
-            oldState.data.isConnected != newState.data.isConnected;
+        final oldData = oldState.data;
+        final newData = newState.data;
+        return oldData.otherUser != newData.otherUser ||
+            oldData.isLoading != newData.isLoading ||
+            oldData.isConnected != newData.isConnected ||
+            oldData.isTyping != newData.isTyping;
       },
       builder: (context, state) {
         if (state is! ChatStateBase) return const SizedBox();
@@ -372,7 +380,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
               enabled: data.otherUser == null,
               child: Row(
                 children: [
-                  UserImage(size: 40, url: data.otherUser?.profileImage),
+                  UserImage(size: 40, user: data.otherUser),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -401,8 +409,16 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                               color: Colors.grey,
                             ),
                           ),
+                        if (!data.isLoading &&
+                            data.isConnected &&
+                            data.otherUser != null)
+                          _UserStatusWidget(data: data),
                       ],
                     ),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.call, color: KlmColors.primaryColor),
                   ),
                 ],
               ),
@@ -415,4 +431,54 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class _UserStatusWidget extends StatefulWidget {
+  const _UserStatusWidget({required this.data});
+
+  final ChatData data;
+
+  @override
+  State<_UserStatusWidget> createState() => _UserStatusWidgetState();
+}
+
+class _UserStatusWidgetState extends State<_UserStatusWidget> {
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      widget.data.isTyping ? 'typing..' : _onlineStatusText(widget.data.otherUser!),
+      key: const Key('user_status_text'),
+      style: context.textTheme.bodyMedium?.copyWith(
+        fontSize: 13,
+        fontWeight: FontWeight.w400,
+        color: Colors.grey.shade600,
+      ),
+    );
+  }
+
+  String _onlineStatusText(User user) {
+    if (user.showOnlineStatus) {
+      _timer ??= Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (!user.showOnlineStatus) {
+          setState(() {});
+          timer.cancel();
+        }
+      });
+      return 'online';
+    } else {
+      _timer?.cancel();
+      _timer = null;
+      return ParseTime.toOnlineStatus(
+        DateTime.fromMillisecondsSinceEpoch(user.lastActivityTime),
+      );
+    }
+  }
 }

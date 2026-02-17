@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
+import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
+import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 
 import '../../logger.dart';
@@ -16,6 +18,10 @@ abstract class MessagesWebSocket {
   Stream<DeletedMessageUpdate> get deletedMessageStream;
 
   Stream<bool> get connectionStateStream;
+
+  Stream<OnlineStatusUpdate> get onlineUpdatesStream;
+
+  Stream<TypingActivityUpdate> get typingUpdatesStream;
 
   /// manage
   Future<void> init();
@@ -36,6 +42,12 @@ abstract class MessagesWebSocket {
   void readAllMessages({required int chatId});
 
   void readMessagesBeforeTime({required int chatId, required DateTime time});
+
+  void subscribeOnOnlineStatusUpdates({required Iterable<int> usersIds});
+
+  void activityDetected();
+
+  void typingActivityDetected({required int chatId});
 }
 
 class MessagesWebSocketImpl implements MessagesWebSocket {
@@ -56,6 +68,10 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
   final StreamController<DeletedMessageUpdate> _deletedMessageController =
       StreamController.broadcast();
   final StreamController<bool> _connectionController = StreamController.broadcast();
+  final StreamController<OnlineStatusUpdate> _onlineUpdatesController =
+      StreamController.broadcast();
+  final StreamController<TypingActivityUpdate> _typingUpdatesController =
+      StreamController.broadcast();
 
   @override
   Stream<MessageDto> get newMessageStream => _messageController.stream;
@@ -70,6 +86,14 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
 
   @override
   Stream<bool> get connectionStateStream => _connectionController.stream;
+
+  @override
+  Stream<OnlineStatusUpdate> get onlineUpdatesStream =>
+      _onlineUpdatesController.stream;
+
+  @override
+  Stream<TypingActivityUpdate> get typingUpdatesStream =>
+      _typingUpdatesController.stream;
 
   /// socket
   Socket? _socket;
@@ -134,6 +158,8 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
       logger.d('WebSocketLog new_message: $data');
       final messageDto = MessageDto.fromJson(data, fromCache: false);
       _messageController.add(messageDto);
+      final typingUpdate = TypingActivityUpdate.fromJson(data, isTyping: false);
+      _typingUpdatesController.add(typingUpdate);
     });
     _socket!.on('read_messages', (data) {
       logger.d('WebSocketLog read_messages: $data');
@@ -144,6 +170,16 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
       logger.d('WebSocketLog deleted_message: $data');
       final update = DeletedMessageUpdate.fromJson(data);
       _deletedMessageController.add(update);
+    });
+    _socket!.on('online_status_update', (data) {
+      logger.d('WebSocketLog online_status_update: $data');
+      final update = OnlineStatusUpdate.fromJson(data);
+      _onlineUpdatesController.add(update);
+    });
+    _socket!.on('typing_activity', (data) {
+      logger.d('WebSocketLog typing_activity: $data');
+      final update = TypingActivityUpdate.fromJson(data, isTyping: true);
+      _typingUpdatesController.add(update);
     });
   }
 
@@ -204,6 +240,29 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
         'chat_id': chatId,
         'time': time.millisecondsSinceEpoch,
       });
+    }
+  }
+
+  @override
+  void subscribeOnOnlineStatusUpdates({required Iterable<int> usersIds}) {
+    if (_socket?.connected == true) {
+      _socket!.emit('subscribe_on_online_status_updates', {
+        'users_ids': usersIds.toList(),
+      });
+    }
+  }
+
+  @override
+  void activityDetected() {
+    if (_socket?.connected == true) {
+      _socket!.emit('activity_detected');
+    }
+  }
+
+  @override
+  void typingActivityDetected({required int chatId}) {
+    if (_socket?.connected == true) {
+      _socket!.emit('typing_activity_detected', {'chat_id': chatId});
     }
   }
 }

@@ -69,6 +69,8 @@ class ChatChecker {
     String? message,
     bool? msgFromCurrentUser,
     String? otherUserName,
+    bool? isOnline,
+    bool? isTyping,
   }) {
     if (unreadCount != null) {
       if (unreadCount == 0) {
@@ -114,6 +116,21 @@ class ChatChecker {
       expect(
         find.descendant(of: finder, matching: find.text(otherUserName)),
         findsOneWidget,
+      );
+    }
+    if (isOnline != null) {
+      expect(
+        find.descendant(
+          of: finder,
+          matching: find.byKey(const Key('online_indicator')),
+        ),
+        isOnline ? findsOneWidget : findsNothing,
+      );
+    }
+    if (isTyping != null) {
+      expect(
+        find.descendant(of: finder, matching: find.text('typing..')),
+        isTyping ? findsOneWidget : findsNothing,
       );
     }
   }

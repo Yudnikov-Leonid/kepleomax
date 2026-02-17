@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kepleomax/core/app_constants.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart';
@@ -15,7 +16,14 @@ abstract class Chat with _$Chat {
     required Message? lastMessage,
     required bool fromCache,
     required int unreadCount,
+    DateTime? lastTypingActivityTime,
   }) = _Chat;
+
+  bool get isTypingRightNow => lastTypingActivityTime == null
+      ? false
+      : lastTypingActivityTime!.millisecondsSinceEpoch +
+                AppConstants.showTypingAfterActivityForSeconds * 1000 >
+            DateTime.now().millisecondsSinceEpoch;
 
   factory Chat.fromDto(ChatDto dto, {required fromCache}) => Chat(
     id: dto.id,

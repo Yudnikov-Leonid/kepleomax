@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
+import 'package:kepleomax/core/scopes/activity_scope.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
 import 'package:kepleomax/core/scopes/chat_scope.dart';
 
@@ -41,10 +43,13 @@ class _AppState extends State<App> {
           return AuthScope(
             builder: (context, userId) => ChatScope(
               key: Key('chat_scope_$userId'),
-              child: AppNavigator(
-                initialState: [const MainPage()],
-                navigatorKey: mainNavigatorKey,
-                key: mainNavigatorGlobalKey,
+              child: ActivityScope(
+                connectionRepository: Dependencies.of(context).connectionRepository,
+                child: AppNavigator(
+                  initialState: [const MainPage()],
+                  navigatorKey: mainNavigatorKey,
+                  key: mainNavigatorGlobalKey,
+                ),
               ),
             ),
           );
