@@ -4,18 +4,18 @@ extension _OnReadMessagesExtension on MessengerRepositoryImpl {
   void _onReadMessages(ReadMessagesUpdate update) {
     _messagesLocal.readMessages(update);
 
-    if (_lastMessagesCollection != null &&
-        _lastMessagesCollection!.chatId == update.chatId) {
-      final newList = _lastMessagesCollection!.messages.map(
+    if (_currentMessagesCollection != null &&
+        _currentMessagesCollection!.chatId == update.chatId) {
+      final newList = _currentMessagesCollection!.messages.map(
             (m) => update.messagesIds.contains(m.id) ? m.copyWith(isRead: true) : m,
       );
       _emitMessages(newList);
     }
 
-    if (_lastChatsCollection != null) {
+    if (_currentChatsCollection != null) {
       if (!update.isCurrentUser) {
         _chatsLocal.decreaseUnreadCount(update.chatId, update.messagesIds.length);
-        final newList = _lastChatsCollection!.chats.map(
+        final newList = _currentChatsCollection!.chats.map(
               (chat) => chat.id == update.chatId
               ? chat.copyWith(
             unreadCount: chat.unreadCount - update.messagesIds.length,
@@ -24,12 +24,12 @@ extension _OnReadMessagesExtension on MessengerRepositoryImpl {
         );
         _emitChatsCollection(ChatsCollection(chats: newList));
       } else if (update.messagesIds.contains(
-        _lastChatsCollection!.chats
+        _currentChatsCollection!.chats
             .firstWhereOrNull((c) => c.id == update.chatId)
             ?.lastMessage
             ?.id,
       )) {
-        final newList = _lastChatsCollection!.chats.map(
+        final newList = _currentChatsCollection!.chats.map(
               (chat) => chat.id == update.chatId
               ? chat.copyWith(lastMessage: chat.lastMessage!.copyWith(isRead: true))
               : chat,

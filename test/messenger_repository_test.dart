@@ -19,6 +19,7 @@ import 'package:mockito/mockito.dart';
 import 'messenger_repository_test.mocks.dart';
 import 'mocks/mock_messages_local_data_source.dart';
 
+/// out, in, n, gaps are described in combine_cache_and_api.dart (CombineCacheAndApi)
 @GenerateMocks([ChatsApiDataSource, MessagesApiDataSource, ChatsLocalDataSource, UsersLocalDataSource])
 void main() {
   group('messenger_repository_messages_test', () {

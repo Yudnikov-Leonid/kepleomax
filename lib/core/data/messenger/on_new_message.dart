@@ -5,15 +5,15 @@ extension _OnNewMessageUpdateExtension on MessengerRepositoryImpl {
     final MessageDto messageDto = update.message;
     _messagesLocal.insert(messageDto);
 
-    if (_lastMessagesCollection != null) {
-      if (_lastMessagesCollection!.chatId == messageDto.chatId) {
+    if (_currentMessagesCollection != null) {
+      if (_currentMessagesCollection!.chatId == messageDto.chatId) {
         final newList = <Message>[
           Message.fromDto(messageDto),
-          ..._lastMessagesCollection!.messages,
+          ..._currentMessagesCollection!.messages,
         ];
         _emitMessages(newList);
       } else if (update.createdChatInfo != null &&
-          _lastMessagesCollection!.chatId == -1 &&
+          _currentMessagesCollection!.chatId == -1 &&
           update.createdChatInfo!.usersIds.contains(_currentChatOtherUserId)) {
         /// it's a new chat
         final newList = <Message>[Message.fromDto(messageDto)];
@@ -23,8 +23,8 @@ extension _OnNewMessageUpdateExtension on MessengerRepositoryImpl {
       }
     }
 
-    if (_lastChatsCollection != null) {
-      final newChats = List<Chat>.from(_lastChatsCollection!.chats);
+    if (_currentChatsCollection != null) {
+      final newChats = List<Chat>.from(_currentChatsCollection!.chats);
       final affectedChat = newChats.firstWhereOrNull(
         (chat) => chat.id == messageDto.chatId,
       );

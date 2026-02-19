@@ -4,9 +4,9 @@ extension _OnOnlineStatusUpdateExtension on MessengerRepositoryImpl {
   void _onOnlineUpdate(OnlineStatusUpdate update) {
     _usersLocal.updateOnlineStatus(update);
 
-    if (_lastChatsCollection != null) {
+    if (_currentChatsCollection != null) {
       final newChats = <Chat>[];
-      for (final chat in _lastChatsCollection!.chats) {
+      for (final chat in _currentChatsCollection!.chats) {
         if (chat.otherUser.id == update.userId) {
           newChats.add(
             chat.copyWith(

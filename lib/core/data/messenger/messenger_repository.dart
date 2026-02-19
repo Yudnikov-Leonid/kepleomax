@@ -71,11 +71,11 @@ class MessengerRepositoryImpl implements MessengerRepository {
   final _messagesUpdatesController =
       StreamController<MessagesCollection>.broadcast();
   final _chatsUpdatesController = StreamController<ChatsCollection>.broadcast();
-  MessagesCollection? _lastMessagesCollection;
-  ChatsCollection? _lastChatsCollection;
+  MessagesCollection? _currentMessagesCollection;
+  ChatsCollection? _currentChatsCollection;
 
   @override
-  ChatsCollection get currentChatsCollection => _lastChatsCollection!;
+  ChatsCollection get currentChatsCollection => _currentChatsCollection!;
 
   MessengerRepositoryImpl({
     required MessagesWebSocket webSocket,
@@ -102,23 +102,25 @@ class MessengerRepositoryImpl implements MessengerRepository {
   /// emitters
   void _emitMessagesCollection(MessagesCollection collection) {
     _messagesUpdatesController.add(collection);
-    _lastMessagesCollection = collection;
+    _currentMessagesCollection = collection;
   }
 
   void _emitMessages(Iterable<Message> messages) {
-    final collection = _lastMessagesCollection!.copyWith(messages: messages);
+    final collection = _currentMessagesCollection!.copyWith(messages: messages);
     _messagesUpdatesController.add(collection);
-    _lastMessagesCollection = collection;
+    _currentMessagesCollection = collection;
   }
 
   void _emitChatsCollection(ChatsCollection collection) {
     _chatsUpdatesController.add(collection);
-    _lastChatsCollection = collection;
+    _currentChatsCollection = collection;
   }
 
   /// api calls
   @override
   Future<void> loadChatsFromCache() async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    print('KlmLog loadChatsFromCache start: ${now}');
     final cache = await _chatsLocal.getChats();
     _emitChatsCollection(
       ChatsCollection(
@@ -128,6 +130,8 @@ class MessengerRepositoryImpl implements MessengerRepository {
         fromCache: true,
       ),
     );
+    final newNow = DateTime.now().millisecondsSinceEpoch;
+    print('KlmLog loadChatsFromCache end: ${newNow}, diff: ${newNow - now}');
   }
 
   @override
@@ -202,8 +206,8 @@ class MessengerRepositoryImpl implements MessengerRepository {
     required int? toMessageId,
   }) async {
     // await Future.delayed(const Duration(milliseconds: 500));
-    if (_lastMessagesCollection == null) return;
-    final messages = _lastMessagesCollection!.messages;
+    if (_currentMessagesCollection == null) return;
+    final messages = _currentMessagesCollection!.messages;
 
     /// TODO refactor
     /// if toMessageId is null, it means we are on top and have to load more

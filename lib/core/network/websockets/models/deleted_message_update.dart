@@ -4,11 +4,13 @@ class DeletedMessageUpdate {
   final int chatId;
   final MessageDto deletedMessage;
   final MessageDto? newLastMessage;
+  final bool deleteChat;
 
   const DeletedMessageUpdate({
     required this.chatId,
     required this.deletedMessage,
     required this.newLastMessage,
+    this.deleteChat = false,
   });
 
   factory DeletedMessageUpdate.fromJson(Map<String, dynamic> json) =>
@@ -18,5 +20,6 @@ class DeletedMessageUpdate {
         newLastMessage: json['new_last_message'] == null
             ? null
             : MessageDto.fromJson(json['new_last_message'], fromCache: false),
+        deleteChat: json['delete_chat'] ?? false,
       );
 }

@@ -9,7 +9,7 @@ class ChatWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 8),
       height: 70,
       child: InkWell(
         onTap: isLoading

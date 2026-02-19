@@ -17,6 +17,8 @@ abstract class ChatsLocalDataSource {
 
   Future<void> update(ChatDto chat);
 
+  Future<void> deleteById(int chatId);
+
   Future<void> increaseUnreadCountBy1(int chatId);
 
   Future<void> decreaseUnreadCount(int chatId, int amount);
@@ -53,7 +55,11 @@ class ChatsLocalDataSourceImpl implements ChatsLocalDataSource {
 
   @override
   Future<ChatDto?> getChatByOtherUserId(int otherUserId) async {
-    final query = await _database.query('chats', where: 'other_user_id = ?', whereArgs: [otherUserId]);
+    final query = await _database.query(
+      'chats',
+      where: 'other_user_id = ?',
+      whereArgs: [otherUserId],
+    );
     if (query.isEmpty) return null;
 
     final otherUser = await _database.query(
@@ -75,32 +81,32 @@ class ChatsLocalDataSourceImpl implements ChatsLocalDataSource {
     final query = await _database.query('chats');
 
     final result = <ChatDto>[];
-    for (var chat in query) {
-      chat = Map.from(chat);
+    for (var chatJson in query) {
+      chatJson = Map.from(chatJson);
 
       final lastMessage = await _database.query(
         'messages',
         limit: 1,
         where: 'chat_id = ?',
-        whereArgs: [chat['id']],
+        whereArgs: [chatJson['id']],
         orderBy: 'created_at DESC',
       );
       if (lastMessage.isNotEmpty) {
-        chat['last_message'] = jsonEncode(lastMessage[0]);
+        chatJson['last_message'] = jsonEncode(lastMessage[0]);
       }
 
       final otherUser = await _database.query(
         'users',
         where: 'id = ?',
-        whereArgs: [chat['other_user_id']],
+        whereArgs: [chatJson['other_user_id']],
       );
       if (otherUser.isEmpty) {
         throw Exception('otherUser in cache not found');
       }
-      chat['other_user_id'] = null;
-      chat['other_user'] = otherUser.first;
+      chatJson['other_user_id'] = null;
+      chatJson['other_user'] = otherUser.first;
 
-      result.add(ChatDto.fromLocalJson(chat));
+      result.add(ChatDto.fromLocalJson(chatJson));
     }
 
     return result.sorted(
@@ -125,6 +131,11 @@ class ChatsLocalDataSourceImpl implements ChatsLocalDataSource {
       where: 'id = ?',
       whereArgs: [chat.id],
     );
+  }
+
+  @override
+  Future<void> deleteById(int chatId) async {
+    await _database.delete('chats', where: 'id = ?', whereArgs: [chatId]);
   }
 
   @override

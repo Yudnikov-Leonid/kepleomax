@@ -269,12 +269,15 @@ class _BodyState extends State<_Body> {
               _ChatBottom(
                 onSend: (message) {
                   if (data.isLoading || !data.isConnected) return;
-                  widget.scrollController.animateTo(
-                    0,
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOut,
-                  );
                   _chatBloc.add(ChatEventSendMessage(value: message));
+
+                  if (widget.scrollController.hasClients) {
+                    widget.scrollController.animateTo(
+                      0,
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOut,
+                    );
+                  }
                 },
                 onEdit: (message) {
                   _chatBloc.add(ChatEventEditText(value: message));

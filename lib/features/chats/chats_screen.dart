@@ -20,8 +20,19 @@ import 'package:skeletonizer/skeletonizer.dart';
 part 'widgets/chat_widget.dart';
 
 /// screen
-class ChatsScreen extends StatelessWidget {
+class ChatsScreen extends StatefulWidget {
   const ChatsScreen({super.key});
+
+  @override
+  State<ChatsScreen> createState() => _ChatsScreenState();
+}
+
+class _ChatsScreenState extends State<ChatsScreen> {
+  @override
+  void initState() {
+    context.read<ChatsBloc>().add(const ChatsEventLoadCache());
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

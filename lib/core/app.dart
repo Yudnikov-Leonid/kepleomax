@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
-import 'package:kepleomax/core/scopes/activity_scope.dart';
+import 'package:kepleomax/core/presentation/unfocus_widget.dart';
+import 'package:kepleomax/core/scopes/user_activity_scope.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
-import 'package:kepleomax/core/scopes/chat_scope.dart';
+import 'package:kepleomax/core/scopes/connection_scope.dart';
+import 'package:kepleomax/features/chats/bloc/chats_bloc.dart';
 
 final mainNavigatorGlobalKey = GlobalKey();
 
@@ -19,36 +22,33 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        final currentFocus = FocusScope.of(context).focusedChild;
-        if (currentFocus != null) {
-          FocusManager.instance.primaryFocus?.unfocus();
-        }
-      },
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => ChatsBloc(
+          messengerRepository: Dependencies.of(context).messengerRepository,
+          connectionRepository: Dependencies.of(context).connectionRepository,
+        )),
+      ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           brightness: Brightness.light,
           scaffoldBackgroundColor: Colors.white,
           colorScheme: ColorScheme.fromSeed(seedColor: KlmColors.primaryColor),
         ),
-        // darkTheme: ThemeData(
-        //   brightness: Brightness.dark,
-        //   scaffoldBackgroundColor: Colors.black,
-        //   appBarTheme: const AppBarTheme(backgroundColor: Colors.black),
-        // ),
         themeMode: ThemeMode.light,
-        debugShowCheckedModeBanner: false,
         builder: (context, _) {
-          return AuthScope(
-            builder: (context, userId) => ChatScope(
-              key: Key('chat_scope_$userId'),
-              child: ActivityScope(
-                connectionRepository: Dependencies.of(context).connectionRepository,
-                child: AppNavigator(
-                  initialState: [const MainPage()],
-                  navigatorKey: mainNavigatorKey,
-                  key: mainNavigatorGlobalKey,
+          return UnfocusWidget(
+            child: AuthScope(
+              builder: (context, userId) => ConnectionScope(
+                key: Key('chat_scope_$userId'),
+                child: UserActivityScope(
+                  connectionRepository: Dependencies.of(context).connectionRepository,
+                  child: AppNavigator(
+                    initialState: [const MainPage()],
+                    navigatorKey: mainNavigatorKey,
+                    key: mainNavigatorGlobalKey,
+                  ),
                 ),
               ),
             ),

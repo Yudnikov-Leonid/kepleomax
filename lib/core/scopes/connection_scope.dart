@@ -7,16 +7,16 @@ import 'package:kepleomax/core/notifications/notifications_service.dart';
 import 'package:kepleomax/features/chats/bloc/chats_bloc.dart';
 import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 
-class ChatScope extends StatefulWidget {
-  const ChatScope({required this.child, super.key});
+class ConnectionScope extends StatefulWidget {
+  const ConnectionScope({required this.child, super.key});
 
   final Widget child;
 
   @override
-  State<ChatScope> createState() => _ChatScopeState();
+  State<ConnectionScope> createState() => _ConnectionScopeState();
 }
 
-class _ChatScopeState extends State<ChatScope> {
+class _ConnectionScopeState extends State<ConnectionScope> {
   bool _isScreenInited = false;
   late final ConnectionRepository _repository;
 
@@ -35,12 +35,12 @@ class _ChatScopeState extends State<ChatScope> {
     super.dispose();
   }
 
-  void _onResume(ChatsState state) {
+  void _onResume() {
     if (!_isScreenInited) {
       _isScreenInited = true;
       return;
     }
-    if (state is ChatsStateBase && !state.data.isConnected) {
+    if (!_repository.isConnected) {
       print('KlmLog chatScope trying to connect on onResume');
       Future.delayed(const Duration(seconds: 1), () async {
         /// yes, call it at least 3 times for sure. 1 time not always working on physical device
@@ -56,19 +56,10 @@ class _ChatScopeState extends State<ChatScope> {
   /// build
   @override
   Widget build(BuildContext context) {
-    /// ChatsBloc should be provided here cause it's used in bottomNavBar
-    return BlocProvider(
-      create: (context) => ChatsBloc(
-        messengerRepository: Dependencies.of(context).messengerRepository,
-        connectionRepository: Dependencies.of(context).connectionRepository,
-      )..add(const ChatsEventLoadCache()),
-      child: BlocBuilder<ChatsBloc, ChatsState>(
-        builder: (context, state) => FocusDetector(
-          onForegroundGained: () => _onResume(state),
-          onVisibilityGained: () => _onResume(state),
-          child: widget.child,
-        ),
-      ),
+    return FocusDetector(
+      onForegroundGained: () => _onResume(),
+      onVisibilityGained: () => _onResume(),
+      child: widget.child,
     );
   }
 }

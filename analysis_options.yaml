@@ -7,12 +7,23 @@
 
 # The following line activates a set of recommended lints for Flutter apps,
 # packages, and plugins designed to encourage good coding practices.
-# include: package:very_good_analysis/analysis_options.4.0.0.yaml
-include: package:flutter_lints/flutter.yaml
+include: package:very_good_analysis/analysis_options.4.0.0.yaml
+#include: package:flutter_lints/flutter.yaml/
 
 linter:
   rules:
     prefer_const_constructors: true
+    prefer_const_declarations: true
+    always_declare_return_types: true
+    avoid_unnecessary_containers: true
+    exhaustive_cases: true
+    file_names: true
+
+    always_use_package_imports: true
+    avoid_web_libraries_in_flutter: true
+    avoid_dynamic_calls: true
+    avoid_positional_boolean_parameters: true
+    slash_for_doc_comments: false
 
 dart_code_metrics:
   metrics:

@@ -1,3 +1,5 @@
+import 'package:kepleomax/core/app_constants.dart';
+
 Flavor? _flavor;
 
 Flavor get flavor => _flavor ?? Flavor.devLocal();
@@ -13,9 +15,12 @@ class Flavor {
 
   bool get isTesting => type == FlavorType.testing;
 
-  Flavor({required this.baseUrl, required this.imageUrl, required this.type})
-    : assert(baseUrl.isNotEmpty, "baseUrl can't be empty"),
-      assert(imageUrl.isNotEmpty, "imageUrl can't be empty");
+  Flavor({
+    required this.baseUrl,
+    required this.imageUrl,
+    required this.type,
+  }) : assert(baseUrl.isNotEmpty, "baseUrl can't be empty"),
+       assert(imageUrl.isNotEmpty, "imageUrl can't be empty");
 
   /// name for the argument shouldn't be flavor, cause IDE automatically will
   /// write setFlavor(flavor);

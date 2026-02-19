@@ -372,6 +372,34 @@ void main() {
       tester.checkMessagesOrder([1, 3]);
     });
 
+    testWidgets('delete_last_message_test', (tester) async {
+      await setupApp(tester, chatDto0, [messageDto0]);
+
+      tester.checkMessagesOrder([0]);
+      ws.addDeletedMessagesUpdate(DeletedMessageUpdate(chatId: 0, deletedMessage: messageDto0, newLastMessage: null, deleteChat: true));
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([]);
+      await tester.goBack();
+      tester.checkChatsOrder([]);
+    });
+
+    testWidgets('delete_last_message_and_send_new_one_test', (tester) async {
+      await setupApp(tester, chatDto0, [messageDto0]);
+
+      tester.checkMessagesOrder([0]);
+      ws.addDeletedMessagesUpdate(DeletedMessageUpdate(chatId: 0, deletedMessage: messageDto0, newLastMessage: null, deleteChat: true));
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([]);
+
+      getChatWithUserMustReturn(chatDto0);
+      ws.addMessage(messageDto1, createdChatInfo: CreatedChatInfo(chatId: 0, usersIds: [0, chatDto0.otherUser.id]));
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([1]);
+
+      await tester.goBack();
+      tester.getChat(0).check(message: chatDto0.lastMessage!.message);
+    });
+
     /// TODO system dates messages test
     /// TODO base paging test
     /// paging is tested via unit-tests

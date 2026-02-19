@@ -28,15 +28,15 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
        _connectionRepository = connectionRepository,
        super(ChatsStateBase.initial()) {
     _subConnectionState = _connectionRepository.connectionStateStream.listen(
-      (isConnected) => add(ChatsEventConnectingChanged(isConnected)),
+      (isConnected) => add(_ChatsEventConnectingChanged(isConnected)),
     );
     _chatsUpdatesSub = _chatsUpdatesSub = _messengerRepository.chatsUpdatesStream
         .listen(
           (newList) {
-            add(ChatsEventEmitChatsList(data: newList));
+            add(_ChatsEventEmitChatsList(data: newList));
           },
           onError: (e, st) {
-            add(ChatsEventEmitError(error: e, stackTrace: st));
+            add(_ChatsEventEmitError(error: e, stackTrace: st));
           },
         );
 
@@ -49,16 +49,18 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
       transformer: sequential(),
     );
     on<ChatsEventReconnect>(_onReconnect);
-    on<ChatsEventConnectingChanged>(_onConnectingChanged);
-    on<ChatsEventEmitChatsList>(_onEmitChatsList);
-    on<ChatsEventEmitError>(_onEmitError);
+
+    /// local events
+    on<_ChatsEventConnectingChanged>(_onConnectingChanged);
+    on<_ChatsEventEmitChatsList>(_onEmitChatsList);
+    on<_ChatsEventEmitError>(_onEmitError);
   }
 
   void _onLoadCache(ChatsEventLoadCache event, Emitter<ChatsState> emit) async {
     try {
       await _messengerRepository.loadChatsFromCache();
     } catch (e, st) {
-      add(ChatsEventEmitError(error: e, stackTrace: st));
+      add(_ChatsEventEmitError(error: e, stackTrace: st));
     }
   }
 
@@ -79,12 +81,12 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
       await _messengerRepository.loadChats();
     } catch (e, st) {
       /// TODO ?
-      add(ChatsEventEmitError(error: e, stackTrace: st));
+      add(_ChatsEventEmitError(error: e, stackTrace: st));
     }
   }
 
   void _onEmitChatsList(
-    ChatsEventEmitChatsList event,
+    _ChatsEventEmitChatsList event,
     Emitter<ChatsState> emit,
   ) async {
     final data = event.data;
@@ -96,7 +98,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     emit(ChatsStateBase(data: _data));
   }
 
-  void _onEmitError(ChatsEventEmitError event, Emitter<ChatsState> emit) {
+  void _onEmitError(_ChatsEventEmitError event, Emitter<ChatsState> emit) {
     logger.e(event.error, stackTrace: event.stackTrace);
     emit(ChatsStateMessage(message: event.error.userErrorMessage, isError: true));
     emit(ChatsStateBase(data: _data));
@@ -107,7 +109,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
   }
 
   void _onConnectingChanged(
-    ChatsEventConnectingChanged event,
+    _ChatsEventConnectingChanged event,
     Emitter<ChatsState> emit,
   ) {
     _data = _data.copyWith(isConnected: event.isConnected);
@@ -144,21 +146,21 @@ class ChatsEventReconnect implements ChatsEvent {
   const ChatsEventReconnect({this.onlyIfNot = false});
 }
 
-class ChatsEventConnectingChanged implements ChatsEvent {
+class _ChatsEventConnectingChanged implements ChatsEvent {
   final bool isConnected;
 
-  const ChatsEventConnectingChanged(this.isConnected);
+  const _ChatsEventConnectingChanged(this.isConnected);
 }
 
-class ChatsEventEmitChatsList implements ChatsEvent {
+class _ChatsEventEmitChatsList implements ChatsEvent {
   final ChatsCollection data;
 
-  const ChatsEventEmitChatsList({required this.data});
+  const _ChatsEventEmitChatsList({required this.data});
 }
 
-class ChatsEventEmitError implements ChatsEvent {
+class _ChatsEventEmitError implements ChatsEvent {
   final Object error;
   final StackTrace stackTrace;
 
-  const ChatsEventEmitError({required this.error, required this.stackTrace});
+  const _ChatsEventEmitError({required this.error, required this.stackTrace});
 }

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:kepleomax/core/app_constants.dart';
 import 'package:kepleomax/core/data/connection_repository.dart';
 
-class ActivityScope extends StatefulWidget {
-  const ActivityScope({
+class UserActivityScope extends StatefulWidget {
+  const UserActivityScope({
     required ConnectionRepository connectionRepository,
     required this.child,
     super.key,
@@ -12,14 +12,15 @@ class ActivityScope extends StatefulWidget {
   final ConnectionRepository _connectionRepository;
   final Widget child;
 
+  /// findAncestorStateOfType will be null if user is not logged in
   static void addActivity(BuildContext context) =>
-      context.findAncestorStateOfType<_ActivityScopeState>()!.addActivity();
+      context.findAncestorStateOfType<_UserActivityScopeState>()?.addActivity();
 
   @override
-  State<ActivityScope> createState() => _ActivityScopeState();
+  State<UserActivityScope> createState() => _UserActivityScopeState();
 }
 
-class _ActivityScopeState extends State<ActivityScope> {
+class _UserActivityScopeState extends State<UserActivityScope> {
   late DateTime _lastTimeActivityDetectedSent;
 
   @override

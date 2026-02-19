@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
-import 'package:kepleomax/core/scopes/activity_scope.dart';
+import 'package:kepleomax/core/scopes/user_activity_scope.dart';
 
 class KlmTextField extends StatefulWidget {
   const KlmTextField({
@@ -90,8 +90,8 @@ class _KlmTextFieldState extends State<KlmTextField> {
                 (widget.multiline ? TextInputType.multiline : null),
             onChanged: (value) {
               setState(() {});
-              ActivityScope.addActivity(context);
               widget.onChanged?.call(value);
+              UserActivityScope.addActivity(context);
             },
             validator: widget.validator,
             readOnly: widget.readOnly,

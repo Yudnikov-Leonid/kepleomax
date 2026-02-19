@@ -3,6 +3,39 @@ import 'package:kepleomax/core/data/local_data_sources/messages_local_data_sourc
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 
+/**
+ * no conflict: (n)
+ * cache: -----
+ * api:   -----
+ *
+ * lastApiMessage id < lastCacheMessage id (out)
+ * cache: -----
+ * api:   --------
+ *
+ * lastApiMessage id > lastCacheMessage id (in)
+ * cache: -----
+ * api:   --
+ *
+ * don't get confused: ids are in the order: newer - bigger, older - lower
+ *
+ * gap_conflict:
+ * cache: --  --
+ * api:   ------
+ *
+ * EXAMPLES:
+ * N_N
+ * -----
+ * -----
+ * N_OUT
+ * -----
+ * -------
+ * IN_IN
+ * -----
+ *  ---
+ * OUT_N
+ *  ----
+ * -----
+ */
 class CombineCacheAndApi {
   final MessagesLocalDataSource _messagesLocal;
 
@@ -11,7 +44,7 @@ class CombineCacheAndApi {
   Iterable<MessageDto> combineLoad(
     List<MessageDto> cache,
     List<MessageDto> api, {
-    int limit = AppConstants.msgPagingLimit,
+    int? limit,
   }) {
     return _of(cache, api).combine(cache, api, limit: limit);
   }
@@ -58,7 +91,7 @@ abstract class _Combiner {
   Iterable<MessageDto> combine(
     List<MessageDto> cache,
     List<MessageDto> api, {
-    int limit,
+    int? limit,
   });
 }
 
@@ -84,9 +117,9 @@ class _Any_In extends _Combiner {
   Iterable<MessageDto> combine(
     List<MessageDto> cache,
     List<MessageDto> api, {
-    int limit = AppConstants.msgPagingLimit,
+    int? limit,
   }) {
-    if (api.length < limit) {
+    if (api.length < (limit ?? AppConstants.msgPagingLimit)) {
       _local.deleteAllWithIds(cache.map((m) => m.id));
       _local.insertAll(api);
       return api;

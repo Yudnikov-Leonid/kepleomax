@@ -61,11 +61,14 @@ class MessageWidget extends StatelessWidget {
               if (renderBox == null) return;
               final pos = renderBox.localToGlobal(Offset.zero);
 
-              final currentFocusNode = FocusManager.instance.primaryFocus;
-              print('KlmLog currentFocusNode: $currentFocusNode');
-              // if (currentFocusNode?.hasPrimaryFocus == false) {
-              //   FocusScope.of(context).requestFocus(FocusNode());
-              // }
+              /// to reset the focus after show the menu
+              // FocusScope.of(context).requestFocus(FocusNode());
+
+              final double keyboardHeight = View.of(context).viewInsets.bottom;
+              final double screenHeight = MediaQuery.of(context).size.height;
+              final double availableHeight = screenHeight - keyboardHeight;
+              print('KlmLog keyboardHeight: $keyboardHeight');
+
               showMenu(
                 context: context,
                 requestFocus: false,
@@ -78,7 +81,7 @@ class MessageWidget extends StatelessWidget {
                     pos.dx,
                     pos.dy + renderBox.size.height,
                     message.isCurrentUser ? 1000 : 0,
-                    0,
+                    0
                   ),
                   Offset.zero & renderBox.size,
                 ),

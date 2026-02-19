@@ -39,14 +39,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
        _chatsRepository = chatsRepository,
        _connectionRepository = connectionRepository,
        super(ChatStateBase.initial()) {
-    _messagesUpdatesSub = _messengerRepository.messagesUpdatesStream.listen(
-      (data) {
-        add(_ChatEventEmitMessages(data: data));
-      },
-      onError: (e, st) {
-        add(_ChatEventEmitError(error: e, stackTrace: st));
-      },
-    );
+    _messagesUpdatesSub = _messengerRepository.messagesUpdatesStream.listen((data) {
+      add(_ChatEventEmitMessages(data: data));
+    });
     _chatUpdatesSub = _messengerRepository.chatsUpdatesStream.listen((newList) {
       final currentChat = newList.chats.where((e) => e.id == chatId).firstOrNull;
       if (currentChat != null) {
@@ -365,7 +360,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     /// emit
     _data = _data.copyWith(
-      // chatId can be changed if initially it was -1
+      /// chatId can be changed if initially it was -1 OR last message was deleted
+      /// and chatId will be set to -1
       chatId: event.data.chatId,
       messages: newMessages,
       isLoading: event.data.maintainLoading,
@@ -411,7 +407,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     if (!event.update.isTyping) return;
 
     await Future.delayed(
-      const Duration(seconds: AppConstants.showTypingAfterActivityForSeconds),
+      Duration(seconds: AppConstants.showTypingAfterActivityForSeconds),
     );
     _data = _data.copyWith(isTyping: false);
     emit(ChatStateBase(data: _data));
