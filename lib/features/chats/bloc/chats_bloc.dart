@@ -24,28 +24,24 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     required MessengerRepository messengerRepository,
     required ConnectionRepository connectionRepository,
     this.callsTimeout = const Duration(milliseconds: 500),
-  })
-      : _messengerRepository = messengerRepository,
-        _connectionRepository = connectionRepository,
-        super(ChatsStateBase.initial()) {
+  }) : _messengerRepository = messengerRepository,
+       _connectionRepository = connectionRepository,
+       super(ChatsStateBase.initial()) {
     _subConnectionState = _connectionRepository.connectionStateStream.listen(
-          (isConnected) => add(ChatsEventConnectingChanged(isConnected)),
-      cancelOnError: false,
+      (isConnected) => add(ChatsEventConnectingChanged(isConnected)),
     );
     _chatsUpdatesSub = _chatsUpdatesSub = _messengerRepository.chatsUpdatesStream
         .listen(
           (newList) {
-        add(ChatsEventEmitChatsList(data: newList));
-      },
-      onError: (e, st) {
-        add(ChatsEventEmitError(error: e, stackTrace: st));
-      },
-      cancelOnError: false,
-    );
+            add(ChatsEventEmitChatsList(data: newList));
+          },
+          onError: (e, st) {
+            add(ChatsEventEmitError(error: e, stackTrace: st));
+          },
+        );
 
     on<ChatsEvent>(
-          (event, emit) =>
-      switch (event) {
+      (event, emit) => switch (event) {
         ChatsEventLoadCache event => _onLoadCache(event, emit),
         ChatsEventLoad event => _onLoad(event, emit),
         ChatsEvent _ => () {},
@@ -70,9 +66,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
 
   void _onLoad(ChatsEventLoad event, Emitter<ChatsState> emit) async {
     /// TODO make this with bloc_concurrency, make isTesting better
-    final now = DateTime
-        .now()
-        .millisecondsSinceEpoch;
+    final now = DateTime.now().millisecondsSinceEpoch;
     if (_lastTimeLoadWasCalled + 1000 > now && !flavor.isTesting) {
       return;
     }
@@ -89,8 +83,10 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     }
   }
 
-  void _onEmitChatsList(ChatsEventEmitChatsList event,
-      Emitter<ChatsState> emit,) async {
+  void _onEmitChatsList(
+    ChatsEventEmitChatsList event,
+    Emitter<ChatsState> emit,
+  ) async {
     final data = event.data;
     _data = _data.copyWith(
       chats: data.chats.toList(growable: false), // TODO
@@ -110,8 +106,10 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     _connectionRepository.reconnect(onlyIfDisconnected: event.onlyIfNot);
   }
 
-  void _onConnectingChanged(ChatsEventConnectingChanged event,
-      Emitter<ChatsState> emit,) {
+  void _onConnectingChanged(
+    ChatsEventConnectingChanged event,
+    Emitter<ChatsState> emit,
+  ) {
     _data = _data.copyWith(isConnected: event.isConnected);
     if (event.isConnected) {
       add(const ChatsEventLoad());

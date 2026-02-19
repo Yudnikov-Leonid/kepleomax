@@ -39,99 +39,112 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: MediaQuery.removePadding(
-        context: context,
-        removeBottom: true,
-        child: Theme(
-          data: Theme.of(context).copyWith(
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            hoverColor: Colors.transparent,
-            splashFactory: NoSplash.splashFactory,
-          ),
-          child: BlocBuilder<ChatsBloc, ChatsState>(
-            buildWhen: (oldState, newState) {
-              if (oldState is! ChatsStateBase) return true;
+      bottomNavigationBar: SafeArea(
+        child: MediaQuery.removePadding(
+          context: context,
+          removeBottom: true,
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+              splashFactory: NoSplash.splashFactory,
+            ),
+            child: BlocBuilder<ChatsBloc, ChatsState>(
+              buildWhen: (oldState, newState) {
+                if (oldState is! ChatsStateBase) return true;
 
-              if (newState is! ChatsStateBase) return false;
+                if (newState is! ChatsStateBase) return false;
 
-              return oldState.data.totalUnreadCount !=
-                  newState.data.totalUnreadCount;
-            },
-            builder: (context, state) {
-              int? unreadCount = state is ChatsStateBase
-                  ? state.data.totalUnreadCount
-                  : null;
+                return oldState.data.totalUnreadCount !=
+                    newState.data.totalUnreadCount;
+              },
+              builder: (context, state) {
+                int? unreadCount = state is ChatsStateBase
+                    ? state.data.totalUnreadCount
+                    : null;
 
-              return BottomNavigationBar(
-                currentIndex: _index,
-                key: const Key('main_bottom_navigation_bar'),
-                showSelectedLabels: false,
-                showUnselectedLabels: false,
-                selectedFontSize: 0,
-                onTap: (index) {
-                  if (_index == index) {
-                    (_globalKeys[_index].currentState as AppNavigatorState).popAll();
-                  }
-                  setState(() {
-                    _pageController.jumpToPage(index);
-                  });
-                },
-                selectedItemColor: KlmColors.primaryColor,
-                unselectedItemColor: KlmColors.inactiveColor,
-                items: [
-                  const BottomNavigationBarItem(
-                    icon: Icon(Icons.home),
-                    label: 'Feed',
+                return Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(color: Colors.grey.shade400, width: 0.5),
+                    ),
                   ),
-                  BottomNavigationBarItem(
-                    key: Key('messages_navigation_item_$unreadCount'),
-                    icon: SizedBox(
-                      height: 50,
-                      width: 50,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          const Icon(Icons.chat_bubble_outline),
-                          if (unreadCount != null && unreadCount > 0)
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: Container(
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                                padding: const EdgeInsets.all(4),
-                                child: Text(
-                                  (unreadCount.clamp(0, 99)).toString(),
-                                  key: const Key('chats_unread_text'),
-                                  style: context.textTheme.bodyLarge?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
+                  child: BottomNavigationBar(
+                    currentIndex: _index,
+                    key: const Key('main_bottom_navigation_bar'),
+                    showSelectedLabels: false,
+                    showUnselectedLabels: false,
+                    selectedFontSize: 0,
+                    onTap: (index) {
+                      if (_index == index) {
+                        (_globalKeys[_index].currentState as AppNavigatorState)
+                            .popAll();
+                      }
+                      setState(() {
+                        _pageController.jumpToPage(index);
+                      });
+                    },
+                    selectedItemColor: KlmColors.primaryColor,
+                    unselectedItemColor: KlmColors.inactiveColor,
+                    backgroundColor: Colors.white,
+
+                    elevation: 0,
+                    items: [
+                      const BottomNavigationBarItem(
+                        icon: Icon(Icons.home),
+                        label: 'Feed',
+                      ),
+                      BottomNavigationBarItem(
+                        key: Key('messages_navigation_item_$unreadCount'),
+                        icon: SizedBox(
+                          height: 50,
+                          width: 50,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              const Icon(Icons.chat_bubble_outline),
+                              if (unreadCount != null && unreadCount > 0)
+                                Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    padding: const EdgeInsets.all(4),
+                                    child: Text(
+                                      (unreadCount.clamp(0, 99)).toString(),
+                                      key: const Key('chats_unread_text'),
+                                      style: context.textTheme.bodyLarge?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
-                        ],
+                            ],
+                          ),
+                        ),
+                        label: 'Chats',
                       ),
-                    ),
-                    label: 'Chats',
+                      BottomNavigationBarItem(
+                        icon: SvgPicture.asset(
+                          ImagesKeys.hub_icon_svg,
+                          height: 25,
+                          width: 25,
+                          color: _index == 2
+                              ? KlmColors.primaryColor
+                              : KlmColors.inactiveColor,
+                        ),
+                        label: 'Hub',
+                      ),
+                    ],
                   ),
-                  BottomNavigationBarItem(
-                    icon: SvgPicture.asset(
-                      ImagesKeys.hub_icon_svg,
-                      height: 25,
-                      width: 25,
-                      color: _index == 2
-                          ? KlmColors.primaryColor
-                          : KlmColors.inactiveColor,
-                    ),
-                    label: 'Hub',
-                  ),
-                ],
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

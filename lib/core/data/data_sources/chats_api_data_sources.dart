@@ -3,7 +3,10 @@ import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart';
 
 abstract class ChatsApiDataSource {
   Future<Iterable<ChatDto>> getChats();
+
   Future<ChatDto?> getChatWithId(int chatId);
+
+  Future<ChatDto?> getChatWithUser(int otherUserId);
 }
 
 class ChatsApiDataSourceImpl implements ChatsApiDataSource {
@@ -25,8 +28,23 @@ class ChatsApiDataSourceImpl implements ChatsApiDataSource {
 
   @override
   Future<ChatDto?> getChatWithId(int chatId) async {
-    final res = await _chatsApi
-        .getChatWithId(chatId: chatId);
+    final res = await _chatsApi.getChatWithId(chatId: chatId);
+
+    if (res.response.statusCode == 404) {
+      return null;
+    }
+    if (res.response.statusCode != 200) {
+      throw Exception(
+        res.data.message ?? "Failed to get chat: ${res.response.statusCode}",
+      );
+    }
+
+    return res.data.data!;
+  }
+
+  @override
+  Future<ChatDto?> getChatWithUser(int otherUserId) async {
+    final res = await _chatsApi.getChatWithUser(otherUserId: otherUserId);
 
     if (res.response.statusCode == 404) {
       return null;

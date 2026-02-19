@@ -6,7 +6,9 @@ extension _OnTypingUpdateExtension on MessengerRepositoryImpl {
       final newChats = List.of(_lastChatsCollection!.chats);
       for (int i = 0; i < newChats.length; i++) {
         if (newChats[i].id == update.chatId) {
-          newChats[i] = newChats[i].copyWith(lastTypingActivityTime: DateTime.now());
+          newChats[i] = newChats[i].copyWith(
+            lastTypingActivityTime: update.isTyping ? DateTime.now() : null,
+          );
           _emitChatsCollection(ChatsCollection(chats: newChats));
           break;
         }

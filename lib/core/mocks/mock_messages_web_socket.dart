@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
+import 'package:kepleomax/core/network/websockets/models/new_message_update.dart';
 import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
 import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
@@ -20,7 +21,10 @@ class MockMessagesWebSocket implements MessagesWebSocket {
     _connectionController.add(value);
   }
 
-  void addMessage(MessageDto messageDto) => _messageController.add(messageDto);
+  void addMessage(MessageDto messageDto, {CreatedChatInfo? createdChatInfo}) =>
+      _messageController.add(
+        NewMessageUpdate(message: messageDto, createdChatInfo: createdChatInfo),
+      );
 
   void addReadMessagesUpdate(ReadMessagesUpdate update) =>
       _readMessagesController.add(update);
@@ -58,7 +62,7 @@ class MockMessagesWebSocket implements MessagesWebSocket {
   int get deleteMessageCalledTimes => _deleteMessageCalls.length;
 
   /// streams
-  final StreamController<MessageDto> _messageController =
+  final StreamController<NewMessageUpdate> _messageController =
       StreamController.broadcast();
   final StreamController<ReadMessagesUpdate> _readMessagesController =
       StreamController.broadcast();
@@ -71,7 +75,7 @@ class MockMessagesWebSocket implements MessagesWebSocket {
       StreamController.broadcast();
 
   @override
-  Stream<MessageDto> get newMessageStream => _messageController.stream;
+  Stream<NewMessageUpdate> get newMessageUpdatesStream => _messageController.stream;
 
   @override
   Stream<ReadMessagesUpdate> get readMessagesStream =>
@@ -116,16 +120,19 @@ class MockMessagesWebSocket implements MessagesWebSocket {
     }
 
     _messageController.add(
-      MessageDto(
-        id: _nextSendMessageId!,
-        chatId: 0,
-        senderId: 0,
-        isCurrentUser: true,
-        message: message,
-        isRead: false,
-        createdAt: 2000,
-        editedAt: null,
-        fromCache: false,
+      NewMessageUpdate(
+        message: MessageDto(
+          id: _nextSendMessageId!,
+          chatId: 0,
+          senderId: 0,
+          isCurrentUser: true,
+          message: '$message FIX THIS METHOD',
+          isRead: false,
+          createdAt: 2000,
+          editedAt: null,
+          fromCache: false,
+        ),
+        createdChatInfo: null,
       ),
     );
   }

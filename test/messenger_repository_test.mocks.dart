@@ -118,6 +118,14 @@ class MockChatsLocalDataSource extends _i1.Mock
           as _i3.Future<_i4.ChatDto?>);
 
   @override
+  _i3.Future<_i4.ChatDto?> getChatByOtherUserId(int? otherUserId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getChatByOtherUserId, [otherUserId]),
+            returnValue: _i3.Future<_i4.ChatDto?>.value(),
+          )
+          as _i3.Future<_i4.ChatDto?>);
+
+  @override
   _i3.Future<void> clearAndInsertChats(Iterable<_i4.ChatDto>? chats) =>
       (super.noSuchMethod(
             Invocation.method(#clearAndInsertChats, [chats]),

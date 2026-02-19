@@ -300,7 +300,7 @@ class _BodyState extends State<_Body> {
       _chatBloc.add(ChatEventReadMessagesBeforeTime(time: message.createdAt));
     }
     if (message.fromCache) {
-      // print('MyLog2 visibleMessageFromCache: ${data.messages[i].message}');
+      // print('KlmLog visibleMessageFromCache: ${data.messages[i].message}');
       _chatBloc.add(ChatEventLoadMore(toMessageId: message.id));
     }
   }

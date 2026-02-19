@@ -9,6 +9,8 @@ abstract class ChatsLocalDataSource {
 
   Future<ChatDto?> getChat(int chatId);
 
+  Future<ChatDto?> getChatByOtherUserId(int otherUserId);
+
   Future<void> clearAndInsertChats(Iterable<ChatDto> chats);
 
   Future<void> insert(ChatDto chat);
@@ -33,6 +35,25 @@ class ChatsLocalDataSourceImpl implements ChatsLocalDataSource {
       whereArgs: [chatId],
     );
 
+    if (query.isEmpty) return null;
+
+    final otherUser = await _database.query(
+      'users',
+      where: 'id = ?',
+      whereArgs: [query.first['other_user_id']],
+    );
+    if (otherUser.isEmpty) {
+      throw Exception('otherUser in cache not found');
+    }
+    final newJson = Map<String, dynamic>.from(query.first);
+    newJson['other_user_id'] = null;
+    newJson['other_user'] = otherUser.firstOrNull;
+    return ChatDto.fromJson(newJson);
+  }
+
+  @override
+  Future<ChatDto?> getChatByOtherUserId(int otherUserId) async {
+    final query = await _database.query('chats', where: 'other_user_id = ?', whereArgs: [otherUserId]);
     if (query.isEmpty) return null;
 
     final otherUser = await _database.query(

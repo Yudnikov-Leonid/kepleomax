@@ -1,4 +1,4 @@
-import 'package:kepleomax/core/data/db/local_database_manager.dart';
+import 'package:kepleomax/core/data/local_data_sources/local_database_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class AppSettings {

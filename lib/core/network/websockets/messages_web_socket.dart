@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
+import 'package:kepleomax/core/network/websockets/models/new_message_update.dart';
 import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 import 'package:socket_io_client/socket_io_client.dart';
@@ -11,7 +11,7 @@ import 'models/read_messages_update.dart';
 
 abstract class MessagesWebSocket {
   /// streams
-  Stream<MessageDto> get newMessageStream;
+  Stream<NewMessageUpdate> get newMessageUpdatesStream;
 
   Stream<ReadMessagesUpdate> get readMessagesStream;
 
@@ -61,7 +61,7 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
        _baseUrl = baseUrl;
 
   /// streams
-  final StreamController<MessageDto> _messageController =
+  final StreamController<NewMessageUpdate> _messagesController =
       StreamController.broadcast();
   final StreamController<ReadMessagesUpdate> _readMessagesController =
       StreamController.broadcast();
@@ -74,7 +74,7 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
       StreamController.broadcast();
 
   @override
-  Stream<MessageDto> get newMessageStream => _messageController.stream;
+  Stream<NewMessageUpdate> get newMessageUpdatesStream => _messagesController.stream;
 
   @override
   Stream<ReadMessagesUpdate> get readMessagesStream =>
@@ -156,10 +156,15 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
     /// logic events
     _socket!.on('new_message', (data) {
       logger.d('WebSocketLog new_message: $data');
-      final messageDto = MessageDto.fromJson(data, fromCache: false);
-      _messageController.add(messageDto);
-      final typingUpdate = TypingActivityUpdate.fromJson(data, isTyping: false);
-      _typingUpdatesController.add(typingUpdate);
+      final messageUpdate = NewMessageUpdate.fromJson(data);
+      _messagesController.add(messageUpdate);
+      if (!messageUpdate.message.isCurrentUser) {
+        final typingUpdate = TypingActivityUpdate(
+          chatId: messageUpdate.message.chatId,
+          isTyping: false,
+        );
+        _typingUpdatesController.add(typingUpdate);
+      }
     });
     _socket!.on('read_messages', (data) {
       logger.d('WebSocketLog read_messages: $data');

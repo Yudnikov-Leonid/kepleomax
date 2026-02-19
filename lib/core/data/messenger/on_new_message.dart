@@ -1,16 +1,26 @@
 part of 'messenger_repository.dart';
 
-extension _OnNewMessageExtension on MessengerRepositoryImpl {
-  void _onNewMessage(MessageDto messageDto) async {
+extension _OnNewMessageUpdateExtension on MessengerRepositoryImpl {
+  void _onNewMessageUpdate(NewMessageUpdate update) async {
+    final MessageDto messageDto = update.message;
     _messagesLocal.insert(messageDto);
 
-    if (_lastMessagesCollection != null &&
-        _lastMessagesCollection!.chatId == messageDto.chatId) {
-      final newList = <Message>[
-        Message.fromDto(messageDto),
-        ..._lastMessagesCollection!.messages,
-      ];
-      _emitMessages(newList);
+    if (_lastMessagesCollection != null) {
+      if (_lastMessagesCollection!.chatId == messageDto.chatId) {
+        final newList = <Message>[
+          Message.fromDto(messageDto),
+          ..._lastMessagesCollection!.messages,
+        ];
+        _emitMessages(newList);
+      } else if (update.createdChatInfo != null &&
+          _lastMessagesCollection!.chatId == -1 &&
+          update.createdChatInfo!.usersIds.contains(_currentChatOtherUserId)) {
+        /// it's a new chat
+        final newList = <Message>[Message.fromDto(messageDto)];
+        _emitMessagesCollection(
+          MessagesCollection(chatId: messageDto.chatId, messages: newList, allMessagesLoaded: true),
+        );
+      }
     }
 
     if (_lastChatsCollection != null) {

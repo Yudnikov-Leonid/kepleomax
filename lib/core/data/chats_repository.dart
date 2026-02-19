@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:kepleomax/core/data/data_sources/chats_api_data_sources.dart';
 import 'package:kepleomax/core/data/local_data_sources/chats_local_data_source.dart';
 import 'package:kepleomax/core/models/chat.dart';
-import 'package:kepleomax/core/network/apis/chats/chats_api.dart';
 
 
 abstract class ChatsRepository {
@@ -18,11 +18,11 @@ abstract class ChatsRepository {
 }
 
 class ChatsRepositoryImpl implements ChatsRepository {
-  final ChatsApi _chatsApi;
+  final ChatsApiDataSource _chatsApi;
   final ChatsLocalDataSource _chatsLocal;
 
   ChatsRepositoryImpl({
-    required ChatsApi chatsApi,
+    required ChatsApiDataSource chatsApi,
     required ChatsLocalDataSource chatsLocalDataSource,
   }) : _chatsLocal = chatsLocalDataSource,
        _chatsApi = chatsApi;
@@ -30,51 +30,32 @@ class ChatsRepositoryImpl implements ChatsRepository {
   /// api
   @override
   Future<Chat?> getChatWithUser(int otherUserId) async {
-    final res = await _chatsApi
-        .getChatWithUser(otherUserId: otherUserId);
+    final dto = await _chatsApi
+        .getChatWithUser(otherUserId);
 
-    if (res.response.statusCode == 404) {
-      return null;
-    }
-    if (res.response.statusCode != 200) {
-      throw Exception(
-        res.data.message ?? "Failed to get chat: ${res.response.statusCode}",
-      );
-    }
-
-    return Chat.fromDto(res.data.data!, fromCache: false);
+    return dto == null ? null : Chat.fromDto(dto, fromCache: false);
   }
 
   @override
   Future<Chat?> getChatWithId(int chatId) async {
-    final res = await _chatsApi
-        .getChatWithId(chatId: chatId);
+    final dto = await _chatsApi
+        .getChatWithId(chatId);
 
-    if (res.response.statusCode == 404) {
-      return null;
-    }
-    if (res.response.statusCode != 200) {
-      throw Exception(
-        res.data.message ?? "Failed to get chat: ${res.response.statusCode}",
-      );
-    }
+    if (dto == null) return null;
 
-    final data = res.data.data!;
-    _chatsLocal.insert(data);
-    return Chat.fromDto(data, fromCache: false);
+    _chatsLocal.insert(dto);
+    return Chat.fromDto(dto, fromCache: false);
   }
 
   /// cache
   @override
   Future<Chat?> getChatWithUserFromCache(int otherUserId) async {
-    final chats = await _chatsLocal.getChats();
+    final chatDto = await _chatsLocal.getChatByOtherUserId(otherUserId);
 
-    /// TODO make query in _localDatabase to this
-    final dto = chats.where((e) => e.otherUser.id == otherUserId).firstOrNull;
-    if (dto == null) {
+    if (chatDto == null) {
       return null;
     } else {
-      return Chat.fromDto(dto, fromCache: true);
+      return Chat.fromDto(chatDto, fromCache: true);
     }
   }
 

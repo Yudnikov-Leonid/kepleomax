@@ -35,9 +35,11 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       },
       transformer: sequential(),
     );
-    _connectionRepository.subscribeOnOnlineStatusUpdates(usersIds: [_userId]);
+    _connectionRepository.listenOnlineStatusUpdates(usersIds: [_userId]);
     _onlineUpdatesSub = _connectionRepository.onlineUpdatesStream.listen((update) {
-      add(_UserEventUpdateOnlineStatus(update));
+      if (update.userId == userId) {
+        add(_UserEventUpdateOnlineStatus(update));
+      }
     });
   }
 

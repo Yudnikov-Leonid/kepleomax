@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:kepleomax/core/app.dart';
 import 'package:kepleomax/core/app_constants.dart';
-import 'package:kepleomax/core/data/db/local_database_manager.dart';
+import 'package:kepleomax/core/data/local_data_sources/local_database_manager.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/di/initialize_dependencies.dart';
 import 'package:kepleomax/core/flavor.dart';
@@ -19,8 +19,10 @@ import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
+import 'package:kepleomax/core/network/websockets/models/new_message_update.dart';
 import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
+import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retrofit/dio.dart';
 
@@ -49,9 +51,9 @@ void main() {
       await LocalDatabaseManager.reset();
     });
 
-    Future<void> setupApp(WidgetTester tester, ChatDto chat, List<MessageDto> messages, {bool getMessagesAsyncControl = false}) async {
+    Future<void> setupApp(WidgetTester tester, ChatDto? chat, List<MessageDto> messages, {bool getMessagesAsyncControl = false}) async {
       when(dp.chatsApi.getChats()).thenAnswer((_) async {
-        return HttpResponse(ChatsResponse(data: [chat], message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
+        return HttpResponse(ChatsResponse(data: chat == null ? [] : [chat], message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
       });
       when((dp.chatsApi as MockChatsApi).getChatWithId(chatId: anyNamed("chatId"))).thenAnswer((inv) async {
         return HttpResponse(
@@ -59,7 +61,7 @@ void main() {
           Response(requestOptions: RequestOptions(), statusCode: 200),
         );
       });
-      when(dp.messagesApi.getMessages(chatId: chat.id, limit: AppConstants.msgPagingLimit, cursor: null)).thenAnswer((_) async {
+      when(dp.messagesApi.getMessages(chatId: chat?.id ?? 0, limit: AppConstants.msgPagingLimit, cursor: null)).thenAnswer((_) async {
         if (getMessagesAsyncControl) {
           _getMessagesCompleter = Completer();
           await _getMessagesCompleter.future;
@@ -69,6 +71,7 @@ void main() {
       await tester.pumpWidget(dp.inject(child: const App()));
       ws.setIsConnected(true);
       await tester.pumpAndSettle();
+      if (chat == null) return;
       await tester.tap(find.byKey(Key('chat_${chat.id}')));
       if (getMessagesAsyncControl) {
         /// 50 millis to end page opening animation. Settle doesn't work cause skeletonizer
@@ -78,7 +81,13 @@ void main() {
       }
     }
 
-    Future<void> getMessagesSendResponse(WidgetTester tester) async {
+    void getChatWithUserMustReturn(ChatDto? chat, {int userId = 1}) {
+      when(
+        dp.chatsApi.getChatWithUser(otherUserId: userId),
+      ).thenAnswer((_) async => HttpResponse(ChatResponse(data: chat, message: null), Response(requestOptions: RequestOptions(), statusCode: chat == null ? 404 : 200)));
+    }
+
+    Future<void> sendGetMessagesResponse(WidgetTester tester) async {
       _getMessagesCompleter.complete();
       await tester.pumpAndSettle();
     }
@@ -92,7 +101,7 @@ void main() {
       tester.checkMessagesOrder([0]); // cached from chat
 
       /// wait for the response of the repository, check
-      await getMessagesSendResponse(tester);
+      await sendGetMessagesResponse(tester);
       tester.checkChatAppBarStatus(ChatAppBarStatus.none);
       tester.checkMessagesCount(5);
       tester.checkMessagesOrder([0, 1, 2, 3, 4]);
@@ -113,7 +122,7 @@ void main() {
 
       /// wait for the response of the repository, check
       await tester.pump(const Duration(milliseconds: 10)); // need this line
-      await getMessagesSendResponse(tester);
+      await sendGetMessagesResponse(tester);
       tester.checkChatAppBarStatus(ChatAppBarStatus.none);
       tester.checkMessagesCount(5);
       tester.checkMessagesOrder([0, 1, 2, 3, 4]);
@@ -224,14 +233,14 @@ void main() {
       /// we have cachedMessage with id 0 from chat. This message won't be received
       /// from api, so it should be deleted from cache
       tester.checkMessagesOrder([0]);
-      await getMessagesSendResponse(tester);
+      await sendGetMessagesResponse(tester);
       tester.checkMessagesOrder([2, 3, 4]);
 
       /// go back, open chat, check cache, check loaded messages
       await tester.reopenChat(settle: false);
       tester.checkMessagesOrder([2, 3, 4]);
       tester.checkChatAppBarStatus(ChatAppBarStatus.updating);
-      await getMessagesSendResponse(tester);
+      await sendGetMessagesResponse(tester);
       tester.checkMessagesOrder([2, 3, 4]);
       tester.checkChatAppBarStatus(ChatAppBarStatus.none);
     });
@@ -309,6 +318,58 @@ void main() {
       tester.checkChatOtherUserStatus('typing..');
       await tester.pumpAndSettle(const Duration(milliseconds: 1500));
       tester.checkChatOtherUserStatus('online');
+    });
+
+    testWidgets('new_chat_other_user_message_first_test', (tester) async {
+      await setupApp(tester, null, [], getMessagesAsyncControl: true);
+      await dp.usersLocalDataSource.insert(chatDto0.otherUser);
+      getChatWithUserMustReturn(null);
+
+      /// open new chat, check
+      await tester.navigateTo(ChatPage(chatId: -1, otherUser: User.fromDto(chatDto0.otherUser)));
+      tester.checkMessagesOrder([]);
+
+      /// add message, check
+      getChatWithUserMustReturn(chatDto0);
+      ws.addMessage(messageDto0, createdChatInfo: CreatedChatInfo(chatId: 0, usersIds: [0, messageDto0.senderId]));
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([0]);
+
+      /// add message, check
+      ws.addMessage(messageDto3);
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([3, 0]);
+
+      /// add message, check
+      ws.addMessage(messageDto1);
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([1, 3, 0]);
+
+      /// reopen chat, check cache
+      await tester.reopenChat(settle: false);
+      // messages will be sorted by time, so order will be changed
+      tester.checkMessagesOrder([0, 1, 3]);
+    });
+
+    testWidgets('new_chat_current_user_message_first_test', (tester) async {
+      await setupApp(tester, null, []);
+      await dp.usersLocalDataSource.insert(chatDto0.otherUser);
+      getChatWithUserMustReturn(null);
+
+      /// open new chat, check
+      await tester.navigateTo(ChatPage(chatId: -1, otherUser: User.fromDto(chatDto0.otherUser)));
+      tester.checkMessagesOrder([]);
+
+      /// add message, check
+      getChatWithUserMustReturn(chatDto0);
+      ws.addMessage(messageDto3, createdChatInfo: CreatedChatInfo(chatId: 0, usersIds: [0, messageDto0.senderId]));
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([3]);
+
+      /// add message, check
+      ws.addMessage(messageDto1);
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([1, 3]);
     });
 
     /// TODO system dates messages test

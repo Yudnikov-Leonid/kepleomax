@@ -55,7 +55,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     });
     _connectionStateSub = _connectionRepository.connectionStateStream.listen(
       (isConnected) => add(_ChatEventConnectingChanged(isConnected)),
-      cancelOnError: false,
     );
     _onlineUpdatesSub = _connectionRepository.onlineUpdatesStream.listen((update) {
       add(_ChatEventOnlineStatusUpdate(update));
@@ -153,13 +152,20 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           chatId = cachedChat.id;
         } else {
           final chat = await _chatsRepository.getChatWithUser(event.otherUser!.id);
+          print('chatFromApi: $chat');
           chatId = chat?.id ?? -1;
         }
 
         if (chatId == -1) {
-          /// it's new chat with new user
+          /// it's a new chat with new user
           _data = _data.copyWith(chatId: -1, isLoading: false, messages: []);
           emit(ChatStateBase(data: _data));
+          _messengerRepository.listenToMessagesWithOtherUserId(
+            otherUserId: event.otherUser!.id,
+          );
+          _connectionRepository.listenOnlineStatusUpdates(
+            usersIds: [_data.otherUser!.id],
+          );
           return;
         } else {
           /// it's existing chat with otherUser, but was opened not from chat page
@@ -185,13 +191,17 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       final chat = _messengerRepository.currentChatsCollection.chats
           .where((c) => c.id == chatId)
           .firstOrNull;
-      _data = _data.copyWith(
-        isTyping: chat?.isTypingRightNow ?? false,
-        unreadCount: chat?.unreadCount ?? 0,
-      );
+      if (chat?.isTypingRightNow == true) {
+        add(
+          _ChatEventTypingUpdate(
+            TypingActivityUpdate(chatId: chatId, isTyping: true),
+          ),
+        );
+      }
+      _data = _data.copyWith(unreadCount: chat?.unreadCount ?? 0);
       emit(ChatStateBase(data: _data));
 
-      _connectionRepository.subscribeOnOnlineStatusUpdates(
+      _connectionRepository.listenOnlineStatusUpdates(
         usersIds: [_data.otherUser!.id],
       );
       await _messengerRepository.loadMessages(
@@ -355,6 +365,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     /// emit
     _data = _data.copyWith(
+      // chatId can be changed if initially it was -1
+      chatId: event.data.chatId,
       messages: newMessages,
       isLoading: event.data.maintainLoading,
     );

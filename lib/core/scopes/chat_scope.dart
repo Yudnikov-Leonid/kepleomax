@@ -41,8 +41,13 @@ class _ChatScopeState extends State<ChatScope> {
       return;
     }
     if (state is ChatsStateBase && !state.data.isConnected) {
-      print('MyLog chatScope onResume');
-      Future.delayed(const Duration(seconds: 1), () {
+      print('KlmLog chatScope trying to connect on onResume');
+      Future.delayed(const Duration(seconds: 1), () async {
+        /// yes, call it at least 3 times for sure. 1 time not always working on physical device
+        _repository.reconnect(onlyIfDisconnected: true);
+        await Future.delayed(const Duration(milliseconds: 500));
+        _repository.reconnect(onlyIfDisconnected: true);
+        await Future.delayed(const Duration(milliseconds: 500));
         _repository.reconnect(onlyIfDisconnected: true);
       });
     }

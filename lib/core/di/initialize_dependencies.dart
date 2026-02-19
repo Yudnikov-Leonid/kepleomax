@@ -9,7 +9,7 @@ import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/connection_repository.dart';
 import 'package:kepleomax/core/data/data_sources/chats_api_data_sources.dart';
 import 'package:kepleomax/core/data/data_sources/messages_api_data_sources.dart';
-import 'package:kepleomax/core/data/db/local_database_manager.dart';
+import 'package:kepleomax/core/data/local_data_sources/local_database_manager.dart';
 import 'package:kepleomax/core/data/files_repository.dart';
 import 'package:kepleomax/core/data/local_data_sources/chats_local_data_source.dart';
 import 'package:kepleomax/core/data/local_data_sources/messages_local_data_source.dart';
@@ -194,6 +194,8 @@ List<_InitializationStep> _steps = [
   ),
 
   _InitializationStep('repositories', (dp) {
+    final chatsApiDataSource = ChatsApiDataSourceImpl(chatsApi: dp.chatsApi);
+
     dp.filesRepository = FilesRepositoryImpl(filesApi: dp.filesApi);
     dp.postRepository = PostRepositoryImpl(postApi: dp.postApi);
     dp.connectionRepository = ConnectionRepositoryImpl(
@@ -202,14 +204,14 @@ List<_InitializationStep> _steps = [
     dp.messengerRepository = MessengerRepositoryImpl(
       webSocket: dp.messagesWebSocket,
       messagesApiDataSource: MessagesApiDataSourceImpl(messagesApi: dp.messagesApi),
-      chatsApiDataSource: ChatsApiDataSourceImpl(chatsApi: dp.chatsApi),
+      chatsApiDataSource: chatsApiDataSource,
       messagesLocalDataSource: dp.messagesLocalDataSource,
       chatsLocalDataSource: dp.chatsLocalDataSource,
       usersLocalDataSource: dp.usersLocalDataSource,
       combiner: CombineCacheAndApi(dp.messagesLocalDataSource),
     );
     dp.chatsRepository = ChatsRepositoryImpl(
-      chatsApi: dp.chatsApi,
+      chatsApi: chatsApiDataSource,
       chatsLocalDataSource: dp.chatsLocalDataSource,
     );
   }),

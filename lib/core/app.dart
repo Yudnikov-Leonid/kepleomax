@@ -22,8 +22,8 @@ class _AppState extends State<App> {
     return GestureDetector(
       onTap: () {
         final currentFocus = FocusScope.of(context).focusedChild;
-        if (currentFocus != null && !currentFocus.hasPrimaryFocus) {
-          currentFocus.unfocus();
+        if (currentFocus != null) {
+          FocusManager.instance.primaryFocus?.unfocus();
         }
       },
       child: MaterialApp(

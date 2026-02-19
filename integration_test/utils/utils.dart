@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kepleomax/core/navigation/app_navigator.dart';
+import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/features/chat/chat_screen.dart';
 import 'package:kepleomax/features/chats/chats_screen.dart';
 
@@ -139,6 +141,11 @@ extension TesterExtension on WidgetTester {
       ).where((w) => !w.message.isSystem || countSystem).map((w) => w.key),
       equals(ids.map((id) => Key('message_$id'))),
     );
+  }
+
+  Future<void> navigateTo(AppPage page) async {
+    AppNavigator.of(firstElement(find.byType(Text)))!.push(page);
+    await pumpAndSettle();
   }
 }
 

@@ -61,8 +61,14 @@ class MessageWidget extends StatelessWidget {
               if (renderBox == null) return;
               final pos = renderBox.localToGlobal(Offset.zero);
 
+              final currentFocusNode = FocusManager.instance.primaryFocus;
+              print('KlmLog currentFocusNode: $currentFocusNode');
+              // if (currentFocusNode?.hasPrimaryFocus == false) {
+              //   FocusScope.of(context).requestFocus(FocusNode());
+              // }
               showMenu(
                 context: context,
+                requestFocus: false,
                 color: Colors.grey.shade50,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),

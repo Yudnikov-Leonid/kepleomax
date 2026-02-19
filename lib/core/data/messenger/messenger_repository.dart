@@ -11,6 +11,7 @@ import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
+import 'package:kepleomax/core/network/websockets/models/new_message_update.dart';
 import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
 import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
@@ -39,6 +40,9 @@ abstract class MessengerRepository {
 
   Future<void> loadMessages({required int chatId, bool withCache = true});
 
+  /// subscribes on messages from that userId, uses when chatId == -1
+  void listenToMessagesWithOtherUserId({required int otherUserId});
+
   Future<void> loadMoreMessages({required int chatId, required int? toMessageId});
 
   /// ws streams
@@ -60,6 +64,9 @@ class MessengerRepositoryImpl implements MessengerRepository {
   final UsersLocalDataSource _usersLocal;
 
   final CombineCacheAndApi _combiner;
+
+  /// uses when chatId == -1 (it's a new chat with new user)
+  int? _currentChatOtherUserId;
 
   final _messagesUpdatesController =
       StreamController<MessagesCollection>.broadcast();
@@ -85,7 +92,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
        _messagesLocal = messagesLocalDataSource,
        _usersLocal = usersLocalDataSource,
        _combiner = combiner {
-    _webSocket.newMessageStream.listen(_onNewMessage);
+    _webSocket.newMessageUpdatesStream.listen(_onNewMessageUpdate);
     _webSocket.readMessagesStream.listen(_onReadMessages);
     _webSocket.deletedMessageStream.listen(_onDeletedMessage);
     _webSocket.onlineUpdatesStream.listen(_onOnlineUpdate);
@@ -125,6 +132,8 @@ class MessengerRepositoryImpl implements MessengerRepository {
 
   @override
   Future<void> loadChats() async {
+    _currentChatOtherUserId = null;
+
     final chats = await _chatsApi.getChats();
     _emitChatsCollection(
       ChatsCollection(
@@ -145,13 +154,22 @@ class MessengerRepositoryImpl implements MessengerRepository {
   }
 
   @override
+  void listenToMessagesWithOtherUserId({required int otherUserId}) async {
+    _currentChatOtherUserId = otherUserId;
+    print('listenToMessagesWithOtherUserId: $otherUserId');
+
+    _emitMessagesCollection(
+      const MessagesCollection(chatId: -1, messages: [], allMessagesLoaded: true),
+    );
+  }
+
+  @override
   Future<void> loadMessages({required int chatId, bool withCache = true}) async {
+    /// TODO reset messagesCollection here?
     /// emit data from cache
     List<MessageDto> cache = [];
     if (withCache) {
       cache = await _messagesLocal.getMessagesByChatId(chatId);
-
-      /// TODO add unreadMessages
       _emitMessagesCollection(
         MessagesCollection(
           messages: cache.map(Message.fromDto),
@@ -168,7 +186,6 @@ class MessengerRepositoryImpl implements MessengerRepository {
     );
     final newList = _combiner.combineLoad(cache, apiMessagesDtos);
 
-    /// TODO add unreadMessages
     _emitMessagesCollection(
       MessagesCollection(
         messages: newList.map(Message.fromDto),

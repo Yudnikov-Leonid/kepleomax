@@ -1,8 +1,9 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:kepleomax/core/data/auth_repository.dart';
-import 'package:kepleomax/core/data/db/local_database_manager.dart';
+import 'package:kepleomax/core/data/local_data_sources/local_database_manager.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
+import 'package:kepleomax/core/flavor.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -117,6 +118,9 @@ class AuthControllerImpl implements AuthController {
     for (final listener in _listeners) {
       listener();
     }
+
+    /// TODO make it better
+    if (flavor.isTesting) return;
 
     if (newUser != null) {
       await _checkFcmToken();

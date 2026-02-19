@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:kepleomax/core/app.dart';
 import 'package:kepleomax/core/app_constants.dart';
-import 'package:kepleomax/core/data/db/local_database_manager.dart';
+import 'package:kepleomax/core/data/local_data_sources/local_database_manager.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/di/initialize_dependencies.dart';
 import 'package:kepleomax/core/flavor.dart';

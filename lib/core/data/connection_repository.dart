@@ -17,7 +17,7 @@ abstract class ConnectionRepository {
 
   void readMessageBeforeTime({required int chatId, required DateTime time});
 
-  void subscribeOnOnlineStatusUpdates({required List<int> usersIds});
+  void listenOnlineStatusUpdates({required List<int> usersIds});
 
   void activityDetected();
 
@@ -68,7 +68,7 @@ class ConnectionRepositoryImpl implements ConnectionRepository {
       _webSocket.readMessagesBeforeTime(chatId: chatId, time: time);
 
   @override
-  void subscribeOnOnlineStatusUpdates({required List<int> usersIds}) =>
+  void listenOnlineStatusUpdates({required List<int> usersIds}) =>
       _webSocket.subscribeOnOnlineStatusUpdates(usersIds: usersIds);
 
   @override

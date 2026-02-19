@@ -12,6 +12,9 @@ class ActivityScope extends StatefulWidget {
   final ConnectionRepository _connectionRepository;
   final Widget child;
 
+  static void addActivity(BuildContext context) =>
+      context.findAncestorStateOfType<_ActivityScopeState>()!.addActivity();
+
   @override
   State<ActivityScope> createState() => _ActivityScopeState();
 }
@@ -25,17 +28,21 @@ class _ActivityScopeState extends State<ActivityScope> {
     super.initState();
   }
 
+  void addActivity() {
+    if (_lastTimeActivityDetectedSent.millisecondsSinceEpoch +
+        AppConstants.sendActivityDelayInSeconds * 1000 <
+        DateTime.now().millisecondsSinceEpoch) {
+      print('activity sent');
+      widget._connectionRepository.activityDetected();
+      _lastTimeActivityDetectedSent = DateTime.now();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Listener(
       onPointerDown: (_) {
-        if (_lastTimeActivityDetectedSent.millisecondsSinceEpoch +
-                AppConstants.sendActivityDelayInSeconds * 1000 <
-            DateTime.now().millisecondsSinceEpoch) {
-          print('activity sent');
-          widget._connectionRepository.activityDetected();
-          _lastTimeActivityDetectedSent = DateTime.now();
-        }
+        addActivity();
       },
       child: widget.child,
     );
