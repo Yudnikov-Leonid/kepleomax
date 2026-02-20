@@ -1,8 +1,4 @@
 class ReadMessagesUpdate {
-  final int chatId;
-  final int senderId;
-  final bool isCurrentUser;
-  final List<int> messagesIds;
 
   const ReadMessagesUpdate({
     required this.chatId,
@@ -13,11 +9,15 @@ class ReadMessagesUpdate {
 
   factory ReadMessagesUpdate.fromJson(Map<String, dynamic> json) =>
       ReadMessagesUpdate(
-        chatId: json['chat_id'],
-        senderId: json['sender_id'],
-        isCurrentUser: json['is_current_user'],
-        messagesIds: json['messages_ids']
+        chatId: json['chat_id'] as int,
+        senderId: json['sender_id'] as int,
+        isCurrentUser: json['is_current_user'] as bool,
+        messagesIds: (json['messages_ids'] as List<dynamic>)
             .map<int>((id) => int.parse(id.toString()))
             .toList(),
       );
+  final int chatId;
+  final int senderId;
+  final bool isCurrentUser;
+  final List<int> messagesIds;
 }

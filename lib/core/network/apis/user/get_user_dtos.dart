@@ -5,38 +5,38 @@ part 'get_user_dtos.g.dart';
 
 @JsonSerializable()
 class GetUserResponse {
-  final UserDto? data;
-  final String? message;
 
   const GetUserResponse({required this.data, required this.message});
 
   factory GetUserResponse.fromJson(Map<String, dynamic> json) =>
       _$GetUserResponseFromJson(json);
+  final UserDto? data;
+  final String? message;
 
   Map<String, dynamic> toJson() => _$GetUserResponseToJson(this);
 }
 
 @JsonSerializable()
 class GetUsersResponse {
-  final List<UserDto> data;
-  final String? message;
 
   const GetUsersResponse({required this.data, required this.message});
 
   factory GetUsersResponse.fromJson(Map<String, dynamic> json) =>
       _$GetUsersResponseFromJson(json);
+  final List<UserDto> data;
+  final String? message;
 
   Map<String, dynamic> toJson() => _$GetUsersResponseToJson(this);
 }
 
 @JsonSerializable()
 class FCMTokenRequest {
-  final String token;
 
   FCMTokenRequest({required this.token});
 
   factory FCMTokenRequest.fromJson(Map<String, dynamic> json) =>
       _$FCMTokenRequestFromJson(json);
+  final String token;
 
   Map<String, dynamic> toJson() => _$FCMTokenRequestToJson(this);
 }

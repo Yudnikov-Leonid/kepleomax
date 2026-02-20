@@ -89,31 +89,31 @@ class NotificationService {
   }
 
   Future<void> showNotification(RemoteMessage message) async {
-    // TODO
+    // TODO came up with something
     // final userProvider = UserProvider(prefs: await SharedPreferences.getInstance());
     // final user = await userProvider.getSavedUser();
     // if (user == null) return;
 
     /// it's not the best solution
-    List<int> messagesIds = json
-        .decode(message.data['ids'])
-        .map<int>((id) => int.parse(id.toString()))
-        .toList();
+    List<int> messagesIds =
+        (json.decode(message.data['ids'] as String) as List<dynamic>)
+            .map<int>((id) => int.parse(id.toString()))
+            .toList();
     if (messagesIds.isEmpty) return;
 
     /// check type
-    String? type = message.data['type'];
+    String? type = message.data['type'] as String?;
     if (type == null) return;
     if (type == 'new') {
       /// check chat_id
-      String? chatId = message.data['chat_id'];
+      String? chatId = message.data['chat_id'] as String?;
       if (chatId == null) return;
       if (_openedChatId != -1 && chatId == _openedChatId.toString()) return;
 
       await _localNotifications.show(
         messagesIds[0],
-        message.data['title'],
-        message.data['body'],
+        message.data['title'] as String,
+        message.data['body'] as String,
         const NotificationDetails(
           android: AndroidNotificationDetails(
             'high_importance_channel',
@@ -122,7 +122,7 @@ class NotificationService {
             priority: Priority.high,
             icon: '@drawable/icon_transparent',
           ),
-          iOS: DarwinNotificationDetails()
+          iOS: DarwinNotificationDetails(),
         ),
         payload: chatId,
       );

@@ -1,12 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:kepleomax/core/app.dart';
+import 'package:kepleomax/core/di/initialize_dependencies.dart';
 import 'package:kepleomax/core/error_app.dart';
 import 'package:kepleomax/core/flavor.dart';
-
-import 'core/app.dart';
-import 'core/di/initialize_dependencies.dart';
-import 'core/logger.dart';
+import 'package:kepleomax/core/logger.dart';
 
 Future<void> main() async {
   await runZonedGuarded(

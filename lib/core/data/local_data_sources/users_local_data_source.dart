@@ -21,14 +21,14 @@ abstract class UsersLocalDataSource {
 }
 
 class UsersLocalDataSourceImpl implements UsersLocalDataSource {
-  final Database _database;
-  final SharedPreferences _prefs;
 
   UsersLocalDataSourceImpl({
     required Database database,
     required SharedPreferences prefs,
   }) : _database = database,
        _prefs = prefs;
+  final Database _database;
+  final SharedPreferences _prefs;
 
   @override
   Future<void> insert(UserDto user) async {
@@ -87,7 +87,7 @@ class UsersLocalDataSourceImpl implements UsersLocalDataSource {
 
     if (userInfo == null) return null;
 
-    return User.fromJson(jsonDecode(userInfo));
+    return User.fromJson(jsonDecode(userInfo) as Map<String, dynamic>);
   }
 
   // @override

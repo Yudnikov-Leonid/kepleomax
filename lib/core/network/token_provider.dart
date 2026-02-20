@@ -1,19 +1,18 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:kepleomax/core/flavor.dart';
+import 'package:kepleomax/core/logger.dart';
 import 'package:kepleomax/core/network/common/ntp_time.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:synchronized/synchronized.dart';
-import 'package:kepleomax/core/flavor.dart';
-
-import '../logger.dart';
 
 abstract class TokenProvider {
   Future<void> saveAccessToken(String token);
 
   Future<String?> getAccessToken({
     bool refreshIfNeeded = true,
-    Function()? onLogoutCallback,
+    Function? onLogoutCallback,
   });
 
   Future<void> saveRefreshToken(String token);
@@ -24,11 +23,6 @@ abstract class TokenProvider {
 }
 
 class TokenProviderImpl implements TokenProvider {
-  final SharedPreferences _prefs;
-  final FlutterSecureStorage _secureStorage;
-  final Dio _dio;
-
-  final _lock = Lock();
 
   TokenProviderImpl({
     required SharedPreferences prefs,
@@ -37,6 +31,11 @@ class TokenProviderImpl implements TokenProvider {
   }) : _secureStorage = secureStorage,
        _prefs = prefs,
        _dio = dio;
+  final SharedPreferences _prefs;
+  final FlutterSecureStorage _secureStorage;
+  final Dio _dio;
+
+  final _lock = Lock();
 
   static const _accessTokenKey = 'access_token_key';
   static const _refreshTokenKey = 'refresh_token_key';
@@ -49,7 +48,7 @@ class TokenProviderImpl implements TokenProvider {
   @override
   Future<String?> getAccessToken({
     bool refreshIfNeeded = true,
-    Function()? onLogoutCallback,
+    Function? onLogoutCallback,
   }) => _lock.synchronized(() async {
     final accessToken = _prefs.getString(_accessTokenKey);
     if (accessToken == null) {
@@ -85,7 +84,7 @@ class TokenProviderImpl implements TokenProvider {
 
       try {
         logger.i('try to refresh accessToken');
-        final response = await _dio.post(
+        final response = await _dio.post<Map<String, dynamic>>(
           '${flavor.baseUrl}/api/auth/refresh',
           data: {'refreshToken': refreshToken},
         );
@@ -99,7 +98,7 @@ class TokenProviderImpl implements TokenProvider {
         }
 
         if (response.statusCode == 200) {
-          final token = response.data['accessToken'];
+          final token = response.data!['accessToken'] as String;
           logger.i('accessToken is successfully refreshed');
           await saveAccessToken(token);
           return token;

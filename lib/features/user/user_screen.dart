@@ -7,10 +7,12 @@ import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
+import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
 import 'package:kepleomax/core/presentation/klm_button.dart';
 import 'package:kepleomax/core/presentation/parse_time.dart';
+import 'package:kepleomax/core/presentation/photos_preview/photos_preview_screen.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
 import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
@@ -23,11 +25,8 @@ import 'package:num_remap/num_remap.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../core/presentation/colors.dart';
-import '../../core/presentation/photos_preview/photos_preview_screen.dart';
 
 part 'widgets/primary_button.dart';
-
 part 'widgets/user_scroll_listeners.dart';
 
 const int _appBarUsernameFullShownOffset = 130;

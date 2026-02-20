@@ -4,11 +4,10 @@ import 'package:kepleomax/core/data/auth_repository.dart';
 import 'package:kepleomax/core/data/local_data_sources/local_database_manager.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/flavor.dart';
+import 'package:kepleomax/core/logger.dart';
+import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../logger.dart';
-import '../models/user.dart';
 
 abstract class AuthController {
   User? get user;
@@ -29,6 +28,16 @@ abstract class AuthController {
 }
 
 class AuthControllerImpl implements AuthController {
+  AuthControllerImpl({
+    required AuthRepository authRepository,
+    required UserRepository userRepository,
+    required TokenProvider tokenProvider,
+    required SharedPreferences prefs,
+  }) : _authRepository = authRepository,
+       _userRepository = userRepository,
+       _tokenProvider = tokenProvider,
+       _prefs = prefs;
+
   final AuthRepository _authRepository;
   final UserRepository _userRepository;
   final TokenProvider _tokenProvider;
@@ -39,16 +48,6 @@ class AuthControllerImpl implements AuthController {
   final List<VoidCallback> _listeners = [];
 
   static const _fcmKey = 'fcm_key';
-
-  AuthControllerImpl({
-    required AuthRepository authRepository,
-    required UserRepository userRepository,
-    required TokenProvider tokenProvider,
-    required SharedPreferences prefs,
-  }) : _authRepository = authRepository,
-       _userRepository = userRepository,
-       _tokenProvider = tokenProvider,
-       _prefs = prefs;
 
   @override
   User? get user => _user;
@@ -63,7 +62,7 @@ class AuthControllerImpl implements AuthController {
     Future(() async {
       try {
         final user = await _userRepository.getUser(userId: _user!.id);
-        setUser(user);
+        await setUser(user);
       } catch (e, st) {
         logger.e(e, stackTrace: st);
       }
@@ -114,7 +113,7 @@ class AuthControllerImpl implements AuthController {
     }
 
     _user = newUser;
-    _userRepository.setCurrentUser(newUser);
+    await _userRepository.setCurrentUser(newUser);
     for (final listener in _listeners) {
       listener();
     }
@@ -165,8 +164,8 @@ class AuthControllerImpl implements AuthController {
   Future<void> _deleteFcmToken() async {
     final token = await FirebaseMessaging.instance.getToken();
     if (token == null) return;
-    _prefs.remove(_fcmKey);
-    FirebaseMessaging.instance.deleteToken();
+    await _prefs.remove(_fcmKey);
+    await FirebaseMessaging.instance.deleteToken();
 
     await _userRepository.deleteFCMToken(token: token).onError((e, st) {
       logger.e('failed to delete fcm token: $e', stackTrace: st);

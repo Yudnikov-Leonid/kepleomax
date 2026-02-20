@@ -8,7 +8,6 @@ part 'user.g.dart';
 
 @freezed
 abstract class User with _$User {
-  const User._();
 
   const factory User({
     required int id,
@@ -21,14 +20,6 @@ abstract class User with _$User {
     @Default(0) int lastActivityTime,
   }) = _User;
 
-  /// TODO write what is it
-  bool get showOnlineStatus {
-    return isOnline &&
-        lastActivityTime +
-                (AppConstants.markAsOfflineAfterInactivityInSeconds * 1000) >
-            DateTime.now().millisecondsSinceEpoch;
-  }
-
   factory User.fromDto(UserDto dto) => User(
     id: dto.id,
     username: dto.username,
@@ -36,15 +27,6 @@ abstract class User with _$User {
     isCurrent: dto.isCurrent,
     isOnline: dto.isOnline,
     lastActivityTime: dto.lastActivityTime,
-  );
-
-  UserDto toDto() => UserDto(
-    id: id,
-    username: username,
-    profileImage: profileImage,
-    isCurrent: isCurrent,
-    isOnline: isOnline,
-    lastActivityTime: lastActivityTime,
   );
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
@@ -59,4 +41,22 @@ abstract class User with _$User {
   );
 
   factory User.testing() => User.fromDto(UserDto.testing());
+  const User._();
+
+  /// TODO write what is it
+  bool get showOnlineStatus {
+    return isOnline &&
+        lastActivityTime +
+                (AppConstants.markAsOfflineAfterInactivityInSeconds * 1000) >
+            DateTime.now().millisecondsSinceEpoch;
+  }
+
+  UserDto toDto() => UserDto(
+    id: id,
+    username: username,
+    profileImage: profileImage,
+    isCurrent: isCurrent,
+    isOnline: isOnline,
+    lastActivityTime: lastActivityTime,
+  );
 }

@@ -102,17 +102,8 @@ class _MessageTextWidgetState extends State<_MessageTextWidget> {
   @override
   void initState() {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (widget.chat.lastTypingActivityTime == null) {
-        return;
-      }
-      if (_isTypingRightNow && !_isTyping) {
-        setState(() {
-          _isTyping = true;
-        });
-      } else if (!_isTypingRightNow && _isTyping) {
-        setState(() {
-          _isTyping = false;
-        });
+      if (_isTypingRightNow != _isTyping) {
+        setState(() {});
       }
     });
     super.initState();
@@ -126,7 +117,8 @@ class _MessageTextWidgetState extends State<_MessageTextWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return _isTyping || _isTypingRightNow
+    _isTyping = _isTypingRightNow;
+    return _isTyping
         ? Text(
             'typing..',
             style: context.textTheme.bodyLarge?.copyWith(

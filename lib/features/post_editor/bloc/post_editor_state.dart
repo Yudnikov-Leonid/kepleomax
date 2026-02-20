@@ -37,7 +37,6 @@ abstract class PostEditorStateExit
 
 @freezed
 abstract class PostEditorData with _$PostEditorData {
-  const PostEditorData._();
 
   const factory PostEditorData({
     Post? originalPost,
@@ -46,8 +45,6 @@ abstract class PostEditorData with _$PostEditorData {
     @Default(false) bool isLoading,
   }) = _PostEditorData;
 
-  bool isEmpty() => text.isEmpty && images.isEmpty;
-
   factory PostEditorData.initial() => const PostEditorData(text: '', images: []);
 
   factory PostEditorData.fromPost(Post post) => PostEditorData(
@@ -55,4 +52,7 @@ abstract class PostEditorData with _$PostEditorData {
     text: post.content,
     images: post.images.map((url) => ImageUrlOrFile(url: url)).toList(),
   );
+  const PostEditorData._();
+
+  bool isEmpty() => text.isEmpty && images.isEmpty;
 }

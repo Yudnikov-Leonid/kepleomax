@@ -116,7 +116,7 @@ class MockMessagesWebSocket implements MessagesWebSocket {
   @override
   void sendMessage({required String message, required int recipientId}) {
     if (_nextSendMessageId == null) {
-      throw Exception("id to new message is not specified");
+      throw Exception('id to new message is not specified');
     }
 
     _messageController.add(

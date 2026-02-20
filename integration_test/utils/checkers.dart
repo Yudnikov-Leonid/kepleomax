@@ -1,9 +1,9 @@
 part of 'utils.dart';
 
 class MessageChecker {
-  final Finder finder;
 
   MessageChecker(this.finder);
+  final Finder finder;
 
   void check({
     bool? fromCurrentUser,
@@ -58,9 +58,9 @@ class MessageChecker {
 }
 
 class ChatChecker {
-  final Finder finder;
 
   ChatChecker(this.finder);
+  final Finder finder;
 
   void check({
     int? unreadCount, // 0 for check that counter not shown

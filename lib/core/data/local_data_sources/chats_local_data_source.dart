@@ -25,9 +25,9 @@ abstract class ChatsLocalDataSource {
 }
 
 class ChatsLocalDataSourceImpl implements ChatsLocalDataSource {
-  final Database _database;
 
   ChatsLocalDataSourceImpl({required Database database}) : _database = database;
+  final Database _database;
 
   @override
   Future<ChatDto?> getChat(int chatId) async {

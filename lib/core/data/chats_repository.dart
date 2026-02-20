@@ -18,14 +18,14 @@ abstract class ChatsRepository {
 }
 
 class ChatsRepositoryImpl implements ChatsRepository {
-  final ChatsApiDataSource _chatsApi;
-  final ChatsLocalDataSource _chatsLocal;
 
   ChatsRepositoryImpl({
     required ChatsApiDataSource chatsApi,
     required ChatsLocalDataSource chatsLocalDataSource,
   }) : _chatsLocal = chatsLocalDataSource,
        _chatsApi = chatsApi;
+  final ChatsApiDataSource _chatsApi;
+  final ChatsLocalDataSource _chatsLocal;
 
   /// api
   @override

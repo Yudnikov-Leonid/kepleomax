@@ -4,7 +4,7 @@ class MockTokenProvider implements TokenProvider {
   @override
   Future<String?> getAccessToken({
     bool refreshIfNeeded = true,
-    Function()? onLogoutCallback,
+    Function? onLogoutCallback,
   }) async => 'mock_access_token';
 
   @override

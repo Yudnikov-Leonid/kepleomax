@@ -37,9 +37,9 @@ import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
  * -----
  */
 class CombineCacheAndApi {
-  final MessagesLocalDataSource _messagesLocal;
+  const CombineCacheAndApi(this._messagesLocal);
 
-  CombineCacheAndApi(this._messagesLocal);
+  final MessagesLocalDataSource _messagesLocal;
 
   Iterable<MessageDto> combineLoad(
     List<MessageDto> cache,
@@ -84,9 +84,9 @@ class CombineCacheAndApi {
 }
 
 abstract class _Combiner {
-  final MessagesLocalDataSource _local;
-
   const _Combiner(this._local);
+
+  final MessagesLocalDataSource _local;
 
   Iterable<MessageDto> combine(
     List<MessageDto> cache,
@@ -104,8 +104,9 @@ class _Any_NOut extends _Combiner {
     List<MessageDto> api, {
     int? limit,
   }) {
-    _local.deleteAllWithIds(cache.map((m) => m.id));
-    _local.insertAll(api);
+    _local
+      ..deleteAllWithIds(cache.map((m) => m.id))
+      ..insertAll(api);
     return api;
   }
 }
@@ -120,16 +121,20 @@ class _Any_In extends _Combiner {
     int? limit,
   }) {
     if (api.length < (limit ?? AppConstants.msgPagingLimit)) {
-      _local.deleteAllWithIds(cache.map((m) => m.id));
-      _local.insertAll(api);
+      _local
+        ..deleteAllWithIds(cache.map((m) => m.id))
+        ..insertAll(api);
       return api;
     }
 
-    _local.deleteAllWithIds(cache.where((m) => m.id < api.last.id).map((m) => m.id));
-    _local.insertAll(api);
+    _local
+      ..deleteAllWithIds(cache.where((m) => m.id < api.last.id).map((m) => m.id))
+      ..insertAll(api);
 
-    final newList = <MessageDto>[...api];
-    newList.addAll(cache.sublist(cache.indexWhere((m) => m.id == api.last.id) + 1));
+    final newList = <MessageDto>[
+      ...api,
+      ...cache.sublist(cache.indexWhere((m) => m.id == api.last.id) + 1),
+    ];
     return newList;
   }
 }

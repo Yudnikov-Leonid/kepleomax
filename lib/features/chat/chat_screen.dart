@@ -25,17 +25,14 @@ import 'package:kepleomax/core/presentation/parse_time.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/features/chat/bloc/chat_bloc.dart';
 import 'package:kepleomax/features/chat/bloc/chat_state.dart';
+import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:visibility_detector/visibility_detector.dart';
-import 'package:scrollview_observer/scrollview_observer.dart';
 
 part 'widgets/chat_bottom.dart';
-
 part 'widgets/message_widget.dart';
-
 part 'widgets/read_button.dart';
-
 part 'widgets/tech_message.dart';
 
 /// screen

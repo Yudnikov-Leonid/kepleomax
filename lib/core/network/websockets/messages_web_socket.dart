@@ -1,13 +1,13 @@
 import 'dart:async';
+
+import 'package:kepleomax/core/logger.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/core/network/websockets/models/deleted_message_update.dart';
 import 'package:kepleomax/core/network/websockets/models/new_message_update.dart';
 import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
+import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
 import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 import 'package:socket_io_client/socket_io_client.dart';
-
-import '../../logger.dart';
-import 'models/read_messages_update.dart';
 
 abstract class MessagesWebSocket {
   /// streams
@@ -51,14 +51,14 @@ abstract class MessagesWebSocket {
 }
 
 class MessagesWebSocketImpl implements MessagesWebSocket {
-  final String _baseUrl;
-  final TokenProvider _tokenProvider;
 
   MessagesWebSocketImpl({
     required String baseUrl,
     required TokenProvider tokenProvider,
   }) : _tokenProvider = tokenProvider,
        _baseUrl = baseUrl;
+  final String _baseUrl;
+  final TokenProvider _tokenProvider;
 
   /// streams
   final StreamController<NewMessageUpdate> _messagesController =
@@ -156,7 +156,7 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
     /// logic events
     _socket!.on('new_message', (data) {
       logger.d('WebSocketLog new_message: $data');
-      final messageUpdate = NewMessageUpdate.fromJson(data);
+      final messageUpdate = NewMessageUpdate.fromJson(data as Map<String, dynamic>);
       _messagesController.add(messageUpdate);
       if (!messageUpdate.message.isCurrentUser) {
         final typingUpdate = TypingActivityUpdate(
@@ -168,22 +168,25 @@ class MessagesWebSocketImpl implements MessagesWebSocket {
     });
     _socket!.on('read_messages', (data) {
       logger.d('WebSocketLog read_messages: $data');
-      final update = ReadMessagesUpdate.fromJson(data);
+      final update = ReadMessagesUpdate.fromJson(data as Map<String, dynamic>);
       _readMessagesController.add(update);
     });
     _socket!.on('deleted_message', (data) {
       logger.d('WebSocketLog deleted_message: $data');
-      final update = DeletedMessageUpdate.fromJson(data);
+      final update = DeletedMessageUpdate.fromJson(data as Map<String, dynamic>);
       _deletedMessageController.add(update);
     });
     _socket!.on('online_status_update', (data) {
       logger.d('WebSocketLog online_status_update: $data');
-      final update = OnlineStatusUpdate.fromJson(data);
+      final update = OnlineStatusUpdate.fromJson(data as Map<String, dynamic>);
       _onlineUpdatesController.add(update);
     });
     _socket!.on('typing_activity', (data) {
       logger.d('WebSocketLog typing_activity: $data');
-      final update = TypingActivityUpdate.fromJson(data, isTyping: true);
+      final update = TypingActivityUpdate.fromJson(
+        data as Map<String, dynamic>,
+        isTyping: true,
+      );
       _typingUpdatesController.add(update);
     });
   }

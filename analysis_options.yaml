@@ -18,10 +18,16 @@ linter:
     avoid_unnecessary_containers: true
     exhaustive_cases: true
     file_names: true
+    public_member_api_docs: false
+    lines_longer_than_80_chars: false
+    one_member_abstracts: false
+    avoid_dynamic_calls: false
+    avoid_annotating_with_dynamic: false
+    avoid_redundant_argument_values: false
+    prefer_if_null_operators: false
 
     always_use_package_imports: true
     avoid_web_libraries_in_flutter: true
-    avoid_dynamic_calls: true
     avoid_positional_boolean_parameters: true
     slash_for_doc_comments: false
 

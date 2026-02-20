@@ -55,11 +55,11 @@ abstract class LoginScreenState {
 }
 
 class LoginScreenLogin implements LoginScreenState {
-  LoginScreenLogin._internal();
-  static final LoginScreenLogin _singleton = LoginScreenLogin._internal();
   factory LoginScreenLogin() {
     return _singleton;
   }
+  LoginScreenLogin._internal();
+  static final LoginScreenLogin _singleton = LoginScreenLogin._internal();
 
   @override
   LoginEvent event() => const LoginEventLogin();
@@ -75,11 +75,11 @@ class LoginScreenLogin implements LoginScreenState {
 }
 
 class LoginScreenRegister implements LoginScreenState {
-  LoginScreenRegister._internal();
-  static final LoginScreenRegister _singleton = LoginScreenRegister._internal();
   factory LoginScreenRegister() {
     return _singleton;
   }
+  LoginScreenRegister._internal();
+  static final LoginScreenRegister _singleton = LoginScreenRegister._internal();
 
   @override
   LoginEvent event() => const LoginEventRegister();

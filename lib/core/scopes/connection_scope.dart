@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:focus_detector/focus_detector.dart';
 import 'package:kepleomax/core/data/connection_repository.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/notifications/notifications_service.dart';
-import 'package:kepleomax/features/chats/bloc/chats_bloc.dart';
-import 'package:kepleomax/features/chats/bloc/chats_state.dart';
 
 class ConnectionScope extends StatefulWidget {
   const ConnectionScope({required this.child, super.key});
@@ -45,9 +42,9 @@ class _ConnectionScopeState extends State<ConnectionScope> {
       Future.delayed(const Duration(seconds: 1), () async {
         /// yes, call it at least 3 times for sure. 1 time not always working on physical device
         _repository.reconnect(onlyIfDisconnected: true);
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future<void>.delayed(const Duration(milliseconds: 500));
         _repository.reconnect(onlyIfDisconnected: true);
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future<void>.delayed(const Duration(milliseconds: 500));
         _repository.reconnect(onlyIfDisconnected: true);
       });
     }

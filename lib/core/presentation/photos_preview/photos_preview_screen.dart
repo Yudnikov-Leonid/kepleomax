@@ -6,17 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gal/gal.dart';
-import 'package:kepleomax/core/presentation/klm_cached_image.dart';
+import 'package:kepleomax/core/flavor.dart';
+import 'package:kepleomax/core/logger.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
+import 'package:kepleomax/core/presentation/klm_cached_image.dart';
 import 'package:num_remap/num_remap.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../../logger.dart';import 'package:kepleomax/core/flavor.dart';
-
-part 'swipe_view.dart';
-
 part 'photo.dart';
+part 'swipe_view.dart';
 
 typedef _GetAlpha = int Function({int minAlpha, int maxAlpha});
 
@@ -372,7 +371,7 @@ class _SpaceIllusionState extends State<_SpaceIllusion> {
 
   double _getRightLineWidth() {
     final pos = _viewPagePos;
-    final maxWidthOn = 1 - _spaceBetweenPhotosRatio;
+    const maxWidthOn = 1 - _spaceBetweenPhotosRatio;
     if (pos < _spaceBetweenPhotosRatio) {
       /// fullyHidden
       return 0;
@@ -392,7 +391,7 @@ class _SpaceIllusionState extends State<_SpaceIllusion> {
 
   double _getLeftLineWidth() {
     final pos = _viewPagePos;
-    final fullyHidden = 1 - _spaceBetweenPhotosRatio;
+    const fullyHidden = 1 - _spaceBetweenPhotosRatio;
     if (pos < _spaceBetweenPhotosRatio) {
       /// growing
       return pos.remap(0, _spaceBetweenPhotosRatio, 0, widget.maxLinesWidth);

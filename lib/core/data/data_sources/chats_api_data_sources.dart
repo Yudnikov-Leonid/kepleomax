@@ -10,9 +10,9 @@ abstract class ChatsApiDataSource {
 }
 
 class ChatsApiDataSourceImpl implements ChatsApiDataSource {
-  final ChatsApi _chatsApi;
-
   ChatsApiDataSourceImpl({required ChatsApi chatsApi}) : _chatsApi = chatsApi;
+
+  final ChatsApi _chatsApi;
 
   @override
   Future<Iterable<ChatDto>> getChats() async {
@@ -20,7 +20,7 @@ class ChatsApiDataSourceImpl implements ChatsApiDataSource {
     if (res.response.statusCode != 200) {
       throw Exception(
         res.data.message ??
-            "Failed to get chats, statusCode: ${res.response.statusCode}",
+            'Failed to get chats, statusCode: ${res.response.statusCode}',
       );
     }
     return res.data.data!;
@@ -35,7 +35,7 @@ class ChatsApiDataSourceImpl implements ChatsApiDataSource {
     }
     if (res.response.statusCode != 200) {
       throw Exception(
-        res.data.message ?? "Failed to get chat: ${res.response.statusCode}",
+        res.data.message ?? 'Failed to get chat: ${res.response.statusCode}',
       );
     }
 
@@ -51,7 +51,7 @@ class ChatsApiDataSourceImpl implements ChatsApiDataSource {
     }
     if (res.response.statusCode != 200) {
       throw Exception(
-        res.data.message ?? "Failed to get chat: ${res.response.statusCode}",
+        res.data.message ?? 'Failed to get chat: ${res.response.statusCode}',
       );
     }
 

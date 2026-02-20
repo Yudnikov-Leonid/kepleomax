@@ -35,8 +35,8 @@ class _FeedNavigatorState extends State<FeedNavigator>
 final class FeedPage extends AppPage {
   const FeedPage()
     : super(
-        name: "feed_screen",
+        name: 'feed_screen',
         child: const FeedScreen(),
-        key: const ValueKey("feed_screen"),
+        key: const ValueKey('feed_screen'),
       );
 }

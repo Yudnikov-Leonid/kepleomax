@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:kepleomax/core/network/apis/profile/profile_dtos.dart';
 import 'package:retrofit/retrofit.dart';
-
-import 'profile_dtos.dart';
 
 part 'profile_api.g.dart';
 
@@ -12,7 +11,7 @@ abstract class ProfileApi {
 
   @GET('/')
   Future<HttpResponse<GetProfileResponseDto>> getProfile(
-    @Query("userId") String userId,
+    @Query('userId') String userId,
   );
 
   @POST('/')

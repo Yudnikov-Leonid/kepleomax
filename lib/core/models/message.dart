@@ -5,12 +5,6 @@ part 'message.freezed.dart';
 
 @freezed
 abstract class Message with _$Message {
-  const Message._();
-
-  static const unreadMessagesId = -2;
-  static const dateId = -3;
-
-  bool get isSystem => id == unreadMessagesId || id == dateId;
 
   const factory Message({
     required int id,
@@ -50,20 +44,6 @@ abstract class Message with _$Message {
         : DateTime.fromMillisecondsSinceEpoch(dto.editedAt!),
   );
 
-  MessageDto toDto() => MessageDto(
-    id: id,
-    chatId: chatId,
-    senderId: senderId,
-    isCurrentUser: isCurrentUser,
-    //user: user.toDto(),
-    //otherUserId: null,
-    message: message,
-    isRead: isRead,
-    createdAt: createdAt.millisecondsSinceEpoch,
-    editedAt: editedAt?.millisecondsSinceEpoch,
-    fromCache: fromCache,
-  );
-
   /// TODO make it better
   /// used to display line in the ui
   factory Message.unreadMessages() => Message(
@@ -91,5 +71,25 @@ abstract class Message with _$Message {
     isRead: true,
     createdAt: dateTime,
     editedAt: null,
+  );
+  const Message._();
+
+  static const unreadMessagesId = -2;
+  static const dateId = -3;
+
+  bool get isSystem => id == unreadMessagesId || id == dateId;
+
+  MessageDto toDto() => MessageDto(
+    id: id,
+    chatId: chatId,
+    senderId: senderId,
+    isCurrentUser: isCurrentUser,
+    //user: user.toDto(),
+    //otherUserId: null,
+    message: message,
+    isRead: isRead,
+    createdAt: createdAt.millisecondsSinceEpoch,
+    editedAt: editedAt?.millisecondsSinceEpoch,
+    fromCache: fromCache,
   );
 }

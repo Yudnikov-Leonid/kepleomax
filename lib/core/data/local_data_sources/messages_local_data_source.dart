@@ -21,9 +21,9 @@ abstract class MessagesLocalDataSource {
 }
 
 class MessagesLocalDataSourceImpl implements MessagesLocalDataSource {
-  final Database _database;
 
   MessagesLocalDataSourceImpl({required Database database}) : _database = database;
+  final Database _database;
 
   @override
   Future<List<MessageDto>> getMessagesByChatId(int chatId) async {

@@ -1,23 +1,22 @@
 import 'package:dio/dio.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
+import 'package:kepleomax/core/logger.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 
-import '../../logger.dart';
-
 class AuthInterceptor extends QueuedInterceptorsWrapper {
-  final TokenProvider _tokenProvider;
-  final AuthController _authController;
 
   AuthInterceptor({
     required TokenProvider tokenProvider,
     required AuthController authController,
   }) : _authController = authController,
        _tokenProvider = tokenProvider;
+  final TokenProvider _tokenProvider;
+  final AuthController _authController;
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    if (options.headers["requiresToken"] == false) {
-      options.headers.remove("requiresToken");
+    if (options.headers['requiresToken'] == false) {
+      options.headers.remove('requiresToken');
       return handler.next(options);
     }
 

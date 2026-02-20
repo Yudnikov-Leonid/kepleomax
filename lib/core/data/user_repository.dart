@@ -17,7 +17,7 @@ abstract class UserRepository {
 
   Future<UserProfile> getUserProfile(int userId);
 
-  Future<UserProfile> updateProfile(UserProfile profile, {updateImage = false});
+  Future<UserProfile> updateProfile(UserProfile profile, {bool updateImage = false});
 
   /// search
   Stream<UsersCollection> get usersStream;
@@ -37,13 +37,6 @@ abstract class UserRepository {
 }
 
 class UserRepositoryImpl implements UserRepository {
-  final UserApi _userApi;
-  final ProfileApi _profileApi;
-  final FilesApi _filesApi;
-  final UsersLocalDataSource _usersLocalDataSource;
-  final _usersController = StreamController<UsersCollection>.broadcast();
-  UsersCollection _lastUsersCollection = const UsersCollection(users: []);
-  String _cachedSearch = '';
 
   UserRepositoryImpl({
     required ProfileApi profileApi,
@@ -54,6 +47,13 @@ class UserRepositoryImpl implements UserRepository {
        _profileApi = profileApi,
        _filesApi = filesApi,
        _usersLocalDataSource = usersLocalDataSource;
+  final UserApi _userApi;
+  final ProfileApi _profileApi;
+  final FilesApi _filesApi;
+  final UsersLocalDataSource _usersLocalDataSource;
+  final _usersController = StreamController<UsersCollection>.broadcast();
+  UsersCollection _lastUsersCollection = const UsersCollection(users: []);
+  String _cachedSearch = '';
 
   void _emitUsersCollection(UsersCollection collection) {
     _lastUsersCollection = collection;
@@ -95,7 +95,7 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<UserProfile> updateProfile(
     UserProfile profile, {
-    updateImage = false,
+    bool updateImage = false,
   }) async {
     String? newImagePath;
     if (!updateImage) {
@@ -112,7 +112,7 @@ class UserRepositoryImpl implements UserRepository {
         if (imageRes.response.statusCode != 201) {
           throw Exception(
             imageRes.data.message ??
-                "Failed to upload image: ${imageRes.response.statusCode}",
+                'Failed to upload image: ${imageRes.response.statusCode}',
           );
         }
 
@@ -131,7 +131,7 @@ class UserRepositoryImpl implements UserRepository {
 
     if (res.response.statusCode != 200) {
       throw Exception(
-        res.data.message ?? "Failed to update profile: ${res.response.statusCode}",
+        res.data.message ?? 'Failed to update profile: ${res.response.statusCode}',
       );
     }
 
@@ -156,7 +156,7 @@ class UserRepositoryImpl implements UserRepository {
 
     if (res.response.statusCode != 200) {
       throw Exception(
-        res.data.message ?? "Failed to get users: ${res.response.statusCode}",
+        res.data.message ?? 'Failed to get users: ${res.response.statusCode}',
       );
     }
 
@@ -180,7 +180,7 @@ class UserRepositoryImpl implements UserRepository {
 
     if (res.response.statusCode != 200) {
       throw Exception(
-        res.data.message ?? "Failed to get users: ${res.response.statusCode}",
+        res.data.message ?? 'Failed to get users: ${res.response.statusCode}',
       );
     }
 

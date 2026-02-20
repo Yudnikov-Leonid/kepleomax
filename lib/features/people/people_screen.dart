@@ -11,9 +11,9 @@ import 'package:kepleomax/core/presentation/klm_app_bar.dart';
 import 'package:kepleomax/core/presentation/klm_textfield.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
+import 'package:kepleomax/features/people/bloc/people_bloc.dart';
 import 'package:kepleomax/features/people/bloc/people_state.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'bloc/people_bloc.dart';
 
 part 'widgets/user_card.dart';
 

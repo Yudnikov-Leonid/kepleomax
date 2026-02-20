@@ -10,9 +10,9 @@ abstract class AppSettings {
 }
 
 class AppSettingsImpl implements AppSettings {
-  final SharedPreferences _prefs;
 
   AppSettingsImpl({required SharedPreferences prefs}) : _prefs = prefs;
+  final SharedPreferences _prefs;
 
   static const _highlightCacheMessagesKey = '__highlight_cache_messages_key__';
 

@@ -1,10 +1,6 @@
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 
 class DeletedMessageUpdate {
-  final int chatId;
-  final MessageDto deletedMessage;
-  final MessageDto? newLastMessage;
-  final bool deleteChat;
 
   const DeletedMessageUpdate({
     required this.chatId,
@@ -15,11 +11,15 @@ class DeletedMessageUpdate {
 
   factory DeletedMessageUpdate.fromJson(Map<String, dynamic> json) =>
       DeletedMessageUpdate(
-        chatId: json['chat_id'],
-        deletedMessage: MessageDto.fromJson(json['message']),
+        chatId: json['chat_id'] as int,
+        deletedMessage: MessageDto.fromJson(json['message'] as Map<String, dynamic>),
         newLastMessage: json['new_last_message'] == null
             ? null
-            : MessageDto.fromJson(json['new_last_message'], fromCache: false),
-        deleteChat: json['delete_chat'] ?? false,
+            : MessageDto.fromJson(json['new_last_message'] as Map<String, dynamic>, fromCache: false),
+        deleteChat: json['delete_chat'] as bool? ?? false,
       );
+  final int chatId;
+  final MessageDto deletedMessage;
+  final MessageDto? newLastMessage;
+  final bool deleteChat;
 }

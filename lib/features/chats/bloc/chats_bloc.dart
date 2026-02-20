@@ -6,20 +6,11 @@ import 'package:kepleomax/core/data/connection_repository.dart';
 import 'package:kepleomax/core/data/messenger/messenger_repository.dart';
 import 'package:kepleomax/core/data/models/chats_collection.dart';
 import 'package:kepleomax/core/flavor.dart';
+import 'package:kepleomax/core/logger.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/chats/bloc/chats_state.dart';
-import 'package:kepleomax/core/logger.dart';
 
 class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
-  final MessengerRepository _messengerRepository;
-  final ConnectionRepository _connectionRepository;
-  late ChatsData _data = ChatsData.initial();
-  StreamSubscription? _chatsUpdatesSub;
-  late StreamSubscription _subConnectionState;
-
-  /// fot testing
-  final Duration callsTimeout;
-
   ChatsBloc({
     required MessengerRepository messengerRepository,
     required ConnectionRepository connectionRepository,
@@ -30,20 +21,19 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     _subConnectionState = _connectionRepository.connectionStateStream.listen(
       (isConnected) => add(_ChatsEventConnectingChanged(isConnected)),
     );
-    _chatsUpdatesSub = _chatsUpdatesSub = _messengerRepository.chatsUpdatesStream
-        .listen(
-          (newList) {
-            add(_ChatsEventEmitChatsList(data: newList));
-          },
-          onError: (e, st) {
-            add(_ChatsEventEmitError(error: e, stackTrace: st));
-          },
-        );
+    _chatsUpdatesSub = _messengerRepository.chatsUpdatesStream.listen(
+      (newList) {
+        add(_ChatsEventEmitChatsList(data: newList));
+      },
+      onError: (Object e, StackTrace st) {
+        add(_ChatsEventEmitError(error: e, stackTrace: st));
+      },
+    );
 
     on<ChatsEvent>(
       (event, emit) => switch (event) {
-        ChatsEventLoadCache event => _onLoadCache(event, emit),
-        ChatsEventLoad event => _onLoad(event, emit),
+        final ChatsEventLoadCache event => _onLoadCache(event, emit),
+        final ChatsEventLoad event => _onLoad(event, emit),
         ChatsEvent _ => () {},
       },
       transformer: sequential(),
@@ -56,7 +46,19 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     on<_ChatsEventEmitError>(_onEmitError);
   }
 
-  void _onLoadCache(ChatsEventLoadCache event, Emitter<ChatsState> emit) async {
+  final MessengerRepository _messengerRepository;
+  final ConnectionRepository _connectionRepository;
+  late ChatsData _data = ChatsData.initial();
+  late final StreamSubscription<void> _chatsUpdatesSub;
+  late final StreamSubscription<void> _subConnectionState;
+
+  /// fot testing
+  final Duration callsTimeout;
+
+  Future<void> _onLoadCache(
+    ChatsEventLoadCache event,
+    Emitter<ChatsState> emit,
+  ) async {
     try {
       await _messengerRepository.loadChatsFromCache();
     } catch (e, st) {
@@ -66,7 +68,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
 
   int _lastTimeLoadWasCalled = 0;
 
-  void _onLoad(ChatsEventLoad event, Emitter<ChatsState> emit) async {
+  Future<void> _onLoad(ChatsEventLoad event, Emitter<ChatsState> emit) async {
     /// TODO make this with bloc_concurrency, make isTesting better
     final now = DateTime.now().millisecondsSinceEpoch;
     if (_lastTimeLoadWasCalled + 1000 > now && !flavor.isTesting) {
@@ -85,7 +87,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     }
   }
 
-  void _onEmitChatsList(
+  Future<void> _onEmitChatsList(
     _ChatsEventEmitChatsList event,
     Emitter<ChatsState> emit,
   ) async {
@@ -122,7 +124,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
 
   @override
   Future<void> close() {
-    _chatsUpdatesSub?.cancel();
+    _chatsUpdatesSub.cancel();
     _subConnectionState.cancel();
     return super.close();
   }
@@ -141,26 +143,26 @@ class ChatsEventLoad implements ChatsEvent {
 }
 
 class ChatsEventReconnect implements ChatsEvent {
-  final bool onlyIfNot;
-
   const ChatsEventReconnect({this.onlyIfNot = false});
+
+  final bool onlyIfNot;
 }
 
 class _ChatsEventConnectingChanged implements ChatsEvent {
-  final bool isConnected;
-
   const _ChatsEventConnectingChanged(this.isConnected);
+
+  final bool isConnected;
 }
 
 class _ChatsEventEmitChatsList implements ChatsEvent {
-  final ChatsCollection data;
-
   const _ChatsEventEmitChatsList({required this.data});
+
+  final ChatsCollection data;
 }
 
 class _ChatsEventEmitError implements ChatsEvent {
+  const _ChatsEventEmitError({required this.error, required this.stackTrace});
+
   final Object error;
   final StackTrace stackTrace;
-
-  const _ChatsEventEmitError({required this.error, required this.stackTrace});
 }

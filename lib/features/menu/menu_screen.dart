@@ -5,7 +5,7 @@ import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_app_bar.dart';
 
-import 'menu_navigator.dart';
+import 'package:kepleomax/features/menu/menu_navigator.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
@@ -52,7 +52,7 @@ class MenuScreen extends StatelessWidget {
             icon: Icons.play_arrow,
             backgroundColor: Colors.blue.shade700,
             onTap: () {
-              Fluttertoast.showToast(msg: "Sorry");
+              Fluttertoast.showToast(msg: 'Sorry');
             },
             key: const Key('videos_menu_item'),
           ),

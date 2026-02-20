@@ -28,8 +28,7 @@ import 'utils/mock_objects.dart';
 import 'utils/utils.dart';
 
 void main() {
-  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized().framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   group('chats_screen_tests', () {
     late Dependencies dp;
@@ -43,7 +42,7 @@ void main() {
     setUp(() async {
       dp = await initializeDependencies(useMocks: true);
       ws = dp.messagesWebSocket as MockMessagesWebSocket;
-      dp.authController.setUser(User.testing());
+      await dp.authController.setUser(User.testing());
     });
 
     tearDown(() async {
@@ -58,7 +57,7 @@ void main() {
         }
         return HttpResponse(ChatsResponse(data: chats, message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
       });
-      when((dp.chatsApi as MockChatsApi).getChatWithId(chatId: anyNamed("chatId"))).thenAnswer((inv) async {
+      when((dp.chatsApi as MockChatsApi).getChatWithId(chatId: anyNamed('chatId'))).thenAnswer((inv) async {
         return HttpResponse(
           ChatResponse(data: [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4].firstWhere((chat) => chat.id == inv.namedArguments[#chatId]), message: null),
           Response(requestOptions: RequestOptions(), statusCode: 200),
@@ -100,36 +99,42 @@ void main() {
 
     testWidgets('connection_test', (tester) async {
       await setupAppWithChats(tester, [], getChatsAsyncControl: true, connect: false);
-      tester.checkChatsAppBarStatus(ChatsAppBarStatus.connecting);
-      tester.checkFindPeopleButton(isShown: false);
+      tester
+        ..checkChatsAppBarStatus(ChatsAppBarStatus.connecting)
+        ..checkFindPeopleButton(isShown: false);
 
       /// connect, check
       ws.setIsConnected(true);
       await tester.pump();
-      tester.checkChatsAppBarStatus(ChatsAppBarStatus.updating);
-      tester.checkFindPeopleButton(isShown: false);
+      tester
+        ..checkChatsAppBarStatus(ChatsAppBarStatus.updating)
+        ..checkFindPeopleButton(isShown: false);
 
       /// wait for the getChats response, check
       await getChatsSendResponse(tester);
-      tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
-      tester.checkFindPeopleButton(isShown: true);
+      tester
+        ..checkChatsAppBarStatus(ChatsAppBarStatus.chats)
+        ..checkFindPeopleButton(isShown: true);
 
       /// disconnect, check
       ws.setIsConnected(false);
       await tester.pump();
-      tester.checkChatsAppBarStatus(ChatsAppBarStatus.connecting);
-      tester.checkFindPeopleButton(isShown: true);
+      tester
+        ..checkChatsAppBarStatus(ChatsAppBarStatus.connecting)
+        ..checkFindPeopleButton(isShown: true);
 
       /// connect, check
       ws.setIsConnected(true);
       await tester.pump();
-      tester.checkChatsAppBarStatus(ChatsAppBarStatus.updating);
-      tester.checkFindPeopleButton(isShown: false);
+      tester
+        ..checkChatsAppBarStatus(ChatsAppBarStatus.updating)
+        ..checkFindPeopleButton(isShown: false);
 
       /// wait for the getChats response, check
       await getChatsSendResponse(tester);
-      tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
-      tester.checkFindPeopleButton(isShown: true);
+      tester
+        ..checkChatsAppBarStatus(ChatsAppBarStatus.chats)
+        ..checkFindPeopleButton(isShown: true);
     });
 
     testWidgets('chats_statuses_test', (tester) async {
@@ -336,17 +341,20 @@ void main() {
       expect(find.byKey(const Key('chats_loading')), findsOneWidget);
       await getChatsSendResponse(tester);
       expect(find.byKey(const Key('chats_loading')), findsNothing);
-      tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
-      tester.checkChatsOrder([0, 1, 2, 3, 4]);
+      tester
+        ..checkChatsAppBarStatus(ChatsAppBarStatus.chats)
+        ..checkChatsOrder([0, 1, 2, 3, 4]);
 
       /// check cachedChats, then new chats from api
       changeGetChatsResponse([chatDto4, chatDto3, chatDto2, chatDto1], getChatsAsyncControl: true);
       await restartApp(tester);
-      tester.checkChatsAppBarStatus(ChatsAppBarStatus.updating);
-      tester.checkChatsOrder([0, 1, 2, 3, 4]);
+      tester
+        ..checkChatsAppBarStatus(ChatsAppBarStatus.updating)
+        ..checkChatsOrder([0, 1, 2, 3, 4]);
       await getChatsSendResponse(tester);
-      tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
-      tester.checkChatsOrder([4, 3, 2, 1]);
+      tester
+        ..checkChatsAppBarStatus(ChatsAppBarStatus.chats)
+        ..checkChatsOrder([4, 3, 2, 1]);
     });
 
     testWidgets('cache_new_message_test', (tester) async {
@@ -354,11 +362,12 @@ void main() {
       await getChatsSendResponse(tester);
 
       /// check current chats
-      tester.checkChatsOrder([0, 1, 2, 3, 4]);
-      tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
+      tester
+        ..checkChatsOrder([0, 1, 2, 3, 4])
+        ..checkChatsAppBarStatus(ChatsAppBarStatus.chats);
 
       /// add new message, check chats
-      final newMessage = const MessageDto(id: 999, chatId: 2, senderId: 0, isCurrentUser: true, message: 'MSG_999', isRead: false, createdAt: 1100, editedAt: null, fromCache: false);
+      const newMessage = MessageDto(id: 999, chatId: 2, senderId: 0, isCurrentUser: true, message: 'MSG_999', isRead: false, createdAt: 1100, editedAt: null, fromCache: false);
       ws.addMessage(newMessage);
       await tester.pumpAndSettle();
       tester.checkChatsOrder([2, 0, 1, 3, 4]);
@@ -366,18 +375,21 @@ void main() {
 
       /// check cachedChats, then new chats from api
       await restartApp(tester);
-      tester.checkChatsAppBarStatus(ChatsAppBarStatus.updating);
-      tester.checkChatsOrder([2, 0, 1, 3, 4]);
+      tester
+        ..checkChatsAppBarStatus(ChatsAppBarStatus.updating)
+        ..checkChatsOrder([2, 0, 1, 3, 4]);
       tester.getChat(2).check(message: 'MSG_999', msgFromCurrentUser: true);
       await getChatsSendResponse(tester);
-      tester.checkChatsAppBarStatus(ChatsAppBarStatus.chats);
-      tester.checkChatsOrder([0, 1, 2, 3, 4]);
+      tester
+        ..checkChatsAppBarStatus(ChatsAppBarStatus.chats)
+        ..checkChatsOrder([0, 1, 2, 3, 4]);
       tester.getChat(2).check(message: chatDto2.lastMessage!.message, msgFromCurrentUser: chatDto2.lastMessage!.isCurrentUser);
 
       /// check cachedChats
       await restartApp(tester);
-      tester.checkChatsAppBarStatus(ChatsAppBarStatus.updating);
-      tester.checkChatsOrder([0, 1, 2, 3, 4]);
+      tester
+        ..checkChatsAppBarStatus(ChatsAppBarStatus.updating)
+        ..checkChatsOrder([0, 1, 2, 3, 4]);
       tester.getChat(2).check(message: chatDto2.lastMessage!.message, msgFromCurrentUser: chatDto2.lastMessage!.isCurrentUser);
     });
 
@@ -413,7 +425,7 @@ void main() {
       tester.getChat(1).check(isOnline: false);
     });
 
-    testWidgets('long_online_status_test', (tester) async {
+    testWidgets('online_status_long_test', (tester) async {
       await setupAppWithChats(tester, [chatDto1]);
 
       /// update online, check, wait, check
@@ -462,13 +474,21 @@ void main() {
       tester.getChat(0).check(isTyping: true);
 
       /// wait, check, wait, check
-      await tester.pumpAndSettle(const Duration(seconds: 2));
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
       tester.getChat(0).check(isTyping: true);
-      await tester.pumpAndSettle(const Duration(milliseconds: 1200));
+      await tester.pumpAndSettle(const Duration(milliseconds: 1000));
       tester.getChat(0).check(isTyping: false);
     });
 
-    /// TODO all messages from chat are deleted
+    testWidgets('all_messages_deleted_test', (tester) async {
+      await setupAppWithChats(tester, [chatDto0]);
+
+      tester.checkChatsOrder([0]);
+      ws.addDeletedMessagesUpdate(const DeletedMessageUpdate(chatId: 0, deletedMessage: messageDto0, newLastMessage: null, deleteChat: true));
+      await tester.pumpAndSettle();
+      tester.checkChatsOrder([]);
+    });
+
     /// TODO error cases test ?
     /// TODO find people navigation test ?
   });

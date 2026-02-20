@@ -35,9 +35,9 @@ class _ChatsNavigatorState extends State<ChatsNavigator>
 final class ChatsPage extends AppPage {
   const ChatsPage()
     : super(
-        name: "chats_screen",
+        name: 'chats_screen',
         child: const ChatsScreen(),
-        key: const ValueKey("chats_screen"),
+        key: const ValueKey('chats_screen'),
       );
 }
 
@@ -46,8 +46,8 @@ final class ChatsPage extends AppPage {
 final class ChatPage extends AppPage {
   ChatPage({required int chatId, required User? otherUser})
     : super(
-        name: "chat_screen",
+        name: 'chat_screen',
         child: ChatScreen(chatId: chatId, otherUser: otherUser),
-        key: ValueKey("chat_screen_${chatId}_${otherUser?.id}"),
+        key: ValueKey('chat_screen_${chatId}_${otherUser?.id}'),
       );
 }

@@ -31,9 +31,9 @@ abstract class PostRepository {
 }
 
 class PostRepositoryImpl implements PostRepository {
-  final PostApi _postApi;
 
   PostRepositoryImpl({required PostApi postApi}) : _postApi = postApi;
+  final PostApi _postApi;
 
   @override
   Future<List<Post>> getPosts({
@@ -46,7 +46,7 @@ class PostRepositoryImpl implements PostRepository {
 
     if (res.response.statusCode != 200) {
       throw Exception(
-        res.data.message ?? "Failed to get posts: ${res.response.statusCode}",
+        res.data.message ?? 'Failed to get posts: ${res.response.statusCode}',
       );
     }
 
@@ -70,7 +70,7 @@ class PostRepositoryImpl implements PostRepository {
 
     if (res.response.statusCode != 200) {
       throw Exception(
-        res.data.message ?? "Failed to get posts: ${res.response.statusCode}",
+        res.data.message ?? 'Failed to get posts: ${res.response.statusCode}',
       );
     }
 
@@ -89,7 +89,7 @@ class PostRepositoryImpl implements PostRepository {
 
     if (res.response.statusCode != 201) {
       throw Exception(
-        res.data.message ?? "Failed to create new post: ${res.response.statusCode}",
+        res.data.message ?? 'Failed to create new post: ${res.response.statusCode}',
       );
     }
 
@@ -110,7 +110,7 @@ class PostRepositoryImpl implements PostRepository {
 
     if (res.response.statusCode != 200) {
       throw Exception(
-        res.data.message ?? "Failed to update the post: ${res.response.statusCode}",
+        res.data.message ?? 'Failed to update the post: ${res.response.statusCode}',
       );
     }
 
@@ -124,7 +124,7 @@ class PostRepositoryImpl implements PostRepository {
 
     if (res.response.statusCode != 200) {
       throw Exception(
-        res.data.message ?? "Failed to delete the post: ${res.response.statusCode}",
+        res.data.message ?? 'Failed to delete the post: ${res.response.statusCode}',
       );
     }
 

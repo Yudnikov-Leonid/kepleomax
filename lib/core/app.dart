@@ -5,9 +5,9 @@ import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/unfocus_widget.dart';
-import 'package:kepleomax/core/scopes/user_activity_scope.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
 import 'package:kepleomax/core/scopes/connection_scope.dart';
+import 'package:kepleomax/core/scopes/user_activity_scope.dart';
 import 'package:kepleomax/features/chats/bloc/chats_bloc.dart';
 
 final mainNavigatorGlobalKey = GlobalKey();

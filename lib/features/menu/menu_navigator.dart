@@ -34,17 +34,17 @@ class _MenuNavigatorState extends State<MenuNavigator>
 final class MenuPage extends AppPage {
   const MenuPage()
     : super(
-        name: "menu_screen",
+        name: 'menu_screen',
         child: const MenuScreen(),
-        key: const ValueKey("menu_screen"),
+        key: const ValueKey('menu_screen'),
       );
 }
 
 final class SettingsPage extends AppPage {
   const SettingsPage()
     : super(
-        name: "settings_page",
+        name: 'settings_page',
         child: const SettingsScreen(),
-        key: const ValueKey("settings_page"),
+        key: const ValueKey('settings_page'),
       );
 }

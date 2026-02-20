@@ -64,10 +64,10 @@ class MessageWidget extends StatelessWidget {
               /// to reset the focus after show the menu
               // FocusScope.of(context).requestFocus(FocusNode());
 
-              final double keyboardHeight = View.of(context).viewInsets.bottom;
-              final double screenHeight = MediaQuery.of(context).size.height;
-              final double availableHeight = screenHeight - keyboardHeight;
-              print('KlmLog keyboardHeight: $keyboardHeight');
+              // final double keyboardHeight = View.of(context).viewInsets.bottom;
+              // final double screenHeight = MediaQuery.of(context).size.height;
+              // final double availableHeight = screenHeight - keyboardHeight;
+              // print('KlmLog keyboardHeight: $keyboardHeight');
 
               showMenu(
                 context: context,
@@ -163,7 +163,7 @@ class MessageWidget extends StatelessWidget {
     );
   }
 
-  List<PopupMenuEntry> _items() {
+  List<PopupMenuEntry<void>> _items() {
     return [
       if (!message.fromCache) _popupItem('Reply', Icons.reply, () {}),
       _popupItem('Copy', Icons.copy, () {
@@ -182,7 +182,7 @@ class MessageWidget extends StatelessWidget {
     ];
   }
 
-  PopupMenuItem _popupItem(
+  PopupMenuItem<void> _popupItem(
     String text,
     IconData iconData,
     VoidCallback onTap, {

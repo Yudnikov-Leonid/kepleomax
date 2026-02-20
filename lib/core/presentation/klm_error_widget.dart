@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 
-import 'klm_button.dart' show KlmButton;
+import 'package:kepleomax/core/presentation/klm_button.dart' show KlmButton;
 
 class KlmErrorWidget extends StatelessWidget {
   const KlmErrorWidget({required this.errorMessage, this.onRetry, super.key});

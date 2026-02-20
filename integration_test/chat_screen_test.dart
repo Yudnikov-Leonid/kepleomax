@@ -30,7 +30,7 @@ import 'utils/mock_objects.dart';
 import 'utils/utils.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized().framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   group('chat_screen_tests', () {
     late Dependencies dp;
@@ -44,7 +44,7 @@ void main() {
     setUp(() async {
       dp = await initializeDependencies(useMocks: true);
       ws = dp.messagesWebSocket as MockMessagesWebSocket;
-      dp.authController.setUser(User.testing());
+      await dp.authController.setUser(User.testing());
     });
 
     tearDown(() async {
@@ -55,7 +55,7 @@ void main() {
       when(dp.chatsApi.getChats()).thenAnswer((_) async {
         return HttpResponse(ChatsResponse(data: chat == null ? [] : [chat], message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
       });
-      when((dp.chatsApi as MockChatsApi).getChatWithId(chatId: anyNamed("chatId"))).thenAnswer((inv) async {
+      when((dp.chatsApi as MockChatsApi).getChatWithId(chatId: anyNamed('chatId'))).thenAnswer((inv) async {
         return HttpResponse(
           ChatResponse(data: [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4].firstWhere((chat) => chat.id == inv.namedArguments[#chatId]), message: null),
           Response(requestOptions: RequestOptions(), statusCode: 200),
@@ -97,35 +97,40 @@ void main() {
       await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4], getMessagesAsyncControl: true);
 
       /// check
-      tester.checkChatAppBarStatus(ChatAppBarStatus.updating);
-      tester.checkMessagesOrder([0]); // cached from chat
+      tester
+        ..checkChatAppBarStatus(ChatAppBarStatus.updating)
+        ..checkMessagesOrder([0]); // cached from chat
 
       /// wait for the response of the repository, check
       await sendGetMessagesResponse(tester);
-      tester.checkChatAppBarStatus(ChatAppBarStatus.none);
-      tester.checkMessagesCount(5);
-      tester.checkMessagesOrder([0, 1, 2, 3, 4]);
+      tester
+        ..checkChatAppBarStatus(ChatAppBarStatus.none)
+        ..checkMessagesCount(5)
+        ..checkMessagesOrder([0, 1, 2, 3, 4]);
 
       /// disconnect, check
       ws.setIsConnected(false);
       await tester.pump();
-      tester.checkChatAppBarStatus(ChatAppBarStatus.connecting);
-      tester.checkMessagesCount(5);
-      tester.checkMessagesOrder([0, 1, 2, 3, 4]);
+      tester
+        ..checkChatAppBarStatus(ChatAppBarStatus.connecting)
+        ..checkMessagesCount(5)
+        ..checkMessagesOrder([0, 1, 2, 3, 4]);
 
       /// connect, check
       ws.setIsConnected(true);
       await tester.pump();
-      tester.checkChatAppBarStatus(ChatAppBarStatus.updating);
-      tester.checkMessagesCount(5);
-      tester.checkMessagesOrder([0, 1, 2, 3, 4]);
+      tester
+        ..checkChatAppBarStatus(ChatAppBarStatus.updating)
+        ..checkMessagesCount(5)
+        ..checkMessagesOrder([0, 1, 2, 3, 4]);
 
       /// wait for the response of the repository, check
       await tester.pump(const Duration(milliseconds: 10)); // need this line
       await sendGetMessagesResponse(tester);
-      tester.checkChatAppBarStatus(ChatAppBarStatus.none);
-      tester.checkMessagesCount(5);
-      tester.checkMessagesOrder([0, 1, 2, 3, 4]);
+      tester
+        ..checkChatAppBarStatus(ChatAppBarStatus.none)
+        ..checkMessagesCount(5)
+        ..checkMessagesOrder([0, 1, 2, 3, 4]);
     });
 
     testWidgets('message_statuses_test', (tester) async {
@@ -173,21 +178,15 @@ void main() {
     });
 
     testWidgets('read_messages_test', (tester) async {
-      await setupApp(tester, chatDto0, [messageDto0, messageDto2, messageDto3, messageDto4]);
+      await setupApp(tester, chatDto0, [messageDto0, messageDto2, messageDto3, messageDto4], getMessagesAsyncControl: true);
 
-      /// check
+      /// check (with cache messages should not work), send apiMessages, check
+      expect(ws.readBeforeTimeCalledTimes, 0);
+      await sendGetMessagesResponse(tester);
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
       expect(ws.readBeforeTimeCalledTimes, 1);
       expect(ws.isRaadBeforeTimeWasCalledWith(0, DateTime.fromMillisecondsSinceEpoch(messageDto0.createdAt)), true);
     });
-
-    /// readBeforeTimeCalledTimes will be called two times, one time for each widget
-    // testWidgets('read_messages_two_messages_test', (tester) async {
-    //   await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
-    //
-    //   /// check
-    //   expect(ws.readBeforeTimeCalledTimes, 1);
-    //   expect(ws.isRaadBeforeTimeWasCalledWith(0, DateTime.fromMillisecondsSinceEpoch(messageDto0.createdAt)), true);
-    // });
 
     testWidgets('read_all_button_test', (tester) async {
       await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
@@ -205,12 +204,12 @@ void main() {
 
       /// check, delete, check
       tester.checkMessagesOrder([0, 1, 2, 3, 4]);
-      ws.addDeletedMessagesUpdate(DeletedMessageUpdate(chatId: 0, deletedMessage: messageDto3, newLastMessage: null));
+      ws.addDeletedMessagesUpdate(const DeletedMessageUpdate(chatId: 0, deletedMessage: messageDto3, newLastMessage: null));
       await tester.pump();
       tester.checkMessagesOrder([0, 1, 2, 4]);
 
       /// delete, check
-      ws.addDeletedMessagesUpdate(DeletedMessageUpdate(chatId: 0, deletedMessage: messageDto2, newLastMessage: null));
+      ws.addDeletedMessagesUpdate(const DeletedMessageUpdate(chatId: 0, deletedMessage: messageDto2, newLastMessage: null));
       await tester.pump();
       tester.checkMessagesOrder([0, 1, 4]);
     });
@@ -238,11 +237,13 @@ void main() {
 
       /// go back, open chat, check cache, check loaded messages
       await tester.reopenChat(settle: false);
-      tester.checkMessagesOrder([2, 3, 4]);
-      tester.checkChatAppBarStatus(ChatAppBarStatus.updating);
+      tester
+        ..checkMessagesOrder([2, 3, 4])
+        ..checkChatAppBarStatus(ChatAppBarStatus.updating);
       await sendGetMessagesResponse(tester);
-      tester.checkMessagesOrder([2, 3, 4]);
-      tester.checkChatAppBarStatus(ChatAppBarStatus.none);
+      tester
+        ..checkMessagesOrder([2, 3, 4])
+        ..checkChatAppBarStatus(ChatAppBarStatus.none);
     });
 
     testWidgets('unread_messages_widget_test', (tester) async {
@@ -314,9 +315,9 @@ void main() {
       ws.addTypingUpdate(const TypingActivityUpdate(chatId: 0, isTyping: true));
       await tester.pumpAndSettle();
       tester.checkChatOtherUserStatus('typing..');
-      await tester.pumpAndSettle(const Duration(seconds: 2));
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
       tester.checkChatOtherUserStatus('typing..');
-      await tester.pumpAndSettle(const Duration(milliseconds: 1500));
+      await tester.pumpAndSettle(const Duration(milliseconds: 1000));
       tester.checkChatOtherUserStatus('online');
     });
 
@@ -376,7 +377,7 @@ void main() {
       await setupApp(tester, chatDto0, [messageDto0]);
 
       tester.checkMessagesOrder([0]);
-      ws.addDeletedMessagesUpdate(DeletedMessageUpdate(chatId: 0, deletedMessage: messageDto0, newLastMessage: null, deleteChat: true));
+      ws.addDeletedMessagesUpdate(const DeletedMessageUpdate(chatId: 0, deletedMessage: messageDto0, newLastMessage: null, deleteChat: true));
       await tester.pumpAndSettle();
       tester.checkMessagesOrder([]);
       await tester.goBack();
@@ -387,7 +388,7 @@ void main() {
       await setupApp(tester, chatDto0, [messageDto0]);
 
       tester.checkMessagesOrder([0]);
-      ws.addDeletedMessagesUpdate(DeletedMessageUpdate(chatId: 0, deletedMessage: messageDto0, newLastMessage: null, deleteChat: true));
+      ws.addDeletedMessagesUpdate(const DeletedMessageUpdate(chatId: 0, deletedMessage: messageDto0, newLastMessage: null, deleteChat: true));
       await tester.pumpAndSettle();
       tester.checkMessagesOrder([]);
 

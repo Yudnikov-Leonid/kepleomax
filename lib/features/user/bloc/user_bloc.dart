@@ -1,23 +1,16 @@
 import 'dart:async';
 
-import 'package:kepleomax/core/data/connection_repository.dart';
-import 'package:kepleomax/core/logger.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kepleomax/core/data/connection_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
+import 'package:kepleomax/core/logger.dart';
 import 'package:kepleomax/core/models/user_profile.dart';
 import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/user/bloc/user_states.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
-  final UserRepository _userRepository;
-  final ConnectionRepository _connectionRepository;
-
-  final int _userId;
-  late UserData _data = UserData.initial();
-  late final StreamSubscription _onlineUpdatesSub;
-
   UserBloc({
     required UserRepository userRepository,
     required ConnectionRepository connectionRepository,
@@ -28,9 +21,12 @@ class UserBloc extends Bloc<UserEvent, UserState> {
        super(UserStateBase.initial()) {
     on<UserEvent>(
       (event, emit) => switch (event) {
-        UserEventLoad event => _onLoad(event, emit),
-        UserEventUpdateProfile event => _onUpdateProfile(event, emit),
-        _UserEventUpdateOnlineStatus event => _onUpdateOnlineStatus(event, emit),
+        final UserEventLoad event => _onLoad(event, emit),
+        final UserEventUpdateProfile event => _onUpdateProfile(event, emit),
+        final _UserEventUpdateOnlineStatus event => _onUpdateOnlineStatus(
+          event,
+          emit,
+        ),
         _ => () {},
       },
       transformer: sequential(),
@@ -43,7 +39,14 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     });
   }
 
-  void _onLoad(UserEventLoad event, Emitter<UserState> emit) async {
+  final UserRepository _userRepository;
+  final ConnectionRepository _connectionRepository;
+
+  final int _userId;
+  late UserData _data = UserData.initial();
+  late final StreamSubscription<void> _onlineUpdatesSub;
+
+  Future<void> _onLoad(UserEventLoad event, Emitter<UserState> emit) async {
     _data = _data.copyWith(isLoading: true, profile: null);
     emit(UserStateBase(data: _data));
 
@@ -61,7 +64,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
   }
 
-  void _onUpdateProfile(
+  Future<void> _onUpdateProfile(
     UserEventUpdateProfile event,
     Emitter<UserState> emit,
   ) async {
@@ -121,13 +124,13 @@ class UserEventLoad implements UserEvent {
 }
 
 class UserEventUpdateProfile implements UserEvent {
-  final UserProfile newProfile;
-
   const UserEventUpdateProfile({required this.newProfile});
+
+  final UserProfile newProfile;
 }
 
 class _UserEventUpdateOnlineStatus implements UserEvent {
-  final OnlineStatusUpdate update;
-
   _UserEventUpdateOnlineStatus(this.update);
+
+  final OnlineStatusUpdate update;
 }

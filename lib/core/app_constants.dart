@@ -5,10 +5,11 @@ abstract class AppConstants {
   static _AppConstantsType get _constants =>
       flavor.isTesting ? const _AppConstantsTesting() : const _AppConstatsRelease();
 
-  static final int sendActivityDelayInSeconds = _constants.sendActivityDelayInSeconds;
+  static final int sendActivityDelayInSeconds = _constants
+      .sendActivityDelayInSeconds;
   static final int markAsOfflineAfterInactivityInSeconds = _constants
       .markAsOfflineAfterInactivityInSeconds;
-  static final int showTypingAfterActivityForSeconds = _constants
+  static final Duration showTypingAfterActivity = _constants
       .showTypingAfterActivityForSeconds;
 
   static final int msgPagingLimit = _constants.msgPagingLimit;
@@ -23,7 +24,7 @@ abstract class _AppConstantsType {
 
   int get markAsOfflineAfterInactivityInSeconds => 60;
 
-  int get showTypingAfterActivityForSeconds => 3;
+  Duration get showTypingAfterActivityForSeconds => const Duration(seconds: 3);
 
   int get msgPagingLimit => 15;
 
@@ -39,6 +40,9 @@ class _AppConstatsRelease extends _AppConstantsType {
 
 class _AppConstantsTesting extends _AppConstantsType {
   const _AppConstantsTesting() : super();
-// no overrides
-// you can override any constant for testing here
+
+  // you can override any constant for testing here
+
+  @override
+  Duration get showTypingAfterActivityForSeconds => const Duration(seconds: 1);
 }

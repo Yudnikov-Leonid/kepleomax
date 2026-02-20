@@ -12,9 +12,9 @@ abstract class AuthRepository {
 }
 
 class AuthRepositoryImpl implements AuthRepository {
-  final AuthApi _authApi;
 
   AuthRepositoryImpl({required AuthApi authApi}) : _authApi = authApi;
+  final AuthApi _authApi;
 
   @override
   Future<LoginResponseData> login({

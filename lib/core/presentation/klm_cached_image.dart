@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import 'colors.dart';
+import 'package:kepleomax/core/presentation/colors.dart';
 
 class KlmCachedImage extends CachedNetworkImage {
   KlmCachedImage({

@@ -4,9 +4,9 @@ import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 
-import '../navigation/pages.dart';
+import 'package:kepleomax/core/navigation/pages.dart';
 
-final loginNavigatorKey = 'LoginNavigator';
+const loginNavigatorKey = 'LoginNavigator';
 
 class AuthScope extends StatefulWidget {
   const AuthScope({required this.builder, super.key});

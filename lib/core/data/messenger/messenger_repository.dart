@@ -4,8 +4,12 @@ import 'package:collection/collection.dart';
 import 'package:kepleomax/core/app_constants.dart';
 import 'package:kepleomax/core/data/data_sources/chats_api_data_sources.dart';
 import 'package:kepleomax/core/data/data_sources/messages_api_data_sources.dart';
+import 'package:kepleomax/core/data/local_data_sources/chats_local_data_source.dart';
+import 'package:kepleomax/core/data/local_data_sources/messages_local_data_source.dart';
 import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.dart';
 import 'package:kepleomax/core/data/messenger/combine_cache_and_api.dart';
+import 'package:kepleomax/core/data/models/chats_collection.dart';
+import 'package:kepleomax/core/data/models/messages_collection.dart';
 import 'package:kepleomax/core/models/chat.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
@@ -16,19 +20,10 @@ import 'package:kepleomax/core/network/websockets/models/online_status_update.da
 import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
 import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 
-import '../local_data_sources/chats_local_data_source.dart';
-import '../local_data_sources/messages_local_data_source.dart';
-import '../models/chats_collection.dart';
-import '../models/messages_collection.dart';
-
-part 'on_new_message.dart';
-
-part 'on_read_messages.dart';
-
 part 'on_delete_message.dart';
-
+part 'on_new_message.dart';
 part 'on_online_update.dart';
-
+part 'on_read_messages.dart';
 part 'on_typing_update.dart';
 
 abstract class MessengerRepository {
@@ -54,28 +49,6 @@ abstract class MessengerRepository {
 }
 
 class MessengerRepositoryImpl implements MessengerRepository {
-  final MessagesWebSocket _webSocket;
-
-  final ChatsApiDataSource _chatsApi;
-  final MessagesApiDataSource _messagesApi;
-
-  final MessagesLocalDataSource _messagesLocal;
-  final ChatsLocalDataSource _chatsLocal;
-  final UsersLocalDataSource _usersLocal;
-
-  final CombineCacheAndApi _combiner;
-
-  /// uses when chatId == -1 (it's a new chat with new user)
-  int? _currentChatOtherUserId;
-
-  final _messagesUpdatesController =
-      StreamController<MessagesCollection>.broadcast();
-  final _chatsUpdatesController = StreamController<ChatsCollection>.broadcast();
-  MessagesCollection? _currentMessagesCollection;
-  ChatsCollection? _currentChatsCollection;
-
-  @override
-  ChatsCollection get currentChatsCollection => _currentChatsCollection!;
 
   MessengerRepositoryImpl({
     required MessagesWebSocket webSocket,
@@ -98,6 +71,28 @@ class MessengerRepositoryImpl implements MessengerRepository {
     _webSocket.onlineUpdatesStream.listen(_onOnlineUpdate);
     _webSocket.typingUpdatesStream.listen(_onTypingUpdate);
   }
+  final MessagesWebSocket _webSocket;
+
+  final ChatsApiDataSource _chatsApi;
+  final MessagesApiDataSource _messagesApi;
+
+  final MessagesLocalDataSource _messagesLocal;
+  final ChatsLocalDataSource _chatsLocal;
+  final UsersLocalDataSource _usersLocal;
+
+  final CombineCacheAndApi _combiner;
+
+  /// uses when chatId == -1 (it's a new chat with new user)
+  int? _currentChatOtherUserId;
+
+  final _messagesUpdatesController =
+      StreamController<MessagesCollection>.broadcast();
+  final _chatsUpdatesController = StreamController<ChatsCollection>.broadcast();
+  MessagesCollection? _currentMessagesCollection;
+  ChatsCollection? _currentChatsCollection;
+
+  @override
+  ChatsCollection get currentChatsCollection => _currentChatsCollection!;
 
   /// emitters
   void _emitMessagesCollection(MessagesCollection collection) {

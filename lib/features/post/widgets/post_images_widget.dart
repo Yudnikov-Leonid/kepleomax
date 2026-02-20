@@ -13,8 +13,8 @@ class _PostImagesWidget extends StatelessWidget {
         : _images.length == 4
         ? screenWidth
         : 450;
-    final double spaceBetween = 4;
-    final sizeOffset = spaceBetween / 2;
+    const double spaceBetween = 4;
+    const sizeOffset = spaceBetween / 2;
 
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: maxHeight),

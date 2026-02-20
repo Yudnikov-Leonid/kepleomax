@@ -1,38 +1,38 @@
-import 'package:kepleomax/core/app_constants.dart';
-import 'package:kepleomax/core/logger.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kepleomax/core/app_constants.dart';
 import 'package:kepleomax/core/data/post_repository.dart';
+import 'package:kepleomax/core/logger.dart';
 import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/network/common/ntp_time.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/post/bloc/post_list_state.dart';
 
 class PostListBloc extends Bloc<PostListEvent, PostListState> {
-  final PostRepository _postRepository;
-
-  late PostListData _data = PostListData.initial();
-  final int? _userId;
-  int _loadTime = 0;
-
   PostListBloc({required PostRepository postRepository, required int? userId})
     : _postRepository = postRepository,
       _userId = userId,
       super(PostListStateBase.initial()) {
     on<PostListEvent>(
       (event, emit) => switch (event) {
-        PostListEventLoad event => _onLoad(event, emit),
-        PostListEventLoadMore event => _onLoadMorePosts(event, emit),
-        PostListEventDeletePost event => _onDeletePost(event, emit),
+        final PostListEventLoad event => _onLoad(event, emit),
+        final PostListEventLoadMore event => _onLoadMorePosts(event, emit),
+        final PostListEventDeletePost event => _onDeletePost(event, emit),
         _ => () {},
       },
       transformer: sequential(),
     );
   }
 
+  final PostRepository _postRepository;
+
+  late PostListData _data = PostListData.initial();
+  final int? _userId;
+  int _loadTime = 0;
+
   int _lastTimeLoadCalled = 0;
 
-  void _onLoad(PostListEventLoad event, Emitter<PostListState> emit) async {
+  Future<void> _onLoad(PostListEventLoad event, Emitter<PostListState> emit) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     if (_lastTimeLoadCalled + 1000 > now) {
       return;
@@ -59,7 +59,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     }
   }
 
-  void _onLoadMorePosts(
+  Future<void> _onLoadMorePosts(
     PostListEventLoadMore event,
     Emitter<PostListState> emit,
   ) async {
@@ -89,7 +89,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     }
   }
 
-  void _onDeletePost(
+  Future<void> _onDeletePost(
     PostListEventDeletePost event,
     Emitter<PostListState> emit,
   ) async {
@@ -119,13 +119,13 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     required int beforeTime,
   }) async {
     if (_userId == null) {
-      return await _postRepository.getPosts(
+      return _postRepository.getPosts(
         limit: AppConstants.postsPagingLimit,
         offset: offset,
         beforeTime: beforeTime,
       );
     } else {
-      return await _postRepository.getPostsByUserId(
+      return _postRepository.getPostsByUserId(
         userId: _userId,
         limit: AppConstants.postsPagingLimit,
         offset: offset,
@@ -147,8 +147,8 @@ class PostListEventLoadMore implements PostListEvent {
 }
 
 class PostListEventDeletePost implements PostListEvent {
+  PostListEventDeletePost({required this.index, required this.postId});
+
   final int index;
   final int postId;
-
-  PostListEventDeletePost({required this.index, required this.postId});
 }

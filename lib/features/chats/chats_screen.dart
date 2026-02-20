@@ -120,7 +120,7 @@ class _Body extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "You have no chats now",
+                          'You have no chats now',
                           style: context.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w500,
                             fontSize: 18,

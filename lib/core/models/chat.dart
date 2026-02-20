@@ -8,8 +8,6 @@ part 'chat.freezed.dart';
 
 @freezed
 abstract class Chat with _$Chat {
-  const Chat._();
-
   const factory Chat({
     required int id,
     required User otherUser,
@@ -19,25 +17,12 @@ abstract class Chat with _$Chat {
     DateTime? lastTypingActivityTime,
   }) = _Chat;
 
-  bool get isTypingRightNow => lastTypingActivityTime == null
-      ? false
-      : lastTypingActivityTime!.millisecondsSinceEpoch +
-                AppConstants.showTypingAfterActivityForSeconds * 1000 >
-            DateTime.now().millisecondsSinceEpoch;
-
-  factory Chat.fromDto(ChatDto dto, {required fromCache}) => Chat(
+  factory Chat.fromDto(ChatDto dto, {required bool fromCache}) => Chat(
     id: dto.id,
     otherUser: User.fromDto(dto.otherUser),
     lastMessage: dto.lastMessage == null ? null : Message.fromDto(dto.lastMessage!),
     fromCache: fromCache,
     unreadCount: dto.unreadCount,
-  );
-
-  ChatDto toDto() => ChatDto(
-    id: id,
-    otherUser: otherUser.toDto(),
-    lastMessage: lastMessage?.toDto(),
-    unreadCount: unreadCount,
   );
 
   factory Chat.loading() => Chat(
@@ -46,5 +31,20 @@ abstract class Chat with _$Chat {
     fromCache: false,
     lastMessage: null,
     unreadCount: 1,
+  );
+
+  const Chat._();
+
+  bool get isTypingRightNow =>
+      lastTypingActivityTime != null &&
+      lastTypingActivityTime!.millisecondsSinceEpoch +
+              AppConstants.showTypingAfterActivity.inMilliseconds >
+          DateTime.now().millisecondsSinceEpoch;
+
+  ChatDto toDto() => ChatDto(
+    id: id,
+    otherUser: otherUser.toDto(),
+    lastMessage: lastMessage?.toDto(),
+    unreadCount: unreadCount,
   );
 }

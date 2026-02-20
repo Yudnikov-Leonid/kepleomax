@@ -11,39 +11,39 @@ final chatDto0 = ChatDto(
   unreadCount: 2,
 );
 
-final chatDto1 = const ChatDto(
+const chatDto1 = ChatDto(
   id: 1,
   otherUser: UserDto(id: 2, username: 'OTHER_USERNAME_2', profileImage: null, isCurrent: false, isOnline: true, lastActivityTime: 0),
   lastMessage: MessageDto(id: 1, chatId: 1, senderId: 2, isCurrentUser: false, message: 'MSG_1', isRead: false, createdAt: 1080, editedAt: null, fromCache: false),
   unreadCount: 4,
 );
 
-final chatDto2 = const ChatDto(
+const chatDto2 = ChatDto(
   id: 2,
   otherUser: UserDto(id: 3, username: 'OTHER_USERNAME_3', profileImage: null, isCurrent: false, isOnline: false, lastActivityTime: 0),
   lastMessage: MessageDto(id: 2, chatId: 2, senderId: 0, isCurrentUser: true, message: 'MSG_2', isRead: false, createdAt: 1070, editedAt: null, fromCache: false),
   unreadCount: 0,
 );
 
-final chatDto3 = const ChatDto(
+const chatDto3 = ChatDto(
   id: 3,
   otherUser: UserDto(id: 4, username: 'OTHER_USERNAME_4', profileImage: null, isCurrent: false, isOnline: false, lastActivityTime: 0),
   lastMessage: MessageDto(id: 3, chatId: 3, senderId: 0, isCurrentUser: true, message: 'MSG_3', isRead: true, createdAt: 1060, editedAt: null, fromCache: false),
   unreadCount: 0,
 );
 
-final chatDto4 = const ChatDto(
+const chatDto4 = ChatDto(
   id: 4,
   otherUser: UserDto(id: 5, username: 'OTHER_USERNAME_5', profileImage: null, isCurrent: false, isOnline: false, lastActivityTime: 0),
   lastMessage: MessageDto(id: 4, chatId: 4, senderId: 5, isCurrentUser: false, message: 'MSG_4', isRead: true, createdAt: 1050, editedAt: null, fromCache: false),
   unreadCount: 0,
 );
 
-final messageDto0 = const MessageDto(id: 0, chatId: 0, senderId: 1, isCurrentUser: false, message: 'MSG_0', isRead: false, createdAt: 1090, editedAt: null, fromCache: false);
-final messageDto1 = const MessageDto(id: 1, chatId: 0, senderId: 1, isCurrentUser: false, message: 'MSG_1', isRead: false, createdAt: 1080, editedAt: null, fromCache: false);
-final messageDto2 = const MessageDto(id: 2, chatId: 0, senderId: 1, isCurrentUser: false, message: 'MSG_2', isRead: true, createdAt: 1070, editedAt: null, fromCache: false);
-final messageDto3 = const MessageDto(id: 3, chatId: 0, senderId: 0, isCurrentUser: true, message: 'MSG_3', isRead: false, createdAt: 1060, editedAt: null, fromCache: false);
-final messageDto4 = const MessageDto(id: 4, chatId: 0, senderId: 0, isCurrentUser: true, message: 'MSG_4', isRead: true, createdAt: 1050, editedAt: null, fromCache: false);
+const messageDto0 = MessageDto(id: 0, chatId: 0, senderId: 1, isCurrentUser: false, message: 'MSG_0', isRead: false, createdAt: 1090, editedAt: null, fromCache: false);
+const messageDto1 = MessageDto(id: 1, chatId: 0, senderId: 1, isCurrentUser: false, message: 'MSG_1', isRead: false, createdAt: 1080, editedAt: null, fromCache: false);
+const messageDto2 = MessageDto(id: 2, chatId: 0, senderId: 1, isCurrentUser: false, message: 'MSG_2', isRead: true, createdAt: 1070, editedAt: null, fromCache: false);
+const messageDto3 = MessageDto(id: 3, chatId: 0, senderId: 0, isCurrentUser: true, message: 'MSG_3', isRead: false, createdAt: 1060, editedAt: null, fromCache: false);
+const messageDto4 = MessageDto(id: 4, chatId: 0, senderId: 0, isCurrentUser: true, message: 'MSG_4', isRead: true, createdAt: 1050, editedAt: null, fromCache: false);
 
 List<MessageDto> generateMessages(int from, int count, {int chatId = 0}) => List.generate(
   count,

@@ -1,20 +1,15 @@
 import 'dart:async';
 
 import 'package:bloc_concurrency/bloc_concurrency.dart';
-import 'package:kepleomax/core/data/models/users_collection.dart';
-import 'package:kepleomax/core/logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kepleomax/core/data/models/users_collection.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
+import 'package:kepleomax/core/logger.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/people/bloc/people_state.dart';
 import 'package:rxdart/rxdart.dart';
 
 class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
-  final UserRepository _userRepository;
-  late final StreamSubscription _usersSub;
-
-  late PeopleData _data = PeopleData.initial();
-
   PeopleBloc({required UserRepository userRepository})
     : _userRepository = userRepository,
       super(PeopleStateBase.initial()) {
@@ -37,7 +32,12 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     });
   }
 
-  void _onInstantLoad(
+  final UserRepository _userRepository;
+  late final StreamSubscription<void> _usersSub;
+
+  late PeopleData _data = PeopleData.initial();
+
+  Future<void> _onInstantLoad(
     PeopleEventInstantLoad event,
     Emitter<PeopleState> emit,
   ) async {
@@ -51,7 +51,7 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     }
   }
 
-  void _onLoad(_PeopleEventLoad event, Emitter<PeopleState> emit) async {
+  Future<void> _onLoad(_PeopleEventLoad event, Emitter<PeopleState> emit) async {
     _data = _data.copyWith(isLoading: true);
     emit(PeopleStateBase(data: _data));
 
@@ -63,7 +63,10 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     }
   }
 
-  void _onLoadMore(PeopleEventLoadMore event, Emitter<PeopleState> emit) async {
+  Future<void> _onLoadMore(
+    PeopleEventLoadMore event,
+    Emitter<PeopleState> emit,
+  ) async {
     if (_data.isLoading || _data.isAllUsersLoaded) return;
 
     try {
@@ -73,7 +76,10 @@ class PeopleBloc extends Bloc<PeopleEvent, PeopleState> {
     }
   }
 
-  void _onEditSearch(PeopleEventEditSearch event, Emitter<PeopleState> emit) async {
+  Future<void> _onEditSearch(
+    PeopleEventEditSearch event,
+    Emitter<PeopleState> emit,
+  ) async {
     _data = _data.copyWith(searchText: event.text);
     emit(PeopleStateBase(data: _data));
     add(const _PeopleEventLoad());
@@ -115,9 +121,9 @@ class PeopleEventLoadMore implements PeopleEvent {
 }
 
 class PeopleEventEditSearch implements PeopleEvent {
-  final String text;
-
   const PeopleEventEditSearch({required this.text});
+
+  final String text;
 }
 
 class _PeopleEventLoad implements PeopleEvent {
@@ -125,7 +131,7 @@ class _PeopleEventLoad implements PeopleEvent {
 }
 
 class _PeopleEventEmitUsers implements PeopleEvent {
-  final UsersCollection collection;
-
   _PeopleEventEmitUsers(this.collection);
+
+  final UsersCollection collection;
 }

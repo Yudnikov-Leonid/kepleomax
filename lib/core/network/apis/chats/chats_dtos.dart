@@ -9,39 +9,32 @@ part 'chats_dtos.g.dart';
 
 @JsonSerializable()
 class ChatResponse {
-  final ChatDto? data;
-  final String? message;
 
   ChatResponse({required this.data, required this.message});
 
   factory ChatResponse.fromJson(Map<String, dynamic> json) =>
       _$ChatResponseFromJson(json);
+  final ChatDto? data;
+  final String? message;
 
   Map<String, dynamic> toJson() => _$ChatResponseToJson(this);
 }
 
 @JsonSerializable()
 class ChatsResponse {
-  final List<ChatDto>? data;
-  final String? message;
 
   ChatsResponse({required this.data, required this.message});
 
   factory ChatsResponse.fromJson(Map<String, dynamic> json) =>
       _$ChatsResponseFromJson(json);
+  final List<ChatDto>? data;
+  final String? message;
 
   Map<String, dynamic> toJson() => _$ChatsResponseToJson(this);
 }
 
 @JsonSerializable()
 class ChatDto extends Equatable {
-  final int id;
-  @JsonKey(name: 'other_user')
-  final UserDto otherUser;
-  @JsonKey(name: 'last_message')
-  final MessageDto? lastMessage;
-  @JsonKey(name: 'unread_count')
-  final int unreadCount;
 
   const ChatDto({
     required this.id,
@@ -54,13 +47,23 @@ class ChatDto extends Equatable {
 
   /// json['other_user'] should be map\<String, dynamic>
   factory ChatDto.fromLocalJson(Map<String, dynamic> json) => ChatDto(
-    id: json['id'],
-    otherUser: UserDto.fromJson(json['other_user']),
+    id: json['id'] as int,
+    otherUser: UserDto.fromJson(json['other_user'] as Map<String, dynamic>),
     lastMessage: json['last_message'] == null
         ? null
-        : MessageDto.fromJson(jsonDecode(json['last_message']), fromCache: true),
-    unreadCount: json['unread_count'],
+        : MessageDto.fromJson(
+            jsonDecode(json['last_message'] as String) as Map<String, dynamic>,
+            fromCache: true,
+          ),
+    unreadCount: json['unread_count'] as int,
   );
+  final int id;
+  @JsonKey(name: 'other_user')
+  final UserDto otherUser;
+  @JsonKey(name: 'last_message')
+  final MessageDto? lastMessage;
+  @JsonKey(name: 'unread_count')
+  final int unreadCount;
 
   Map<String, dynamic> toLocalJson() => {
     'id': id,

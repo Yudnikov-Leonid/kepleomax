@@ -9,9 +9,9 @@ import 'package:kepleomax/core/data/chats_repository.dart';
 import 'package:kepleomax/core/data/connection_repository.dart';
 import 'package:kepleomax/core/data/data_sources/chats_api_data_sources.dart';
 import 'package:kepleomax/core/data/data_sources/messages_api_data_sources.dart';
-import 'package:kepleomax/core/data/local_data_sources/local_database_manager.dart';
 import 'package:kepleomax/core/data/files_repository.dart';
 import 'package:kepleomax/core/data/local_data_sources/chats_local_data_source.dart';
+import 'package:kepleomax/core/data/local_data_sources/local_database_manager.dart';
 import 'package:kepleomax/core/data/local_data_sources/messages_local_data_source.dart';
 import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.dart';
 import 'package:kepleomax/core/data/messenger/combine_cache_and_api.dart';
@@ -20,6 +20,7 @@ import 'package:kepleomax/core/data/post_repository.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/flavor.dart';
+import 'package:kepleomax/core/logger.dart';
 import 'package:kepleomax/core/mocks/fake_user_api.dart';
 import 'package:kepleomax/core/mocks/mock_messages_web_socket.dart';
 import 'package:kepleomax/core/mocks/mock_token_provider.dart';
@@ -39,8 +40,6 @@ import 'package:kepleomax/firebase_options.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:visibility_detector/visibility_detector.dart';
-
-import '../logger.dart';
 
 Future<Dependencies> initializeDependencies({bool useMocks = false}) async {
   final dp = Dependencies();
@@ -63,21 +62,23 @@ Future<Dependencies> initializeDependencies({bool useMocks = false}) async {
 
 List<_InitializationStep> _steps = [
   _InitializationStep('storages', (dp) async {
-    dp.sharedPreferences = await SharedPreferences.getInstance();
-    dp.appSettings = AppSettingsImpl(prefs: dp.sharedPreferences);
-    dp.secureStorage = const FlutterSecureStorage();
+    dp
+      ..sharedPreferences = await SharedPreferences.getInstance()
+      ..appSettings = AppSettingsImpl(prefs: dp.sharedPreferences)
+      ..secureStorage = const FlutterSecureStorage();
     CachedNetworkImage.logLevel = CacheManagerLogLevel.verbose;
   }),
 
   _InitializationStep('local_data_sources', (dp) async {
     final db = await LocalDatabaseManager.getDatabase();
-    dp.database = db;
-    dp.usersLocalDataSource = UsersLocalDataSourceImpl(
-      database: db,
-      prefs: dp.sharedPreferences,
-    );
-    dp.messagesLocalDataSource = MessagesLocalDataSourceImpl(database: db);
-    dp.chatsLocalDataSource = ChatsLocalDataSourceImpl(database: db);
+    dp
+      ..database = db
+      ..usersLocalDataSource = UsersLocalDataSourceImpl(
+        database: db,
+        prefs: dp.sharedPreferences,
+      )
+      ..messagesLocalDataSource = MessagesLocalDataSourceImpl(database: db)
+      ..chatsLocalDataSource = ChatsLocalDataSourceImpl(database: db);
   }),
 
   _InitializationStep('dioLogger, dio', (dp) async {
@@ -105,7 +106,7 @@ List<_InitializationStep> _steps = [
 
   _InitializationStep(
     'token_provider',
-    (dp) {
+    (dp) async {
       dp.tokenProvider = TokenProviderImpl(
         prefs: dp.sharedPreferences,
         secureStorage: dp.secureStorage,
@@ -119,43 +120,45 @@ List<_InitializationStep> _steps = [
         )..interceptors.add(dp.prettyDioLogger),
       );
     },
-    callForTests: (dp) {
+    callForTests: (dp) async {
       dp.tokenProvider = MockTokenProvider();
     },
   ),
 
   _InitializationStep(
     'auth_apis',
-    (dp) {
-      dp.authApi = AuthApi(dp.dio, flavor.baseUrl);
-      dp.userApi = UserApi(dp.dio, flavor.baseUrl);
-      dp.profileApi = ProfileApi(dp.dio, flavor.baseUrl);
-      dp.filesApi = FilesApi(dp.dio, flavor.baseUrl);
+    (dp) async {
+      dp
+        ..authApi = AuthApi(dp.dio, flavor.baseUrl)
+        ..userApi = UserApi(dp.dio, flavor.baseUrl)
+        ..profileApi = ProfileApi(dp.dio, flavor.baseUrl)
+        ..filesApi = FilesApi(dp.dio, flavor.baseUrl);
     },
-    callForTests: (dp) {
-      dp.authApi = AuthApi(dp.dio, flavor.baseUrl);
-      dp.userApi = FakeUserApi();
-      dp.profileApi = ProfileApi(dp.dio, flavor.baseUrl);
-      dp.filesApi = FilesApi(dp.dio, flavor.baseUrl);
+    callForTests: (dp) async {
+      dp
+        ..authApi = AuthApi(dp.dio, flavor.baseUrl)
+        ..userApi = FakeUserApi()
+        ..profileApi = ProfileApi(dp.dio, flavor.baseUrl)
+        ..filesApi = FilesApi(dp.dio, flavor.baseUrl);
     },
   ),
 
   _InitializationStep('auth', (dp) async {
-    dp.authRepository = AuthRepositoryImpl(authApi: dp.authApi);
-    dp.userRepository = UserRepositoryImpl(
-      profileApi: dp.profileApi,
-      filesApi: dp.filesApi,
-      userApi: dp.userApi,
-      usersLocalDataSource: dp.usersLocalDataSource,
-    );
+    dp
+      ..authRepository = AuthRepositoryImpl(authApi: dp.authApi)
+      ..userRepository = UserRepositoryImpl(
+        profileApi: dp.profileApi,
+        filesApi: dp.filesApi,
+        userApi: dp.userApi,
+        usersLocalDataSource: dp.usersLocalDataSource,
+      );
 
     final authController = AuthControllerImpl(
       authRepository: dp.authRepository,
       userRepository: dp.userRepository,
       tokenProvider: dp.tokenProvider,
       prefs: dp.sharedPreferences,
-    );
-    authController.init();
+    )..init();
     dp.authController = authController;
 
     dp.dio.interceptors.add(
@@ -168,59 +171,64 @@ List<_InitializationStep> _steps = [
 
   _InitializationStep(
     'web_socket',
-    (dp) {
+    (dp) async {
       dp.messagesWebSocket = MessagesWebSocketImpl(
         baseUrl: flavor.baseUrl,
         tokenProvider: dp.tokenProvider,
       );
     },
-    callForTests: (dp) {
+    callForTests: (dp) async {
       dp.messagesWebSocket = MockMessagesWebSocket();
     },
   ),
 
   _InitializationStep(
     'apis',
-    (dp) {
-      dp.postApi = PostApi(dp.dio, flavor.baseUrl);
-      dp.messagesApi = MessagesApi(dp.dio, flavor.baseUrl);
-      dp.chatsApi = ChatsApi(dp.dio, flavor.baseUrl);
+    (dp) async {
+      dp
+        ..postApi = PostApi(dp.dio, flavor.baseUrl)
+        ..messagesApi = MessagesApi(dp.dio, flavor.baseUrl)
+        ..chatsApi = ChatsApi(dp.dio, flavor.baseUrl);
     },
-    callForTests: (dp) {
-      dp.postApi = PostApi(dp.dio, flavor.baseUrl);
-      dp.messagesApi = MockMessagesApi();
-      dp.chatsApi = MockChatsApi();
+    callForTests: (dp) async {
+      dp
+        ..postApi = PostApi(dp.dio, flavor.baseUrl)
+        ..messagesApi = MockMessagesApi()
+        ..chatsApi = MockChatsApi();
     },
   ),
 
-  _InitializationStep('repositories', (dp) {
+  _InitializationStep('repositories', (dp) async {
     final chatsApiDataSource = ChatsApiDataSourceImpl(chatsApi: dp.chatsApi);
 
-    dp.filesRepository = FilesRepositoryImpl(filesApi: dp.filesApi);
-    dp.postRepository = PostRepositoryImpl(postApi: dp.postApi);
-    dp.connectionRepository = ConnectionRepositoryImpl(
-      webSocket: dp.messagesWebSocket,
-    );
-    dp.messengerRepository = MessengerRepositoryImpl(
-      webSocket: dp.messagesWebSocket,
-      messagesApiDataSource: MessagesApiDataSourceImpl(messagesApi: dp.messagesApi),
-      chatsApiDataSource: chatsApiDataSource,
-      messagesLocalDataSource: dp.messagesLocalDataSource,
-      chatsLocalDataSource: dp.chatsLocalDataSource,
-      usersLocalDataSource: dp.usersLocalDataSource,
-      combiner: CombineCacheAndApi(dp.messagesLocalDataSource),
-    );
-    dp.chatsRepository = ChatsRepositoryImpl(
-      chatsApi: chatsApiDataSource,
-      chatsLocalDataSource: dp.chatsLocalDataSource,
-    );
+    dp
+      ..filesRepository = FilesRepositoryImpl(filesApi: dp.filesApi)
+      ..postRepository = PostRepositoryImpl(postApi: dp.postApi)
+      ..connectionRepository = ConnectionRepositoryImpl(
+        webSocket: dp.messagesWebSocket,
+      )
+      ..messengerRepository = MessengerRepositoryImpl(
+        webSocket: dp.messagesWebSocket,
+        messagesApiDataSource: MessagesApiDataSourceImpl(
+          messagesApi: dp.messagesApi,
+        ),
+        chatsApiDataSource: chatsApiDataSource,
+        messagesLocalDataSource: dp.messagesLocalDataSource,
+        chatsLocalDataSource: dp.chatsLocalDataSource,
+        usersLocalDataSource: dp.usersLocalDataSource,
+        combiner: CombineCacheAndApi(dp.messagesLocalDataSource),
+      )
+      ..chatsRepository = ChatsRepositoryImpl(
+        chatsApi: chatsApiDataSource,
+        chatsLocalDataSource: dp.chatsLocalDataSource,
+      );
   }),
 
-  _InitializationStep(('firebase'), (_) async {
+  _InitializationStep('firebase', (_) async {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   }),
 
-  _InitializationStep('global_settings', (_) {
+  _InitializationStep('global_settings', (_) async {
     VisibilityDetectorController.instance.updateInterval = const Duration(
       milliseconds: 100,
     );
@@ -228,9 +236,9 @@ List<_InitializationStep> _steps = [
 ];
 
 class _InitializationStep {
-  final String name;
-  final Function(Dependencies) call;
-  final Function(Dependencies)? callForTests;
-
   _InitializationStep(this.name, this.call, {this.callForTests});
+
+  final String name;
+  final Future<void> Function(Dependencies) call;
+  final Future<void> Function(Dependencies)? callForTests;
 }

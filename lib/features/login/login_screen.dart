@@ -7,8 +7,8 @@ import 'package:kepleomax/core/presentation/klm_button.dart';
 import 'package:kepleomax/core/presentation/klm_textfield.dart';
 import 'package:kepleomax/core/presentation/validators.dart';
 
-import 'bloc/login_bloc.dart';
-import 'bloc/login_state.dart';
+import 'package:kepleomax/features/login/bloc/login_bloc.dart';
+import 'package:kepleomax/features/login/bloc/login_state.dart';
 
 /// screen
 class LoginScreen extends StatelessWidget {

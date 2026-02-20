@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:kepleomax/core/flavor.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_cached_image.dart';
 import 'package:kepleomax/generated/images_keys.images_keys.dart';
-import 'package:kepleomax/core/flavor.dart';
 
 class UserImage extends StatelessWidget {
   const UserImage({

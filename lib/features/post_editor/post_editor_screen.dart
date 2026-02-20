@@ -3,16 +3,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
+import 'package:kepleomax/core/flavor.dart';
 import 'package:kepleomax/core/models/post.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/image_url_or_file.dart';
-import 'package:kepleomax/core/flavor.dart';
-
-import '../../core/presentation/klm_cached_image.dart';
-import 'bloc/post_editor_bloc.dart';
-import 'bloc/post_editor_state.dart';
+import 'package:kepleomax/core/presentation/klm_cached_image.dart';
+import 'package:kepleomax/features/post_editor/bloc/post_editor_bloc.dart';
+import 'package:kepleomax/features/post_editor/bloc/post_editor_state.dart';
 
 part 'widgets/post_editor_images.dart';
 

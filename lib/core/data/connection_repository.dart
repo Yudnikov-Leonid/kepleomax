@@ -34,10 +34,10 @@ abstract class ConnectionRepository {
 
 /// TODO why does this class exist?
 class ConnectionRepositoryImpl implements ConnectionRepository {
-  final MessagesWebSocket _webSocket;
 
   ConnectionRepositoryImpl({required MessagesWebSocket webSocket})
     : _webSocket = webSocket;
+  final MessagesWebSocket _webSocket;
 
   /// callbacks
   @override

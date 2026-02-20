@@ -1,19 +1,16 @@
-import 'package:kepleomax/core/logger.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kepleomax/core/auth/auth_controller.dart';
+import 'package:kepleomax/core/logger.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/core/presentation/validators.dart';
+import 'package:kepleomax/features/login/bloc/login_state.dart';
 
-import 'login_state.dart';
-
-final String? Function(String) loginEmailValidator = UiValidator.emailValidator;
-final String? Function(String) loginPasswordValidator =
+const String? Function(String) loginEmailValidator = UiValidator.emailValidator;
+const String? Function(String) loginPasswordValidator =
     UiValidator.passwordValidator;
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  final AuthController _authController;
-
   LoginBloc({required AuthController authController})
     : _authController = authController,
       super(LoginStateBase.initial()) {
@@ -21,8 +18,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
     on<LoginEvent>(
       (event, emit) => switch (event) {
-        LoginEventLogin event => _onLogin(event, emit),
-        LoginEventRegister event => _onRegister(event, emit),
+        final LoginEventLogin event => _onLogin(event, emit),
+        final LoginEventRegister event => _onRegister(event, emit),
         _ => () {},
       },
       transformer: sequential(),
@@ -32,6 +29,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<LoginEventEditConfirmPassword>(_onEditConfirmPassword);
     on<LoginEventChangeScreenState>(_onChangeScreenState);
   }
+
+  final AuthController _authController;
 
   late LoginData _loginData;
 
@@ -51,7 +50,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     return true;
   }
 
-  void _onLogin(LoginEventLogin event, Emitter<LoginState> emit) async {
+  Future<void> _onLogin(LoginEventLogin event, Emitter<LoginState> emit) async {
     _loginData = _loginData.copyWith(isButtonPressed: true);
     emit(LoginStateBase(data: _loginData));
 
@@ -79,7 +78,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     }
   }
 
-  void _onRegister(LoginEventRegister event, Emitter<LoginState> emit) async {
+  Future<void> _onRegister(
+    LoginEventRegister event,
+    Emitter<LoginState> emit,
+  ) async {
     _loginData = _loginData.copyWith(isButtonPressed: true);
     emit(LoginStateBase(data: _loginData));
 
@@ -171,25 +173,25 @@ class LoginEventRegister implements LoginEvent {
 }
 
 class LoginEventChangeScreenState implements LoginEvent {
-  final LoginScreenState state;
-
   const LoginEventChangeScreenState(this.state);
+
+  final LoginScreenState state;
 }
 
 class LoginEventEditEmail implements LoginEvent {
-  final String email;
-
   LoginEventEditEmail({required this.email});
+
+  final String email;
 }
 
 class LoginEventEditPassword implements LoginEvent {
-  final String password;
-
   LoginEventEditPassword({required this.password});
+
+  final String password;
 }
 
 class LoginEventEditConfirmPassword implements LoginEvent {
-  final String confirmPassword;
-
   LoginEventEditConfirmPassword({required this.confirmPassword});
+
+  final String confirmPassword;
 }

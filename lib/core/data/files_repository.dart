@@ -7,9 +7,9 @@ abstract class FilesRepository {
 }
 
 class FilesRepositoryImpl implements FilesRepository {
-  final FilesApi _filesApi;
 
   FilesRepositoryImpl({required FilesApi filesApi}) : _filesApi = filesApi;
+  final FilesApi _filesApi;
 
   @override
   Future<String> uploadFile(String path) async {
@@ -18,7 +18,7 @@ class FilesRepositoryImpl implements FilesRepository {
 
     if (res.response.statusCode != 201) {
       throw Exception(
-        res.data.message ?? "Failed to upload image: ${res.response.statusCode}",
+        res.data.message ?? 'Failed to upload image: ${res.response.statusCode}',
       );
     }
 

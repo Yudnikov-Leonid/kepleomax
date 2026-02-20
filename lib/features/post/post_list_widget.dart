@@ -7,11 +7,10 @@ import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/context_wrapper.dart';
 import 'package:kepleomax/core/presentation/klm_error_widget.dart';
+import 'package:kepleomax/features/post/bloc/post_list_bloc.dart';
 import 'package:kepleomax/features/post/bloc/post_list_state.dart';
 import 'package:kepleomax/features/post/post_widget.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-
-import 'bloc/post_list_bloc.dart';
 
 /// must be BlocProvider above with PostListBloc
 class PostListWidget extends StatelessWidget {

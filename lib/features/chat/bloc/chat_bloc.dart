@@ -9,26 +9,16 @@ import 'package:kepleomax/core/data/connection_repository.dart';
 import 'package:kepleomax/core/data/messenger/messenger_repository.dart';
 import 'package:kepleomax/core/data/models/messages_collection.dart';
 import 'package:kepleomax/core/flavor.dart';
+import 'package:kepleomax/core/logger.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
+import 'package:kepleomax/features/chat/bloc/chat_state.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:kepleomax/core/logger.dart';
-
-import 'chat_state.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
-  final MessengerRepository _messengerRepository;
-  final ChatsRepository _chatsRepository;
-  final ConnectionRepository _connectionRepository;
-  late ChatData _data = ChatData.initial();
-  late StreamSubscription _messagesUpdatesSub;
-  late StreamSubscription _connectionStateSub;
-  late StreamSubscription _chatUpdatesSub;
-  late StreamSubscription _onlineUpdatesSub;
-  late StreamSubscription _typingUpdatesSub;
 
   ChatBloc({
     required MessengerRepository messengerRepository,
@@ -39,9 +29,14 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
        _chatsRepository = chatsRepository,
        _connectionRepository = connectionRepository,
        super(ChatStateBase.initial()) {
-    _messagesUpdatesSub = _messengerRepository.messagesUpdatesStream.listen((data) {
-      add(_ChatEventEmitMessages(data: data));
-    });
+    _messagesUpdatesSub = _messengerRepository.messagesUpdatesStream.listen(
+      (data) {
+        add(_ChatEventEmitMessages(data: data));
+      },
+      onError: (Object e, StackTrace st) {
+        add(_ChatEventEmitError(error: e, stackTrace: st));
+      },
+    );
     _chatUpdatesSub = _messengerRepository.chatsUpdatesStream.listen((newList) {
       final currentChat = newList.chats.where((e) => e.id == chatId).firstOrNull;
       if (currentChat != null) {
@@ -62,8 +57,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     /// TODO why there is ChatEventReadMessagesBeforeTime here?
     on<ChatEvent>(
       (event, emit) => switch (event) {
-        ChatEventLoad event => _onLoad(event, emit),
-        ChatEventReadMessagesBeforeTime event => _onReadMessagesBeforeTime(
+        final ChatEventLoad event => _onLoad(event, emit),
+        final ChatEventReadMessagesBeforeTime event => _onReadMessagesBeforeTime(
           event,
           emit,
         ),
@@ -75,7 +70,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       _onLoadMore,
       transformer: (events, mapper) => events
           .throttle(
-            (_) => Stream.periodic(const Duration(milliseconds: 500)).take(1),
+            (_) => Stream<void>.periodic(const Duration(milliseconds: 500)).take(1),
             trailing: true,
           )
           .exhaustMap(mapper),
@@ -95,6 +90,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<_ChatEventConnectingChanged>(_onConnectionChanged);
     on<_ChatEventChangeUnreadCount>(_onChangeUnreadCount);
   }
+  final MessengerRepository _messengerRepository;
+  final ChatsRepository _chatsRepository;
+  final ConnectionRepository _connectionRepository;
+  late ChatData _data = ChatData.initial();
+  late final StreamSubscription<void> _messagesUpdatesSub;
+  late final StreamSubscription<void> _connectionStateSub;
+  late final StreamSubscription<void> _chatUpdatesSub;
+  late final StreamSubscription<void> _onlineUpdatesSub;
+  late final StreamSubscription<void> _typingUpdatesSub;
 
   void _onInit(ChatEventInit event, Emitter<ChatState> emit) {
     _data = _data.copyWith(chatId: event.chatId, otherUser: event.otherUser);
@@ -115,7 +119,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   /// cause can be called on init and on connect at the same time
   int _lastTimeLoadWasCalled = 0;
 
-  void _onLoad(ChatEventLoad event, Emitter<ChatState> emit) async {
+  Future<void> _onLoad(ChatEventLoad event, Emitter<ChatState> emit) async {
     /// TODO make better flavor.isTesting
     final now = DateTime.now().millisecondsSinceEpoch;
     if (now - 1000 < _lastTimeLoadWasCalled && !flavor.isTesting) {
@@ -237,7 +241,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _connectionRepository.deleteMessage(messageId: event.messageId);
   }
 
-  void _onLoadMore(ChatEventLoadMore event, Emitter<ChatState> emit) async {
+  Future<void> _onLoadMore(ChatEventLoadMore event, Emitter<ChatState> emit) async {
     if (_data.isAllMessagesLoaded || _data.isLoading) return;
 
     try {
@@ -401,13 +405,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(ChatStateBase(data: _data));
   }
 
-  void _onTypingUpdate(_ChatEventTypingUpdate event, Emitter<ChatState> emit) async {
+  Future<void> _onTypingUpdate(_ChatEventTypingUpdate event, Emitter<ChatState> emit) async {
     _data = _data.copyWith(isTyping: event.update.isTyping);
     emit(ChatStateBase(data: _data));
     if (!event.update.isTyping) return;
 
-    await Future.delayed(
-      Duration(seconds: AppConstants.showTypingAfterActivityForSeconds),
+    await Future<void>.delayed(
+        AppConstants.showTypingAfterActivity
     );
     _data = _data.copyWith(isTyping: false);
     emit(ChatStateBase(data: _data));
@@ -428,16 +432,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 abstract class ChatEvent {}
 
 class ChatEventInit implements ChatEvent {
-  final int chatId;
-  final User? otherUser;
 
   const ChatEventInit({required this.chatId, required this.otherUser});
+  final int chatId;
+  final User? otherUser;
 }
 
 class ChatEventLoad implements ChatEvent {
-  final int chatId;
-  final User? otherUser;
-  final bool withCache;
 
   const ChatEventLoad({
     required this.chatId,
@@ -447,25 +448,28 @@ class ChatEventLoad implements ChatEvent {
          otherUser != null || chatId != -1,
          "otherUser and chatId can't be empty at the same time",
        );
+  final int chatId;
+  final User? otherUser;
+  final bool withCache;
 }
 
 class ChatEventLoadMore implements ChatEvent {
-  /// to load more if list was significantly scrolled on top
-  final int? toMessageId;
 
   const ChatEventLoadMore({required this.toMessageId});
+  /// to load more if list was significantly scrolled on top
+  final int? toMessageId;
 }
 
 class ChatEventSendMessage implements ChatEvent {
-  final String value;
 
   const ChatEventSendMessage({required this.value});
+  final String value;
 }
 
 class ChatEventDeleteMessage implements ChatEvent {
-  final int messageId;
 
   ChatEventDeleteMessage({required this.messageId});
+  final int messageId;
 }
 
 class ChatEventReadAllMessages implements ChatEvent {
@@ -473,56 +477,56 @@ class ChatEventReadAllMessages implements ChatEvent {
 }
 
 class ChatEventReadMessagesBeforeTime implements ChatEvent {
-  final DateTime time;
 
   ChatEventReadMessagesBeforeTime({required this.time});
+  final DateTime time;
 }
 
 class ChatEventEditText implements ChatEvent {
-  final String value;
 
   ChatEventEditText({required this.value});
+  final String value;
 }
 
 class _ChatEventConnectingChanged implements ChatEvent {
-  final bool isConnected;
 
   const _ChatEventConnectingChanged(this.isConnected);
+  final bool isConnected;
 }
 
 class _ChatEventEmitOtherUser implements ChatEvent {
-  final User otherUser;
 
   _ChatEventEmitOtherUser(this.otherUser);
+  final User otherUser;
 }
 
 class _ChatEventOnlineStatusUpdate implements ChatEvent {
-  final OnlineStatusUpdate update;
 
   _ChatEventOnlineStatusUpdate(this.update);
+  final OnlineStatusUpdate update;
 }
 
 class _ChatEventTypingUpdate implements ChatEvent {
-  final TypingActivityUpdate update;
 
   _ChatEventTypingUpdate(this.update);
+  final TypingActivityUpdate update;
 }
 
 class _ChatEventChangeUnreadCount implements ChatEvent {
-  final int newCount;
 
   _ChatEventChangeUnreadCount({required this.newCount});
+  final int newCount;
 }
 
 class _ChatEventEmitMessages implements ChatEvent {
-  final MessagesCollection data;
 
   const _ChatEventEmitMessages({required this.data});
+  final MessagesCollection data;
 }
 
 class _ChatEventEmitError implements ChatEvent {
-  final Object error;
-  final StackTrace stackTrace;
 
   const _ChatEventEmitError({required this.error, required this.stackTrace});
+  final Object error;
+  final StackTrace stackTrace;
 }
