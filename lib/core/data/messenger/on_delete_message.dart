@@ -23,6 +23,7 @@ extension _OnDeleteMessageExtension on MessengerRepositoryImpl {
         /// delete chat
         newChats.removeWhere((c) => c.id == update.chatId);
         _chatsLocal.deleteById(update.chatId);
+        _messagesLocal.deleteAllByChatId(update.chatId);
         _emitChatsCollection(ChatsCollection(chats: newChats));
         if (_currentMessagesCollection?.chatId == update.chatId) {
           _emitMessagesCollection(_currentMessagesCollection!.copyWith(chatId: -1));

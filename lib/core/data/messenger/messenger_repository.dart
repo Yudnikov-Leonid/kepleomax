@@ -21,9 +21,13 @@ import 'package:kepleomax/core/network/websockets/models/read_messages_update.da
 import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 
 part 'on_delete_message.dart';
+
 part 'on_new_message.dart';
+
 part 'on_online_update.dart';
+
 part 'on_read_messages.dart';
+
 part 'on_typing_update.dart';
 
 abstract class MessengerRepository {
@@ -49,7 +53,6 @@ abstract class MessengerRepository {
 }
 
 class MessengerRepositoryImpl implements MessengerRepository {
-
   MessengerRepositoryImpl({
     required MessagesWebSocket webSocket,
     required ChatsApiDataSource chatsApiDataSource,
@@ -71,6 +74,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
     _webSocket.onlineUpdatesStream.listen(_onOnlineUpdate);
     _webSocket.typingUpdatesStream.listen(_onTypingUpdate);
   }
+
   final MessagesWebSocket _webSocket;
 
   final ChatsApiDataSource _chatsApi;
@@ -114,19 +118,19 @@ class MessengerRepositoryImpl implements MessengerRepository {
   /// api calls
   @override
   Future<void> loadChatsFromCache() async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    print('KlmLog loadChatsFromCache start: ${now}');
+    // final now = DateTime.now().millisecondsSinceEpoch;
+    // print('KlmLog loadChatsFromCache start: ${now}');
     final cache = await _chatsLocal.getChats();
     _emitChatsCollection(
       ChatsCollection(
         chats: cache
             .map((chat) => Chat.fromDto(chat, fromCache: true))
-            .toList(growable: false),
+            .toList(),
         fromCache: true,
       ),
     );
-    final newNow = DateTime.now().millisecondsSinceEpoch;
-    print('KlmLog loadChatsFromCache end: ${newNow}, diff: ${newNow - now}');
+    // final newNow = DateTime.now().millisecondsSinceEpoch;
+    // print('KlmLog loadChatsFromCache end: ${newNow}, diff: ${newNow - now}');
   }
 
   @override
@@ -140,20 +144,16 @@ class MessengerRepositoryImpl implements MessengerRepository {
         fromCache: false,
       ),
     );
-    _chatsLocal.clearAndInsertChats(chats);
     _webSocket.subscribeOnOnlineStatusUpdates(
       usersIds: chats.map((c) => c.otherUser.id),
     );
-    for (final chat in chats) {
-      if (chat.lastMessage != null) {
-        _messagesLocal.insert(chat.lastMessage!);
-      }
-      _usersLocal.insert(chat.otherUser);
-    }
+
+    /// cache
+    unawaited(_chatsLocal.clearAndInsertChatsAndLastMessages(chats));
   }
 
   @override
-  void listenToMessagesWithOtherUserId({required int otherUserId}) async {
+  void listenToMessagesWithOtherUserId({required int otherUserId}) {
     _currentChatOtherUserId = otherUserId;
     print('listenToMessagesWithOtherUserId: $otherUserId');
 

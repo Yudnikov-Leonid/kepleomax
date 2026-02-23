@@ -11,7 +11,7 @@ abstract class ChatsLocalDataSource {
 
   Future<ChatDto?> getChatByOtherUserId(int otherUserId);
 
-  Future<void> clearAndInsertChats(Iterable<ChatDto> chats);
+  Future<void> clearAndInsertChatsAndLastMessages(Iterable<ChatDto> chats);
 
   Future<void> insert(ChatDto chat);
 
@@ -25,7 +25,6 @@ abstract class ChatsLocalDataSource {
 }
 
 class ChatsLocalDataSourceImpl implements ChatsLocalDataSource {
-
   ChatsLocalDataSourceImpl({required Database database}) : _database = database;
   final Database _database;
 
@@ -139,15 +138,59 @@ class ChatsLocalDataSourceImpl implements ChatsLocalDataSource {
   }
 
   @override
-  Future<void> clearAndInsertChats(Iterable<ChatDto> chats) async {
-    await _database.delete('chats');
+  Future<void> clearAndInsertChatsAndLastMessages(Iterable<ChatDto> chats) async {
+    /// delete lastMessages
+    final oldChats = await getChats();
+    final chatsMap = <int, ChatDto>{};
+    for (final chat in chats) {
+      chatsMap[chat.id] = chat;
+    }
     await _database.transaction((transaction) async {
+      for (int i = 0; i < oldChats.length; i++) {
+        if (oldChats[i].lastMessage == null) continue;
+
+        final newChat = chatsMap[oldChats[i].id];
+        if (newChat == null) {
+          await transaction.delete(
+            'messages',
+            where: 'chat_id = ?',
+            whereArgs: [oldChats[i].id],
+          );
+        } else if (oldChats[i].lastMessage!.createdAt >
+            (newChat.lastMessage?.createdAt ?? -1)) {
+          await transaction.delete(
+            'messages',
+            where: 'id = ?',
+            whereArgs: [oldChats[i].lastMessage!.id],
+          );
+        }
+      }
+    });
+
+    /// delete and insert chats
+    await _database.transaction((transaction) async {
+      /// delete
+      await transaction.delete('chats');
+
+      /// insert
       for (final chat in chats) {
         await transaction.insert(
           'chats',
           chat.toLocalJson(),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
+        await transaction.insert(
+          'users',
+          chat.otherUser.toLocalJson(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        if (chat.lastMessage != null) {
+          await transaction.insert(
+            'messages',
+            chat.lastMessage!.toLocalJson(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
       }
     });
   }

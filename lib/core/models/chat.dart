@@ -17,6 +17,8 @@ abstract class Chat with _$Chat {
     DateTime? lastTypingActivityTime,
   }) = _Chat;
 
+  const Chat._();
+
   factory Chat.fromDto(ChatDto dto, {required bool fromCache}) => Chat(
     id: dto.id,
     otherUser: User.fromDto(dto.otherUser),
@@ -26,20 +28,22 @@ abstract class Chat with _$Chat {
   );
 
   factory Chat.loading() => Chat(
-    id: -1,
+    id: _loadingChatId,
     otherUser: User.loading(),
     fromCache: false,
-    lastMessage: null,
-    unreadCount: 1,
+    lastMessage: Message.loading(),
+    unreadCount: 0,
   );
 
-  const Chat._();
+  static const int _loadingChatId = -2;
 
   bool get isTypingRightNow =>
       lastTypingActivityTime != null &&
       lastTypingActivityTime!.millisecondsSinceEpoch +
               AppConstants.showTypingAfterActivity.inMilliseconds >
           DateTime.now().millisecondsSinceEpoch;
+
+  bool get isLoading => id == _loadingChatId;
 
   ChatDto toDto() => ChatDto(
     id: id,

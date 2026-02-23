@@ -1,10 +1,9 @@
 part of '../chats_screen.dart';
 
 class ChatWidget extends StatelessWidget {
-  const ChatWidget({required this.chat, this.isLoading = false, super.key});
+  const ChatWidget({required this.chat, super.key});
 
   final Chat chat;
-  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +11,7 @@ class ChatWidget extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       height: 70,
       child: InkWell(
-        onTap: isLoading
+        onTap: chat.isLoading
             ? null
             : () {
                 AppNavigator.withKeyOf(
@@ -68,7 +67,7 @@ class ChatWidget extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.all(6),
                   child: Text(
-                    (chat.unreadCount.clamp(0, 999)).toString(),
+                    chat.unreadCount.clamp(0, 999).toString(),
                     key: const Key('chat_unread_count_text'),
                     style: context.textTheme.bodyLarge?.copyWith(
                       color: Colors.white,
@@ -135,7 +134,8 @@ class _MessageTextWidgetState extends State<_MessageTextWidget> {
                 ),
               ConstrainedBox(
                 constraints: BoxConstraints(
-                  maxWidth: context.screenSize.width * 0.3,
+                  maxWidth:
+                      context.screenSize.width * (widget.chat.isLoading ? 0.8 : 0.3),
                 ),
                 child: Text(
                   widget.chat.lastMessage!.message,
@@ -148,10 +148,11 @@ class _MessageTextWidgetState extends State<_MessageTextWidget> {
                 ),
               ),
               const SizedBox(width: 4),
-              Text(
-                ' • ${ParseTime.toShortPassTime(widget.chat.lastMessage!.createdAt)}',
-                style: context.textTheme.bodyLarge?.copyWith(color: Colors.grey),
-              ),
+              if (!widget.chat.isLoading)
+                Text(
+                  ' • ${ParseTime.toShortPassTime(widget.chat.lastMessage!.createdAt)}',
+                  style: context.textTheme.bodyLarge?.copyWith(color: Colors.grey),
+                ),
             ],
           );
   }

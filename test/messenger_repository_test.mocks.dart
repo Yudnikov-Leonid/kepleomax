@@ -62,6 +62,14 @@ class MockChatsApiDataSource extends _i1.Mock
             returnValue: _i3.Future<_i4.ChatDto?>.value(),
           )
           as _i3.Future<_i4.ChatDto?>);
+
+  @override
+  _i3.Future<_i4.ChatDto?> getChatWithUser(int? otherUserId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getChatWithUser, [otherUserId]),
+            returnValue: _i3.Future<_i4.ChatDto?>.value(),
+          )
+          as _i3.Future<_i4.ChatDto?>);
 }
 
 /// A class which mocks [MessagesApiDataSource].
@@ -126,7 +134,7 @@ class MockChatsLocalDataSource extends _i1.Mock
           as _i3.Future<_i4.ChatDto?>);
 
   @override
-  _i3.Future<void> clearAndInsertChats(Iterable<_i4.ChatDto>? chats) =>
+  _i3.Future<void> clearAndInsertChatsAndLastMessages(Iterable<_i4.ChatDto>? chats) =>
       (super.noSuchMethod(
             Invocation.method(#clearAndInsertChats, [chats]),
             returnValue: _i3.Future<void>.value(),
@@ -147,6 +155,15 @@ class MockChatsLocalDataSource extends _i1.Mock
   _i3.Future<void> update(_i4.ChatDto? chat) =>
       (super.noSuchMethod(
             Invocation.method(#update, [chat]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> deleteById(int? chatId) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteById, [chatId]),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )

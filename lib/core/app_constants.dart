@@ -1,30 +1,35 @@
-// dart format off
 import 'package:kepleomax/core/flavor.dart';
 
 abstract class AppConstants {
-  static _AppConstantsType get _constants =>
-      flavor.isTesting ? const _AppConstantsTesting() : const _AppConstatsRelease();
+  static AppConstantsType get _constants => flavor.constants;
 
-  static final int sendActivityDelayInSeconds = _constants
-      .sendActivityDelayInSeconds;
-  static final int markAsOfflineAfterInactivityInSeconds = _constants
-      .markAsOfflineAfterInactivityInSeconds;
-  static final Duration showTypingAfterActivity = _constants
-      .showTypingAfterActivityForSeconds;
+  static final Duration sendActivityDelay = _constants.sendActivityDelay;
+  static final Duration markAsOfflineAfterInactivity =
+      _constants.markAsOfflineAfterInactivity;
+  static final Duration showTypingAfterActivity = _constants.showTypingAfterActivity;
 
   static final int msgPagingLimit = _constants.msgPagingLimit;
   static final int postsPagingLimit = _constants.postsPagingLimit;
   static final int peoplePagingLimit = _constants.peoplePagingLimit;
 }
 
-abstract class _AppConstantsType {
-  const _AppConstantsType();
+/// default constants (for develop). You can override any of there values for release and testing
+abstract class AppConstantsType {
+  const AppConstantsType();
 
-  int get sendActivityDelayInSeconds => 30;
+  /// constructors
+  factory AppConstantsType.release() => const _AppConstatsRelease();
 
-  int get markAsOfflineAfterInactivityInSeconds => 60;
+  factory AppConstantsType.develop() => const _AppConstatsDevelop();
 
-  Duration get showTypingAfterActivityForSeconds => const Duration(seconds: 3);
+  factory AppConstantsType.testing() => const _AppConstantsTesting();
+
+  /// fields
+  Duration get sendActivityDelay => const Duration(seconds: 30);
+
+  Duration get markAsOfflineAfterInactivity => const Duration(seconds: 60);
+
+  Duration get showTypingAfterActivity => const Duration(seconds: 3);
 
   int get msgPagingLimit => 15;
 
@@ -33,16 +38,25 @@ abstract class _AppConstantsType {
   int get peoplePagingLimit => 12;
 }
 
-class _AppConstatsRelease extends _AppConstantsType {
-  const _AppConstatsRelease() : super();
-// no overrides
-}
-
-class _AppConstantsTesting extends _AppConstantsType {
-  const _AppConstantsTesting() : super();
-
-  // you can override any constant for testing here
+/// types
+class _AppConstatsRelease extends AppConstantsType {
+  const _AppConstatsRelease();
 
   @override
-  Duration get showTypingAfterActivityForSeconds => const Duration(seconds: 1);
+  Duration get showTypingAfterActivity => const Duration(seconds: 5);
+
+  @override
+  int get msgPagingLimit => 30;
+}
+
+class _AppConstatsDevelop extends AppConstantsType {
+  const _AppConstatsDevelop() : super();
+  // no overrides
+}
+
+class _AppConstantsTesting extends AppConstantsType {
+  const _AppConstantsTesting() : super();
+
+  @override
+  Duration get showTypingAfterActivity => const Duration(seconds: 1);
 }

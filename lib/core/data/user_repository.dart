@@ -71,7 +71,7 @@ class UserRepositoryImpl implements UserRepository {
     }
 
     final dto = res.data.data!;
-    _usersLocalDataSource.insert(dto).ignore();
+    unawaited(_usersLocalDataSource.insert(dto));
     return User.fromDto(dto);
   }
 
@@ -161,7 +161,7 @@ class UserRepositoryImpl implements UserRepository {
     }
 
     final dtos = res.data.data;
-    _usersLocalDataSource.insertAll(dtos).ignore();
+    unawaited(_usersLocalDataSource.insertAll(dtos));
     _emitUsersCollection(
       UsersCollection(
         users: dtos.map(User.fromDto),
@@ -185,7 +185,7 @@ class UserRepositoryImpl implements UserRepository {
     }
 
     final dtos = res.data.data;
-    _usersLocalDataSource.insertAll(dtos).ignore();
+    unawaited(_usersLocalDataSource.insertAll(dtos));
     _emitUsersCollection(
       UsersCollection(
         users: [..._lastUsersCollection.users, ...dtos.map(User.fromDto)],

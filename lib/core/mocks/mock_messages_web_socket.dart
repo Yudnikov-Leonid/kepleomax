@@ -103,9 +103,11 @@ class MockMessagesWebSocket implements MessagesWebSocket {
   @override
   Future<void> reinit() async {}
 
+  /// use setIsConnected() in tests
   @override
   void connectIfNot() {}
 
+  /// use setIsConnected() in tests
   @override
   void disconnect() {}
 

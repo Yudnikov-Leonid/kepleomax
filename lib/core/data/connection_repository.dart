@@ -17,6 +17,8 @@ abstract class ConnectionRepository {
 
   void readMessageBeforeTime({required int chatId, required DateTime time});
 
+  void listenOnlineStatusUpdate({required int userId});
+
   void listenOnlineStatusUpdates({required List<int> usersIds});
 
   void activityDetected();
@@ -34,7 +36,6 @@ abstract class ConnectionRepository {
 
 /// TODO why does this class exist?
 class ConnectionRepositoryImpl implements ConnectionRepository {
-
   ConnectionRepositoryImpl({required MessagesWebSocket webSocket})
     : _webSocket = webSocket;
   final MessagesWebSocket _webSocket;
@@ -70,6 +71,10 @@ class ConnectionRepositoryImpl implements ConnectionRepository {
   @override
   void listenOnlineStatusUpdates({required List<int> usersIds}) =>
       _webSocket.subscribeOnOnlineStatusUpdates(usersIds: usersIds);
+
+  @override
+  void listenOnlineStatusUpdate({required int userId}) =>
+      _webSocket.subscribeOnOnlineStatusUpdates(usersIds: [userId]);
 
   @override
   void activityDetected() => _webSocket.activityDetected();

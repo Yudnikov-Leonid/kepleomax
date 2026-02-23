@@ -23,7 +23,7 @@ abstract class Message with _$Message {
     senderId: -1,
     isCurrentUser: false,
     fromCache: false,
-    message: '---------------------------',
+    message: '-----------------------------------------------',
     chatId: -1,
     isRead: true,
     createdAt: DateTime(10000),

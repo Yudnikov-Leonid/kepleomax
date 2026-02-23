@@ -6,14 +6,14 @@ abstract class PostRepository {
   Future<List<Post>> getPosts({
     required int limit,
     required int offset,
-    required int beforeTime,
+    required int cursor,
   });
 
   Future<List<Post>> getPostsByUserId({
     required int userId,
     required int limit,
     required int offset,
-    required int beforeTime,
+    required int cursor,
   });
 
   Future<Post> createNewPost({
@@ -39,10 +39,10 @@ class PostRepositoryImpl implements PostRepository {
   Future<List<Post>> getPosts({
     required int limit,
     required int offset,
-    required int beforeTime,
+    required int cursor,
   }) async {
     final res = await _postApi
-        .getPosts(limit: limit, offset: offset, beforeTime: beforeTime);
+        .getPosts(limit: limit, offset: offset, cursor: cursor);
 
     if (res.response.statusCode != 200) {
       throw Exception(
@@ -58,14 +58,14 @@ class PostRepositoryImpl implements PostRepository {
     required int userId,
     required int limit,
     required int offset,
-    required int beforeTime,
+    required int cursor,
   }) async {
     final res = await _postApi
         .getPostsByUserId(
           userId: userId,
           limit: limit,
           offset: offset,
-          beforeTime: beforeTime,
+          cursor: cursor,
         );
 
     if (res.response.statusCode != 200) {

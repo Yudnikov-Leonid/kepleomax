@@ -31,7 +31,7 @@ class _UserActivityScopeState extends State<UserActivityScope> {
 
   void addActivity() {
     if (_lastTimeActivityDetectedSent.millisecondsSinceEpoch +
-        AppConstants.sendActivityDelayInSeconds * 1000 <
+            AppConstants.sendActivityDelay.inMilliseconds <
         DateTime.now().millisecondsSinceEpoch) {
       print('activity sent');
       widget._connectionRepository.activityDetected();

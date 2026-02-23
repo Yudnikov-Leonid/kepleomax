@@ -75,14 +75,14 @@ void main() {
       }
     }
 
-    Future<void> getChatsSendResponse(WidgetTester tester) async {
+    Future<void> sendGetChatsResponse(WidgetTester tester) async {
       _getChatsCompleter.complete();
       await tester.pumpAndSettle();
     }
 
-    void changeGetChatsResponse(List<ChatDto> chats, {bool getChatsAsyncControl = false}) {
+    void getChatsMustReturn(List<ChatDto> chats, {bool asyncControl = false}) {
       when(dp.chatsApi.getChats()).thenAnswer((_) async {
-        if (getChatsAsyncControl) {
+        if (asyncControl) {
           _getChatsCompleter = Completer();
           await _getChatsCompleter.future;
         }
@@ -92,9 +92,10 @@ void main() {
 
     Future<void> restartApp(WidgetTester tester) async {
       ws.setIsConnected(false);
+      await tester.pumpWidget(const SizedBox());
       await tester.pumpWidget(dp.inject(child: const App()));
       ws.setIsConnected(true);
-      await tester.pump();
+      await tester.pumpAndSettle();
     }
 
     testWidgets('connection_test', (tester) async {
@@ -111,7 +112,7 @@ void main() {
         ..checkFindPeopleButton(isShown: false);
 
       /// wait for the getChats response, check
-      await getChatsSendResponse(tester);
+      await sendGetChatsResponse(tester);
       tester
         ..checkChatsAppBarStatus(ChatsAppBarStatus.chats)
         ..checkFindPeopleButton(isShown: true);
@@ -131,7 +132,7 @@ void main() {
         ..checkFindPeopleButton(isShown: false);
 
       /// wait for the getChats response, check
-      await getChatsSendResponse(tester);
+      await sendGetChatsResponse(tester);
       tester
         ..checkChatsAppBarStatus(ChatsAppBarStatus.chats)
         ..checkFindPeopleButton(isShown: true);
@@ -339,19 +340,19 @@ void main() {
 
       /// check no chats on first start
       expect(find.byKey(const Key('chats_loading')), findsOneWidget);
-      await getChatsSendResponse(tester);
+      await sendGetChatsResponse(tester);
       expect(find.byKey(const Key('chats_loading')), findsNothing);
       tester
         ..checkChatsAppBarStatus(ChatsAppBarStatus.chats)
         ..checkChatsOrder([0, 1, 2, 3, 4]);
 
       /// check cachedChats, then new chats from api
-      changeGetChatsResponse([chatDto4, chatDto3, chatDto2, chatDto1], getChatsAsyncControl: true);
+      getChatsMustReturn([chatDto4, chatDto3, chatDto2, chatDto1], asyncControl: true);
       await restartApp(tester);
       tester
         ..checkChatsAppBarStatus(ChatsAppBarStatus.updating)
         ..checkChatsOrder([0, 1, 2, 3, 4]);
-      await getChatsSendResponse(tester);
+      await sendGetChatsResponse(tester);
       tester
         ..checkChatsAppBarStatus(ChatsAppBarStatus.chats)
         ..checkChatsOrder([4, 3, 2, 1]);
@@ -359,7 +360,7 @@ void main() {
 
     testWidgets('cache_new_message_test', (tester) async {
       await setupAppWithChats(tester, [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4], getChatsAsyncControl: true);
-      await getChatsSendResponse(tester);
+      await sendGetChatsResponse(tester);
 
       /// check current chats
       tester
@@ -373,19 +374,21 @@ void main() {
       tester.checkChatsOrder([2, 0, 1, 3, 4]);
       tester.getChat(2).check(message: 'MSG_999', msgFromCurrentUser: true);
 
-      /// check cachedChats, then new chats from api
+      /// restart app, check cachedChats
       await restartApp(tester);
       tester
         ..checkChatsAppBarStatus(ChatsAppBarStatus.updating)
         ..checkChatsOrder([2, 0, 1, 3, 4]);
       tester.getChat(2).check(message: 'MSG_999', msgFromCurrentUser: true);
-      await getChatsSendResponse(tester);
+
+      /// send response, check new chats from api
+      await sendGetChatsResponse(tester);
       tester
         ..checkChatsAppBarStatus(ChatsAppBarStatus.chats)
         ..checkChatsOrder([0, 1, 2, 3, 4]);
       tester.getChat(2).check(message: chatDto2.lastMessage!.message, msgFromCurrentUser: chatDto2.lastMessage!.isCurrentUser);
 
-      /// check cachedChats
+      /// restart app, check cachedChats
       await restartApp(tester);
       tester
         ..checkChatsAppBarStatus(ChatsAppBarStatus.updating)
@@ -430,14 +433,26 @@ void main() {
 
       /// update online, check, wait, check
       tester.getChat(1).check(isOnline: false);
-      ws.addOnlineUpdate(OnlineStatusUpdate(userId: 2, isOnline: true, lastActivityTime: DateTime.now().millisecondsSinceEpoch - (AppConstants.markAsOfflineAfterInactivityInSeconds - 1) * 1000));
+      ws.addOnlineUpdate(
+        OnlineStatusUpdate(
+          userId: 2,
+          isOnline: true,
+          lastActivityTime: DateTime.now().millisecondsSinceEpoch - (AppConstants.markAsOfflineAfterInactivity - const Duration(seconds: 1)).inMilliseconds,
+        ),
+      );
       await tester.pumpAndSettle();
       tester.getChat(1).check(isOnline: true);
       await tester.pumpAndSettle(const Duration(milliseconds: 1500));
       tester.getChat(1).check(isOnline: false);
 
       /// again
-      ws.addOnlineUpdate(OnlineStatusUpdate(userId: 2, isOnline: true, lastActivityTime: DateTime.now().millisecondsSinceEpoch - (AppConstants.markAsOfflineAfterInactivityInSeconds - 1) * 1000));
+      ws.addOnlineUpdate(
+        OnlineStatusUpdate(
+          userId: 2,
+          isOnline: true,
+          lastActivityTime: DateTime.now().millisecondsSinceEpoch - (AppConstants.markAsOfflineAfterInactivity - const Duration(seconds: 1)).inMilliseconds,
+        ),
+      );
       await tester.pumpAndSettle();
       tester.getChat(1).check(isOnline: true);
       await tester.pumpAndSettle(const Duration(milliseconds: 1500));
@@ -487,6 +502,22 @@ void main() {
       ws.addDeletedMessagesUpdate(const DeletedMessageUpdate(chatId: 0, deletedMessage: messageDto0, newLastMessage: null, deleteChat: true));
       await tester.pumpAndSettle();
       tester.checkChatsOrder([]);
+    });
+
+    testWidgets('delete_message_behind_app_cache_test', (tester) async {
+      await setupAppWithChats(tester, [chatDto0]);
+
+      /// lastMessage will be earlier that the current one, cause the current one is deleted
+      getChatsMustReturn([ChatDto(id: chatDto0.id, otherUser: chatDto0.otherUser, lastMessage: messageDto1, unreadCount: chatDto0.unreadCount)], asyncControl: true);
+      await restartApp(tester);
+      tester.getChat(0).check(message: messageDto0.message);
+      await sendGetChatsResponse(tester);
+      tester.getChat(0).check(message: messageDto1.message);
+
+      await restartApp(tester);
+      tester.getChat(0).check(message: messageDto1.message);
+      await sendGetChatsResponse(tester);
+      tester.getChat(0).check(message: messageDto1.message);
     });
 
     /// TODO error cases test ?

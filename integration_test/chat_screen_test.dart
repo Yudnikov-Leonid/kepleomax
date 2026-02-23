@@ -36,6 +36,7 @@ void main() {
     late Dependencies dp;
     late MockMessagesWebSocket ws;
     late Completer<void> _getMessagesCompleter;
+    late Completer<void> _getChatWithIdCompleter;
 
     setUpAll(() {
       Flavor.setFlavor(Flavor.testing());
@@ -51,34 +52,38 @@ void main() {
       await LocalDatabaseManager.reset();
     });
 
-    Future<void> setupApp(WidgetTester tester, ChatDto? chat, List<MessageDto> messages, {bool getMessagesAsyncControl = false}) async {
+    Future<void> restartApp(WidgetTester tester) async {
+      ws.setIsConnected(false);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(dp.inject(child: const App()));
+      ws.setIsConnected(true);
+      await tester.pumpAndSettle();
+    }
+
+    void getChatsMustReturn(List<ChatDto> chats) {
       when(dp.chatsApi.getChats()).thenAnswer((_) async {
-        return HttpResponse(ChatsResponse(data: chat == null ? [] : [chat], message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
+        return HttpResponse(ChatsResponse(data: chats, message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
       });
+    }
+
+    void getChatWithIdMustReturn(ChatDto Function(int) factory, {bool asyncControl = false}) {
       when((dp.chatsApi as MockChatsApi).getChatWithId(chatId: anyNamed('chatId'))).thenAnswer((inv) async {
-        return HttpResponse(
-          ChatResponse(data: [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4].firstWhere((chat) => chat.id == inv.namedArguments[#chatId]), message: null),
-          Response(requestOptions: RequestOptions(), statusCode: 200),
-        );
+        if (asyncControl) {
+          _getChatWithIdCompleter = Completer();
+          await _getChatWithIdCompleter.future;
+        }
+        return HttpResponse(ChatResponse(data: factory(inv.namedArguments[#chatId] as int), message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
       });
-      when(dp.messagesApi.getMessages(chatId: chat?.id ?? 0, limit: AppConstants.msgPagingLimit, cursor: null)).thenAnswer((_) async {
-        if (getMessagesAsyncControl) {
+    }
+
+    void getMessagesMustReturn(List<MessageDto> messages, {int chatId = 0, bool asyncControl = false}) {
+      when(dp.messagesApi.getMessages(chatId: chatId, limit: AppConstants.msgPagingLimit, cursor: null)).thenAnswer((_) async {
+        if (asyncControl) {
           _getMessagesCompleter = Completer();
           await _getMessagesCompleter.future;
         }
         return HttpResponse(MessagesResponse(data: messages, message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
       });
-      await tester.pumpWidget(dp.inject(child: const App()));
-      ws.setIsConnected(true);
-      await tester.pumpAndSettle();
-      if (chat == null) return;
-      await tester.tap(find.byKey(Key('chat_${chat.id}')));
-      if (getMessagesAsyncControl) {
-        /// 50 millis to end page opening animation. Settle doesn't work cause skeletonizer
-        await tester.pump(const Duration(milliseconds: 50));
-      } else {
-        await tester.pumpAndSettle();
-      }
     }
 
     void getChatWithUserMustReturn(ChatDto? chat, {int userId = 1}) {
@@ -87,14 +92,54 @@ void main() {
       ).thenAnswer((_) async => HttpResponse(ChatResponse(data: chat, message: null), Response(requestOptions: RequestOptions(), statusCode: chat == null ? 404 : 200)));
     }
 
-    Future<void> sendGetMessagesResponse(WidgetTester tester) async {
-      _getMessagesCompleter.complete();
+    Future<void> setupApp(WidgetTester tester, List<ChatDto> chats, List<MessageDto> messages, {bool getMessagesAsyncControl = false, int openChatAtIndex = 0}) async {
+      if (chats.isEmpty && messages.isNotEmpty) {
+        throw Exception('chats are empty, but messages is not');
+      }
+
+      getChatsMustReturn(chats);
+      // every ChatEventLoad calls it to get actual otherUser data
+      getChatWithIdMustReturn((id) => [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4].firstWhere((chat) => chat.id == id));
+      if (chats.isNotEmpty) {
+        getMessagesMustReturn(messages, chatId: chats[openChatAtIndex].id, asyncControl: getMessagesAsyncControl);
+      }
+
+      await tester.pumpWidget(dp.inject(child: const App()));
+      ws.setIsConnected(true);
       await tester.pumpAndSettle();
+
+      if (chats.isNotEmpty) {
+        await tester.tap(find.byKey(Key('chat_${chats[openChatAtIndex].id}')));
+        if (getMessagesAsyncControl) {
+          /// 50 millis to end page opening animation. Settle doesn't work cause loadingIndictor
+          await tester.pump(const Duration(milliseconds: 50));
+        } else {
+          await tester.pumpAndSettle();
+        }
+      }
+    }
+
+    Future<void> sendGetMessagesResponse(WidgetTester tester, {bool settle = true}) async {
+      _getMessagesCompleter.complete();
+      if (settle) {
+        await tester.pumpAndSettle();
+      } else {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+    }
+
+    Future<void> sendGetChatWithIdResponse(WidgetTester tester, {bool settle = true}) async {
+      _getChatWithIdCompleter.complete();
+      if (settle) {
+        await tester.pumpAndSettle();
+      } else {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
     }
 
     testWidgets('connection_test', (tester) async {
       /// after setup app will be connected to the ws, because the app must be connected to open the chat
-      await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4], getMessagesAsyncControl: true);
+      await setupApp(tester, [chatDto0], [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4], getMessagesAsyncControl: true);
 
       /// check
       tester
@@ -134,7 +179,7 @@ void main() {
     });
 
     testWidgets('message_statuses_test', (tester) async {
-      await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
+      await setupApp(tester, [chatDto0], [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
 
       /// check
       tester.checkMessagesOrder([0, 1, 2, 3, 4]);
@@ -146,7 +191,7 @@ void main() {
     });
 
     testWidgets('new_message_test', (tester) async {
-      await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
+      await setupApp(tester, [chatDto0], [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
 
       /// check messages, check send_button is missing
       tester.checkMessagesOrder([0, 1, 2, 3, 4]);
@@ -163,7 +208,7 @@ void main() {
     });
 
     testWidgets('new_message_from_other_chat_test', (tester) async {
-      await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
+      await setupApp(tester, [chatDto0], [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
 
       /// check, send message from anotherUser, check
       tester.checkMessagesOrder([0, 1, 2, 3, 4]);
@@ -178,7 +223,7 @@ void main() {
     });
 
     testWidgets('read_messages_test', (tester) async {
-      await setupApp(tester, chatDto0, [messageDto0, messageDto2, messageDto3, messageDto4], getMessagesAsyncControl: true);
+      await setupApp(tester, [chatDto0], [messageDto0, messageDto2, messageDto3, messageDto4], getMessagesAsyncControl: true);
 
       /// check (with cache messages should not work), send apiMessages, check
       expect(ws.readBeforeTimeCalledTimes, 0);
@@ -189,7 +234,7 @@ void main() {
     });
 
     testWidgets('read_all_button_test', (tester) async {
-      await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
+      await setupApp(tester, [chatDto0], [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
 
       /// check, tap, check
       expect(ws.readAllCalledTimes, 0);
@@ -200,7 +245,7 @@ void main() {
     });
 
     testWidgets('deleted_message_test', (tester) async {
-      await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
+      await setupApp(tester, [chatDto0], [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
 
       /// check, delete, check
       tester.checkMessagesOrder([0, 1, 2, 3, 4]);
@@ -215,7 +260,7 @@ void main() {
     });
 
     testWidgets('delete_message_test', (tester) async {
-      await setupApp(tester, chatDto0, [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
+      await setupApp(tester, [chatDto0], [messageDto0, messageDto1, messageDto2, messageDto3, messageDto4]);
 
       /// tap, check
       await tester.tap(find.descendant(of: tester.getMessage(4).finder, matching: find.byType(InkWell)));
@@ -227,7 +272,7 @@ void main() {
     });
 
     testWidgets('delete_cached_message_from_chat_test', (tester) async {
-      await setupApp(tester, chatDto0, [messageDto2, messageDto3, messageDto4], getMessagesAsyncControl: true);
+      await setupApp(tester, [chatDto0], [messageDto2, messageDto3, messageDto4], getMessagesAsyncControl: true);
 
       /// we have cachedMessage with id 0 from chat. This message won't be received
       /// from api, so it should be deleted from cache
@@ -247,7 +292,7 @@ void main() {
     });
 
     testWidgets('unread_messages_widget_test', (tester) async {
-      await setupApp(tester, chatDto0, [messageDto1, messageDto2, messageDto3, messageDto4]);
+      await setupApp(tester, [chatDto0], [messageDto1, messageDto2, messageDto3, messageDto4]);
 
       tester.checkMessagesOrder([1, Message.unreadMessagesId, 2, 3, 4, Message.dateId], countSystem: true);
       ws.addMessage(messageDto0);
@@ -256,7 +301,7 @@ void main() {
     });
 
     testWidgets('no_unread_messages_widget_test', (tester) async {
-      await setupApp(tester, chatDto0, [messageDto2, messageDto3, messageDto4]);
+      await setupApp(tester, [chatDto0], [messageDto2, messageDto3, messageDto4]);
 
       tester.checkMessagesOrder([2, 3, 4, Message.dateId], countSystem: true);
       ws.addMessage(messageDto1);
@@ -265,7 +310,7 @@ void main() {
     });
 
     testWidgets('unread_messages_widget_test_empty_chat_test', (tester) async {
-      await setupApp(tester, chatDto0, []);
+      await setupApp(tester, [chatDto0], []);
 
       tester.checkMessagesOrder([], countSystem: true);
       ws.addMessage(messageDto1);
@@ -278,7 +323,7 @@ void main() {
     });
 
     testWidgets('online_status_test', (tester) async {
-      await setupApp(tester, chatDto0, []);
+      await setupApp(tester, [chatDto0], []);
 
       /// check, add onlineUpdate: false, check
       tester.checkChatOtherUserStatus('online');
@@ -287,7 +332,13 @@ void main() {
       tester.checkChatOtherUserStatus('last seen a long time ago');
 
       /// add onlineUpdate: true, check, wait, check
-      ws.addOnlineUpdate(OnlineStatusUpdate(userId: 1, isOnline: true, lastActivityTime: DateTime.now().millisecondsSinceEpoch - (AppConstants.markAsOfflineAfterInactivityInSeconds - 1) * 1000));
+      ws.addOnlineUpdate(
+        OnlineStatusUpdate(
+          userId: 1,
+          isOnline: true,
+          lastActivityTime: DateTime.now().millisecondsSinceEpoch - (AppConstants.markAsOfflineAfterInactivity - const Duration(seconds: 1)).inMilliseconds,
+        ),
+      );
       await tester.pumpAndSettle();
       tester.checkChatOtherUserStatus('online');
       await tester.pumpAndSettle(const Duration(milliseconds: 1500));
@@ -298,7 +349,7 @@ void main() {
     /// websocket handles it as both newMessage and typingActivity: set to false
     /// there is a mockWebsocket, so can't check its own handlers of events
     testWidgets('typing_test', (tester) async {
-      await setupApp(tester, chatDto0, []);
+      await setupApp(tester, [chatDto0], []);
 
       /// check, add typingUpdate, check
       tester.checkChatOtherUserStatus('online');
@@ -322,12 +373,12 @@ void main() {
     });
 
     testWidgets('new_chat_other_user_message_first_test', (tester) async {
-      await setupApp(tester, null, [], getMessagesAsyncControl: true);
+      await setupApp(tester, [], [], getMessagesAsyncControl: true);
       await dp.usersLocalDataSource.insert(chatDto0.otherUser);
       getChatWithUserMustReturn(null);
 
       /// open new chat, check
-      await tester.navigateTo(ChatPage(chatId: -1, otherUser: User.fromDto(chatDto0.otherUser)));
+      await tester.pushPage(ChatPage(chatId: -1, otherUser: User.fromDto(chatDto0.otherUser)));
       tester.checkMessagesOrder([]);
 
       /// add message, check
@@ -353,12 +404,12 @@ void main() {
     });
 
     testWidgets('new_chat_current_user_message_first_test', (tester) async {
-      await setupApp(tester, null, []);
+      await setupApp(tester, [], []);
       await dp.usersLocalDataSource.insert(chatDto0.otherUser);
       getChatWithUserMustReturn(null);
 
       /// open new chat, check
-      await tester.navigateTo(ChatPage(chatId: -1, otherUser: User.fromDto(chatDto0.otherUser)));
+      await tester.pushPage(ChatPage(chatId: -1, otherUser: User.fromDto(chatDto0.otherUser)));
       tester.checkMessagesOrder([]);
 
       /// add message, check
@@ -374,7 +425,7 @@ void main() {
     });
 
     testWidgets('delete_last_message_test', (tester) async {
-      await setupApp(tester, chatDto0, [messageDto0]);
+      await setupApp(tester, [chatDto0], [messageDto0]);
 
       tester.checkMessagesOrder([0]);
       ws.addDeletedMessagesUpdate(const DeletedMessageUpdate(chatId: 0, deletedMessage: messageDto0, newLastMessage: null, deleteChat: true));
@@ -385,7 +436,7 @@ void main() {
     });
 
     testWidgets('delete_last_message_and_send_new_one_test', (tester) async {
-      await setupApp(tester, chatDto0, [messageDto0]);
+      await setupApp(tester, [chatDto0], [messageDto0]);
 
       tester.checkMessagesOrder([0]);
       ws.addDeletedMessagesUpdate(const DeletedMessageUpdate(chatId: 0, deletedMessage: messageDto0, newLastMessage: null, deleteChat: true));
@@ -399,6 +450,106 @@ void main() {
 
       await tester.goBack();
       tester.getChat(0).check(message: chatDto0.lastMessage!.message);
+    });
+
+    testWidgets('open_chat_from_notification_test', (tester) async {
+      await setupApp(tester, [chatDto0], [messageDto0], getMessagesAsyncControl: true);
+      await tester.goBack();
+
+      await tester.pushPage(ChatPage(chatId: 0, otherUser: null));
+      tester
+        ..checkChatAppBarStatus(ChatAppBarStatus.updating)
+        ..checkMessagesOrder([0])
+        ..checkChatOtherUserName(chatDto0.otherUser.username);
+      await sendGetMessagesResponse(tester);
+      tester
+        ..checkChatAppBarStatus(ChatAppBarStatus.none)
+        ..checkMessagesOrder([0])
+        ..checkChatOtherUserName(chatDto0.otherUser.username);
+    });
+
+    testWidgets('open_new_chat_from_notification_test', (tester) async {
+      await setupApp(tester, [], []);
+      getMessagesMustReturn([messageDto0, messageDto1], chatId: 0, asyncControl: true);
+      getChatWithIdMustReturn((id) => chatDto0, asyncControl: true);
+
+      await tester.pushPage(ChatPage(chatId: 0, otherUser: null), settle: false);
+      tester
+        ..checkChatAppBarStatus(ChatAppBarStatus.updating)
+        ..checkMessagesOrder([])
+        ..checkChatOtherUserName('-------');
+      await sendGetChatWithIdResponse(tester, settle: false);
+      tester
+        ..checkChatAppBarStatus(ChatAppBarStatus.updating)
+        ..checkMessagesOrder([])
+        ..checkChatOtherUserName(chatDto0.otherUser.username);
+      await sendGetMessagesResponse(tester);
+      tester
+        ..checkChatAppBarStatus(ChatAppBarStatus.none)
+        ..checkMessagesOrder([0, 1])
+        ..checkChatOtherUserName(chatDto0.otherUser.username);
+
+      ws.addMessage(messageDto3);
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([3, 0, 1]);
+    });
+
+    testWidgets('delete_message_behind_app_cache_test', (tester) async {
+      await setupApp(tester, [chatDto0], [messageDto0, messageDto1, messageDto2, messageDto3], getMessagesAsyncControl: true);
+
+      await sendGetMessagesResponse(tester);
+      tester.checkMessagesOrder([0, 1, 2, 3]);
+
+      getMessagesMustReturn([messageDto0, messageDto1, messageDto3], asyncControl: true);
+      await restartApp(tester);
+      await tester.openChat(0);
+      tester.checkMessagesOrder([0, 1, 2, 3]);
+      await sendGetMessagesResponse(tester);
+      tester.checkMessagesOrder([0, 1, 3]);
+    });
+
+    /// checks that after deleting the chat there is no its messages in the cache
+    testWidgets('clearing_cache_test_1_test', (tester) async {
+      await setupApp(tester, [], []);
+      getMessagesMustReturn([], asyncControl: true);
+
+      ws.addMessage(messageDto0);
+      await tester.pumpAndSettle();
+      tester.getChat(0).check(message: messageDto0.message);
+
+      ws.addDeletedMessagesUpdate(const DeletedMessageUpdate(chatId: 0, deletedMessage: messageDto0, newLastMessage: null, deleteChat: true));
+      await tester.pumpAndSettle();
+      tester.checkChatsOrder([]);
+
+      getChatWithIdMustReturn((id) => id == 0 ? ChatDto(id: id, otherUser: chatDto0.otherUser, lastMessage: messageDto1, unreadCount: 0) : throw Exception('not found'));
+      ws.addMessage(messageDto1);
+      await tester.pumpAndSettle();
+      tester.getChat(0).check(message: messageDto1.message);
+      await tester.openChat(0);
+      tester
+        ..checkChatAppBarStatus(ChatAppBarStatus.updating)
+        ..checkMessagesOrder([1]);
+    });
+
+    /// checks that if new api chat has new lastMessage, the actual lastMessage is not deleted from cache
+    /// lastMessage should be deleted only if it's later that the new one
+    testWidgets('clearing_cache_test_2_test', (tester) async {
+      await setupApp(tester, [ChatDto(id: 0, otherUser: chatDto0.otherUser, lastMessage: messageDto2, unreadCount: 0)], [messageDto2, messageDto3, messageDto4]);
+      getChatsMustReturn([chatDto0]);
+      getMessagesMustReturn([messageDto0, messageDto2, messageDto3, messageDto4], asyncControl: true);
+
+      /// check message, restart the app
+      tester.checkMessagesOrder([2, 3, 4]);
+      await restartApp(tester);
+
+      /// check chat, cache messages
+      tester.getChat(0).check(message: messageDto0.message);
+      await tester.openChat(0);
+      tester.checkMessagesOrder([0, 2, 3, 4]);
+
+      /// send response, check api messages
+      await sendGetMessagesResponse(tester);
+      tester.checkMessagesOrder([0, 2, 3, 4]);
     });
 
     /// TODO system dates messages test

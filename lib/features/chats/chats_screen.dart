@@ -90,11 +90,11 @@ class _Body extends StatelessWidget {
               child: Skeletonizer(
                 child: Column(
                   children: [
-                    ChatWidget(chat: Chat.loading(), isLoading: true),
-                    ChatWidget(chat: Chat.loading(), isLoading: true),
-                    ChatWidget(chat: Chat.loading(), isLoading: true),
-                    ChatWidget(chat: Chat.loading(), isLoading: true),
-                    ChatWidget(chat: Chat.loading(), isLoading: true),
+                    ChatWidget(chat: Chat.loading()),
+                    ChatWidget(chat: Chat.loading()),
+                    ChatWidget(chat: Chat.loading()),
+                    ChatWidget(chat: Chat.loading()),
+                    ChatWidget(chat: Chat.loading()),
                   ],
                 ),
               ),

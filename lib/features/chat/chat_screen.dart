@@ -299,7 +299,7 @@ class _BodyState extends State<_Body> {
         isVisible) {
       _chatBloc.add(ChatEventReadMessagesBeforeTime(time: message.createdAt));
     }
-    if (message.fromCache) {
+    if (message.fromCache && !_chatBloc.isClosed) {
       // print('KlmLog visibleMessageFromCache: ${data.messages[i].message}');
       _chatBloc.add(ChatEventLoadMore(toMessageId: message.id));
     }
@@ -314,27 +314,6 @@ class _BodyState extends State<_Body> {
       _chatBloc.add(const ChatEventLoadMore(toMessageId: null));
     }
   }
-
-  // void _maintainScrollPos() {
-  //   if (!widget.scrollController.hasClients ||
-  //       widget.scrollController.offset == 0 ||
-  //       _keys.isEmpty)
-  //     return;
-  //
-  //   double currentOffset = widget.scrollController.offset;
-  //   widget.scrollController.jumpTo(currentOffset + 45);
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     /// here new keys is already added
-  //     if (_keys.isEmpty) return;
-  //     final newMessageHeight =
-  //         (_keys.values.first.$1.currentContext!.findRenderObject() as RenderBox)
-  //             .size
-  //             .height;
-  //     if (newMessageHeight != 45) {
-  //       widget.scrollController.jumpTo(currentOffset + newMessageHeight);
-  //     }
-  //   });
-  // }
 }
 
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -389,6 +368,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                       children: [
                         Text(
                           data.otherUser?.username ?? '-------',
+                          key: const Key('chat_username'),
                           style: context.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w700,
                             fontSize: 20,

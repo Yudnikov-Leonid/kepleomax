@@ -8,7 +8,6 @@ part 'user.g.dart';
 
 @freezed
 abstract class User with _$User {
-
   const factory User({
     required int id,
     required String username,
@@ -41,13 +40,14 @@ abstract class User with _$User {
   );
 
   factory User.testing() => User.fromDto(UserDto.testing());
+
   const User._();
 
   /// TODO write what is it
   bool get showOnlineStatus {
     return isOnline &&
         lastActivityTime +
-                (AppConstants.markAsOfflineAfterInactivityInSeconds * 1000) >
+                AppConstants.markAsOfflineAfterInactivity.inMilliseconds >
             DateTime.now().millisecondsSinceEpoch;
   }
 

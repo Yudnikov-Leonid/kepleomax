@@ -14,12 +14,12 @@ enum ChatAppBarStatus { connecting, updating, none }
 extension TesterExtension on WidgetTester {
   String? textByKey(Key key) => widget<Text>(find.byKey(key)).data;
 
-  Iterable<T> childrenOfListByKey<T extends Widget>(
-    Key listKey,
-    Type childrenType,
-  ) => widgetList<T>(
-    find.descendant(of: find.byKey(listKey), matching: find.byType(childrenType)),
-  ).toList();
+  Iterable<T> childrenOfListByKey<T extends Widget>(Key listKey,
+      Type childrenType,) =>
+      widgetList<T>(
+        find.descendant(
+            of: find.byKey(listKey), matching: find.byType(childrenType)),
+      ).toList();
 
   Iterable<Key?> keysOfListByKey(Key listKey, Type childrenType) =>
       childrenOfListByKey(
@@ -47,6 +47,10 @@ extension TesterExtension on WidgetTester {
   Future<void> reopenChat({int chatId = 0, bool settle = true}) async {
     await tap(find.byKey(const Key('back_button')));
     await pumpAndSettle();
+    await openChat(chatId, settle: settle);
+  }
+
+  Future<void> openChat(int chatId, {bool settle = true}) async {
     await tap(find.byKey(Key('chat_$chatId')));
     if (settle) {
       await pumpAndSettle();
@@ -91,6 +95,10 @@ extension TesterExtension on WidgetTester {
     expect(textByKey(const Key('chat_app_bar_status_text')), equals(text));
   }
 
+  void checkChatOtherUserName(String expected) {
+    expect(textByKey(const Key('chat_username')), equals(expected));
+  }
+
   void checkChatOtherUserStatus(String expected) {
     expect(textByKey(const Key('user_status_text')), contains(expected));
   }
@@ -128,10 +136,13 @@ extension TesterExtension on WidgetTester {
     expect(visibleMessagesCount, equals(expected));
   }
 
-  int get visibleMessagesCount => childrenOfListByKey<MessageWidget>(
-    const Key('messages_list_view'),
-    MessageWidget,
-  ).where((w) => !w.message.isSystem).length;
+  int get visibleMessagesCount =>
+      childrenOfListByKey<MessageWidget>(
+        const Key('messages_list_view'),
+        MessageWidget,
+      )
+          .where((w) => !w.message.isSystem)
+          .length;
 
   void checkMessagesOrder(List<int> ids, {bool countSystem = false}) {
     expect(
@@ -143,9 +154,13 @@ extension TesterExtension on WidgetTester {
     );
   }
 
-  Future<void> navigateTo(AppPage page) async {
+  Future<void> pushPage(AppPage page, {bool settle = true}) async {
     AppNavigator.of(firstElement(find.byType(Text)))!.push(page);
-    await pumpAndSettle();
+    if (settle) {
+      await pumpAndSettle();
+    } else {
+      await pump(const Duration(milliseconds: 50));
+    }
   }
 
   Future<void> goBack() async {
@@ -164,8 +179,8 @@ extension CommonFindersExtension on CommonFinders {
   Finder childrenWithIcon(Key parentKey, IconData icon) =>
       find.descendant(of: find.byKey(parentKey), matching: find.byIcon(icon));
 
-  // Finder textRich(String text) => find.byWidgetPredicate(
-  //       (widget) => widget is RichText &&
-  //       widget.text.toPlainText().contains("text"),
-  // );
+// Finder textRich(String text) => find.byWidgetPredicate(
+//       (widget) => widget is RichText &&
+//       widget.text.toPlainText().contains("text"),
+// );
 }

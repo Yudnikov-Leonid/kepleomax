@@ -45,7 +45,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
 
     try {
       _loadTime = (await NTPTime.now()).millisecondsSinceEpoch;
-      final posts = await _getPosts(offset: 0, beforeTime: _loadTime);
+      final posts = await _getPosts(offset: 0, cursor: _loadTime);
 
       _data = _data.copyWith(
         posts: posts,
@@ -72,7 +72,7 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
     try {
       final newPosts = await _getPosts(
         offset: oldPosts.length,
-        beforeTime: _loadTime,
+        cursor: _loadTime,
       );
 
       _data = _data.copyWith(
@@ -116,20 +116,20 @@ class PostListBloc extends Bloc<PostListEvent, PostListState> {
 
   Future<List<Post>> _getPosts({
     required int offset,
-    required int beforeTime,
+    required int cursor,
   }) async {
     if (_userId == null) {
       return _postRepository.getPosts(
         limit: AppConstants.postsPagingLimit,
         offset: offset,
-        beforeTime: beforeTime,
+        cursor: cursor,
       );
     } else {
       return _postRepository.getPostsByUserId(
         userId: _userId,
         limit: AppConstants.postsPagingLimit,
         offset: offset,
-        beforeTime: beforeTime,
+        cursor: cursor,
       );
     }
   }
