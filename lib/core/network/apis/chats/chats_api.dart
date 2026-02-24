@@ -12,13 +12,13 @@ abstract class ChatsApi {
   @GET('/')
   Future<HttpResponse<ChatsResponse>> getChats();
 
-  @GET('/withUser')
-  Future<HttpResponse<ChatResponse>> getChatWithUser({
-    @Query('userId') required int otherUserId,
-  });
-
   @GET('/withId')
   Future<HttpResponse<ChatResponse>> getChatWithId({
     @Query('chatId') required int chatId,
+  });
+
+  @GET('/withUser')
+  Future<HttpResponse<ChatResponse>> getChatWithUser({
+    @Query('userId') required int otherUserId,
   });
 }

@@ -26,13 +26,15 @@ import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/features/chat/bloc/chat_bloc.dart';
 import 'package:kepleomax/features/chat/bloc/chat_state.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 part 'widgets/chat_bottom.dart';
+
 part 'widgets/message_widget.dart';
+
 part 'widgets/read_button.dart';
+
 part 'widgets/tech_message.dart';
 
 /// screen
@@ -40,7 +42,7 @@ class ChatScreen extends StatefulWidget {
   const ChatScreen({required this.chatId, required this.otherUser, super.key});
 
   final int chatId;
-  final User? otherUser;
+  final User otherUser;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -59,7 +61,8 @@ class _ChatScreenState extends State<ChatScreen> {
       messengerRepository: dp.messengerRepository,
       connectionRepository: dp.connectionRepository,
       chatId: widget.chatId,
-    )..add(ChatEventInit(chatId: widget.chatId, otherUser: widget.otherUser));
+    )
+      ..add(ChatEventInit(chatId: widget.chatId, otherUser: widget.otherUser));
     super.initState();
   }
 
@@ -134,9 +137,9 @@ class _BodyState extends State<_Body> {
 
     _chatObserver = ChatScrollObserver(_observerController)
       ..toRebuildScrollViewCallback = () {
-        // Here you can use other way to rebuild the specified listView instead of [setState]
         setState(() {});
       };
+
     super.initState();
   }
 
@@ -173,6 +176,7 @@ class _BodyState extends State<_Body> {
             _chatObserver.standby();
           }
           return oldData.isLoading != newData.isLoading ||
+              oldData.isConnected != newData.isConnected ||
               !listEquals(oldData.messages, newData.messages) ||
               oldData.isAllMessagesLoaded != newData.isAllMessagesLoaded;
         }
@@ -213,54 +217,58 @@ class _BodyState extends State<_Body> {
                       ? const Center(child: CircularProgressIndicator())
                       : data.messages.isEmpty
                       ? const Center(
-                          child: _TechMessage(
-                            key: Key('no_messages_widget'),
-                            text: '\nNo messages here yet...\n\nWrite something\n',
-                          ),
-                        )
+                    child: _TechMessage(
+                      key: Key('no_messages_widget'),
+                      text: '\nNo messages here yet...\n\nWrite something\n',
+                    ),
+                  )
                       : ListViewObserver(
-                          controller: _observerController,
-                          autoTriggerObserveTypes: const [
-                            ObserverAutoTriggerObserveType.scrollEnd,
-                          ],
-                          triggerOnObserveType:
-                              ObserverTriggerOnObserveType.directly,
-                          child: ListView.builder(
-                            key: const Key('messages_list_view'),
-                            controller: widget.scrollController,
-                            physics: ChatObserverClampingScrollPhysics(
-                              observer: _chatObserver,
+                    controller: _observerController,
+                    autoTriggerObserveTypes: const [
+                      ObserverAutoTriggerObserveType.scrollEnd,
+                    ],
+                    triggerOnObserveType:
+                    ObserverTriggerOnObserveType.directly,
+                    child: ListView.builder(
+                      key: const Key('messages_list_view'),
+                      controller: widget.scrollController,
+                      physics: ChatObserverClampingScrollPhysics(
+                        observer: _chatObserver,
+                      ),
+                      shrinkWrap: _chatObserver.isShrinkWrap,
+                      padding: EdgeInsets.only(
+                        bottom: 4,
+                        top: data.isAllMessagesLoaded ? 4 : 20,
+                      ),
+                      reverse: true,
+                      itemCount: data.messages.length,
+                      itemBuilder: (context, i) =>
+                          VisibilityDetector(
+
+                            /// DateTime to check visibility on every messagesList changes
+                            /// (like the change of some fromCache statuses)
+                            key: Key(
+                              'visibility_detector_$i-${DateTime
+                                  .now()
+                                  .millisecondsSinceEpoch}',
                             ),
-                            shrinkWrap: _chatObserver.isShrinkWrap,
-                            padding: EdgeInsets.only(
-                              bottom: 4,
-                              top: data.isAllMessagesLoaded ? 4 : 20,
-                            ),
-                            reverse: true,
-                            itemCount: data.messages.length,
-                            itemBuilder: (context, i) => VisibilityDetector(
-                              /// DateTime to check visibility on every messagesList changes
-                              /// (like the change of some fromCache statuses)
-                              key: Key(
-                                'visibility_detector_$i-${DateTime.now().millisecondsSinceEpoch}',
-                              ),
-                              onVisibilityChanged: (info) =>
-                                  _onVisibilityChanged(info, data.messages[i]),
-                              child: MessageWidget(
-                                key: Key('message_${data.messages[i].id}'),
-                                onDelete: () {
-                                  _chatBloc.add(
-                                    ChatEventDeleteMessage(
-                                      messageId: data.messages[i].id,
-                                    ),
-                                  );
-                                },
-                                user: data.otherUser ?? User.loading(),
-                                message: data.messages[i],
-                              ),
+                            onVisibilityChanged: (info) =>
+                                _onVisibilityChanged(info, data.messages[i]),
+                            child: MessageWidget(
+                              key: Key('message_${data.messages[i].id}'),
+                              onDelete: () {
+                                _chatBloc.add(
+                                  ChatEventDeleteMessage(
+                                    messageId: data.messages[i].id,
+                                  ),
+                                );
+                              },
+                              user: data.otherUser,
+                              message: data.messages[i],
                             ),
                           ),
-                        ),
+                    ),
+                  ),
                 ),
               ),
               _ChatBottom(
@@ -339,7 +347,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
 
         final data = state.data;
         return AppBar(
-          key: Key('chat_app_bar_${data.otherUser?.id}'),
+          key: Key('chat_app_bar_${data.otherUser.id}'),
           leading: const KlmBackButton(),
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.transparent,
@@ -347,61 +355,55 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
           title: InkWell(
             splashColor: Colors.transparent,
             highlightColor: Colors.transparent,
-            onTap: data.otherUser == null
-                ? null
-                : () {
-                    AppNavigator.withKeyOf(
-                      context,
-                      mainNavigatorKey,
-                    )!.push(UserPage(userId: data.otherUser!.id));
-                  },
-            child: Skeletonizer(
-              enabled: data.otherUser == null,
-              child: Row(
-                children: [
-                  UserImage(size: 40, user: data.otherUser),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          data.otherUser?.username ?? '-------',
-                          key: const Key('chat_username'),
-                          style: context.textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 20,
-                            height: 1,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+            onTap: () {
+              AppNavigator.withKeyOf(
+                context,
+                mainNavigatorKey,
+              )!.push(UserPage(userId: data.otherUser.id));
+            },
+            child: Row(
+              children: [
+                UserImage(size: 40, user: data.otherUser),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        data.otherUser.username,
+                        key: const Key('chat_username'),
+                        style: context.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 20,
+                          height: 1,
                         ),
-                        if (data.isLoading || !data.isConnected)
-                          Text(
-                            !data.isConnected
-                                ? 'Connecting..'
-                                : data.isLoading
-                                ? 'Updating..'
-                                : '',
-                            key: const Key('chat_app_bar_status_text'),
-                            style: context.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey,
-                            ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (data.isLoading || !data.isConnected)
+                        Text(
+                          !data.isConnected
+                              ? 'Connecting..'
+                              : data.isLoading
+                              ? 'Updating..'
+                              : '',
+                          key: const Key('chat_app_bar_status_text'),
+                          style: context.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey,
                           ),
-                        if (!data.isLoading &&
-                            data.isConnected &&
-                            data.otherUser != null)
-                          _UserStatusWidget(data: data),
-                      ],
-                    ),
+                        ),
+                      if (!data.isLoading &&
+                          data.isConnected)
+                        _UserStatusWidget(data: data),
+                    ],
                   ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.call, color: KlmColors.primaryColor),
-                  ),
-                ],
-              ),
+                ),
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.call, color: KlmColors.primaryColor),
+                ),
+              ],
             ),
           ),
         );
@@ -434,7 +436,7 @@ class _UserStatusWidgetState extends State<_UserStatusWidget> {
   @override
   Widget build(BuildContext context) {
     return Text(
-      widget.data.isTyping ? 'typing..' : _onlineStatusText(widget.data.otherUser!),
+      widget.data.isTyping ? 'typing..' : _onlineStatusText(widget.data.otherUser),
       key: const Key('user_status_text'),
       style: context.textTheme.bodyMedium?.copyWith(
         fontSize: 13,

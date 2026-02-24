@@ -83,7 +83,7 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
                         vertical: 4,
                       ),
                       child: ClipOval(
-                        child: _imageUrl == null
+                        child: _imageUrl == null || _imageUrl!.isEmpty
                             ? const DefaultUserIcon()
                             : _isImageEdited
                             ? Image.file(File(_imageUrl!), fit: BoxFit.cover)

@@ -14,11 +14,12 @@ import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
+import 'package:kepleomax/core/notifications/notifications_service.dart';
 import 'package:kepleomax/core/presentation/user_error_message.dart';
 import 'package:kepleomax/features/chat/bloc/chat_state.dart';
 import 'package:rxdart/rxdart.dart';
 
-part 'chat_bloc_events.dart';
+part 'chat_events.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   ChatBloc({
@@ -117,7 +118,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     );
   }
 
-  /// needs cause onLoad can be called on init and on connect at the same time
+  /// needed cause onLoad can be called on init and on connectionChanged at the same time
   int _lastTimeLoadWasCalled = 0;
 
   Future<void> _onLoad(ChatEventLoad event, Emitter<ChatState> emit) async {
@@ -146,12 +147,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         /// everytime when chats are loaded. So if chatId will be changed cache will be updated after next
         /// LoadChatsEvent() in chats_bloc
         final cachedChat = await _chatsRepository.getChatWithUserFromCache(
-          event.otherUser!.id,
+          event.otherUser.id,
         );
         if (cachedChat != null) {
           chatId = cachedChat.id;
         } else {
-          final chat = await _chatsRepository.getChatWithUser(event.otherUser!.id);
+          final chat = await _chatsRepository.getChatWithUser(event.otherUser.id);
           chatId = chat?.id ?? -1;
         }
 
@@ -160,10 +161,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           _data = _data.copyWith(chatId: -1, isLoading: false, messages: []);
           emit(ChatStateBase(data: _data));
           _messengerRepository.listenToMessagesWithOtherUserId(
-            otherUserId: event.otherUser!.id,
+            otherUserId: event.otherUser.id,
           );
           _connectionRepository.listenOnlineStatusUpdates(
-            usersIds: [_data.otherUser!.id],
+            usersIds: [_data.otherUser.id],
           );
           return;
         }
@@ -172,29 +173,27 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         _data = _data.copyWith(chatId: chatId);
       }
 
-      if (event.otherUser == null) {
-        /// chat was opened from notification
+      /// get user and check updates, because online status can be changed
+      unawaited(
+        Future(() async {
+          final chat = await _chatsRepository.getChatWithId(chatId);
+          if (chat == null) {
+            /// chat with chatId is no longer exists
+            logger.d('chat with id $chatId is no longer exists');
+            _messengerRepository.listenToMessagesWithOtherUserId(
+              otherUserId: _data.otherUser.id,
+            );
+          } else if (chat.otherUser != _data.otherUser) {
+            add(_ChatEventEmitOtherUser(chat.otherUser));
+          }
+        }).onError((e, st) {
+          add(_ChatEventEmitError(e, stackTrace: st));
+        }),
+      );
 
-        final chat = await _chatsRepository.getChatWithId(chatId);
-        _data = _data.copyWith(otherUser: chat!.otherUser);
-      } else {
-        /// update user anyway, cause isOnline can be different
-        unawaited(
-          Future(() async {
-            final otherUser = (await _chatsRepository.getChatWithId(
-              chatId,
-            ))!.otherUser;
-            if (otherUser != _data.otherUser) {
-              add(_ChatEventEmitOtherUser(otherUser));
-            }
-          }).onError((e, st) {
-            add(_ChatEventEmitError(e, stackTrace: st));
-          }),
-        );
-      }
-
+      /// TODO currentChatsCollection is null when open the chat from background notification
       /// set unreadCount and isTyping
-      final chat = _messengerRepository.currentChatsCollection.chats
+      final chat = _messengerRepository.currentChatsCollection?.chats
           .where((c) => c.id == chatId)
           .firstOrNull;
       if (chat?.isTypingRightNow == true) {
@@ -207,7 +206,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       _data = _data.copyWith(unreadCount: chat?.unreadCount ?? 0);
       emit(ChatStateBase(data: _data));
 
-      _connectionRepository.listenOnlineStatusUpdate(userId: _data.otherUser!.id);
+      /// TODO now it works because we always open the chat at the very bottom
+      NotificationService.instance.closeWithChatId(chatId);
+      _connectionRepository.listenOnlineStatusUpdate(userId: _data.otherUser.id);
       await _messengerRepository.loadMessages(
         chatId: chatId,
         withCache: event.withCache,
@@ -250,7 +251,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   void _onSendMessage(ChatEventSendMessage event, Emitter<ChatState> emit) {
     _connectionRepository.sendMessage(
       messageBody: event.value,
-      recipientId: _data.otherUser!.id,
+      recipientId: _data.otherUser.id,
     );
   }
 
@@ -346,6 +347,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     if (event.data.allMessagesLoaded != null) {
       _data = _data.copyWith(isAllMessagesLoaded: event.data.allMessagesLoaded!);
     }
+    if (event.data.chatId == -1) {
+      _data = _data.copyWith(unreadMessagesValue: UnreadMessagesValue.initial());
+    }
     emit(ChatStateBase(data: _data));
   }
 
@@ -356,7 +360,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _data = _data.copyWith(isConnected: event.isConnected);
     emit(ChatStateBase(data: _data));
 
-    if (event.isConnected && (_data.chatId != -1 || _data.otherUser != null)) {
+    if (event.isConnected && _data.chatId != -1) {
       add(
         ChatEventLoad(
           chatId: _data.chatId,
@@ -371,10 +375,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _ChatEventOnlineStatusUpdate event,
     Emitter<ChatState> emit,
   ) {
-    if (_data.otherUser?.id != event.update.userId) return;
+    if (_data.otherUser.id != event.update.userId) return;
 
     _data = _data.copyWith(
-      otherUser: _data.otherUser?.copyWith(
+      otherUser: _data.otherUser.copyWith(
         isOnline: event.update.isOnline,
         lastActivityTime: event.update.lastActivityTime,
       ),
@@ -423,6 +427,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _chatUpdatesSub.cancel();
     _onlineUpdatesSub.cancel();
     _typingUpdatesSub.cancel();
+    _messengerRepository.listenToMessagesWithOtherUserId(otherUserId: null);
     return super.close();
   }
 }

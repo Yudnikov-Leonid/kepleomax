@@ -7,7 +7,7 @@ class ChatEventInit implements ChatEvent {
   const ChatEventInit({required this.chatId, required this.otherUser});
 
   final int chatId;
-  final User? otherUser;
+  final User otherUser;
 }
 
 class ChatEventLoad implements ChatEvent {
@@ -15,12 +15,10 @@ class ChatEventLoad implements ChatEvent {
     required this.chatId,
     required this.otherUser,
     required this.withCache,
-  }) : assert(
-         otherUser != null || chatId != -1,
-         "otherUser and chatId can't be empty at the same time",
-       );
+  });
+
   final int chatId;
-  final User? otherUser;
+  final User otherUser;
   final bool withCache;
 }
 

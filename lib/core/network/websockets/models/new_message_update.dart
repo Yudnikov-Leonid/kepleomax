@@ -1,7 +1,6 @@
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
 
 class NewMessageUpdate {
-
   NewMessageUpdate({required this.message, required this.createdChatInfo});
 
   factory NewMessageUpdate.fromJson(Map<String, dynamic> json) => NewMessageUpdate(
@@ -17,7 +16,6 @@ class NewMessageUpdate {
 }
 
 class CreatedChatInfo {
-
   CreatedChatInfo({required this.chatId, required this.usersIds});
 
   factory CreatedChatInfo.fromJson(Map<String, dynamic> json) => CreatedChatInfo(

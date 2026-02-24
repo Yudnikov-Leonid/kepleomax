@@ -18,7 +18,11 @@ extension _OnNewMessageUpdateExtension on MessengerRepositoryImpl {
         /// it's a new chat
         final newList = <Message>[Message.fromDto(messageDto)];
         _emitMessagesCollection(
-          MessagesCollection(chatId: messageDto.chatId, messages: newList, allMessagesLoaded: true),
+          MessagesCollection(
+            chatId: messageDto.chatId,
+            messages: newList,
+            allMessagesLoaded: true,
+          ),
         );
       }
     }
@@ -30,17 +34,18 @@ extension _OnNewMessageUpdateExtension on MessengerRepositoryImpl {
       );
       if (affectedChat != null) {
         _chatsLocal.increaseUnreadCountBy1(affectedChat.id);
-        newChats.remove(affectedChat);
-        newChats.insert(
-          0,
-          affectedChat.copyWith(
-            lastMessage: Message.fromDto(messageDto),
-            lastTypingActivityTime: null,
-            unreadCount:
-                affectedChat.unreadCount +
-                (!messageDto.isCurrentUser && !messageDto.isRead ? 1 : 0),
-          ),
-        );
+        newChats
+          ..remove(affectedChat)
+          ..insert(
+            0,
+            affectedChat.copyWith(
+              lastMessage: Message.fromDto(messageDto),
+              lastTypingActivityTime: null,
+              unreadCount:
+                  affectedChat.unreadCount +
+                  (!messageDto.isCurrentUser && !messageDto.isRead ? 1 : 0),
+            ),
+          );
         _emitChatsCollection(ChatsCollection(chats: newChats));
       } else {
         /// it's a new chat

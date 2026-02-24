@@ -30,7 +30,7 @@ class ChatsApiDataSourceImpl implements ChatsApiDataSource {
   Future<ChatDto?> getChatWithId(int chatId) async {
     final res = await _chatsApi.getChatWithId(chatId: chatId);
 
-    if (res.response.statusCode == 404) {
+    if (res.response.statusCode == 404 || res.response.statusCode == 403) {
       return null;
     }
     if (res.response.statusCode != 200) {

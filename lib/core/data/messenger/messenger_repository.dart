@@ -19,6 +19,7 @@ import 'package:kepleomax/core/network/websockets/models/new_message_update.dart
 import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
 import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
+import 'package:kepleomax/core/notifications/notifications_service.dart';
 
 part 'on_delete_message.dart';
 
@@ -40,7 +41,7 @@ abstract class MessengerRepository {
   Future<void> loadMessages({required int chatId, bool withCache = true});
 
   /// subscribes on messages from that userId, uses when chatId == -1
-  void listenToMessagesWithOtherUserId({required int otherUserId});
+  void listenToMessagesWithOtherUserId({required int? otherUserId});
 
   Future<void> loadMoreMessages({required int chatId, required int? toMessageId});
 
@@ -49,7 +50,7 @@ abstract class MessengerRepository {
 
   Stream<ChatsCollection> get chatsUpdatesStream;
 
-  ChatsCollection get currentChatsCollection;
+  ChatsCollection? get currentChatsCollection;
 }
 
 class MessengerRepositoryImpl implements MessengerRepository {
@@ -96,7 +97,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
   ChatsCollection? _currentChatsCollection;
 
   @override
-  ChatsCollection get currentChatsCollection => _currentChatsCollection!;
+  ChatsCollection? get currentChatsCollection => _currentChatsCollection;
 
   /// emitters
   void _emitMessagesCollection(MessagesCollection collection) {
@@ -123,9 +124,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
     final cache = await _chatsLocal.getChats();
     _emitChatsCollection(
       ChatsCollection(
-        chats: cache
-            .map((chat) => Chat.fromDto(chat, fromCache: true))
-            .toList(),
+        chats: cache.map((chat) => Chat.fromDto(chat, fromCache: true)).toList(),
         fromCache: true,
       ),
     );
@@ -135,8 +134,6 @@ class MessengerRepositoryImpl implements MessengerRepository {
 
   @override
   Future<void> loadChats() async {
-    _currentChatOtherUserId = null;
-
     final chats = await _chatsApi.getChats();
     _emitChatsCollection(
       ChatsCollection(
@@ -153,9 +150,11 @@ class MessengerRepositoryImpl implements MessengerRepository {
   }
 
   @override
-  void listenToMessagesWithOtherUserId({required int otherUserId}) {
+  void listenToMessagesWithOtherUserId({required int? otherUserId}) {
     _currentChatOtherUserId = otherUserId;
     print('listenToMessagesWithOtherUserId: $otherUserId');
+
+    if (otherUserId == null) return;
 
     _emitMessagesCollection(
       const MessagesCollection(chatId: -1, messages: [], allMessagesLoaded: true),
@@ -164,11 +163,17 @@ class MessengerRepositoryImpl implements MessengerRepository {
 
   @override
   Future<void> loadMessages({required int chatId, bool withCache = true}) async {
-    /// TODO reset messagesCollection here?
+    /// TODO maybe reset messagesCollection here?
+    /// _currentChatOtherUserId != null means it's a new chat. If delete this line, provided
+    /// chatId may broke something check the integration test: "open_deleted_chat_from_notification_test"
+    /// and also there are that check in other places in this method
+    if (_currentChatOtherUserId != null) return;
+
     /// emit data from cache
     List<MessageDto> cache = [];
     if (withCache) {
       cache = await _messagesLocal.getMessagesByChatId(chatId);
+      if (_currentChatOtherUserId != null) return;
       _emitMessagesCollection(
         MessagesCollection(
           messages: cache.map(Message.fromDto),
@@ -183,6 +188,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
       chatId: chatId,
       limit: AppConstants.msgPagingLimit,
     );
+    if (_currentChatOtherUserId != null) return;
     final newList = _combiner.combineLoad(cache, apiMessagesDtos);
 
     _emitMessagesCollection(

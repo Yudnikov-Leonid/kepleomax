@@ -3,6 +3,7 @@ part of 'messenger_repository.dart';
 extension _OnReadMessagesExtension on MessengerRepositoryImpl {
   void _onReadMessages(ReadMessagesUpdate update) {
     _messagesLocal.readMessages(update);
+    NotificationService.instance.closeNotifications(update.messagesIds);
 
     if (_currentMessagesCollection != null &&
         _currentMessagesCollection!.chatId == update.chatId) {

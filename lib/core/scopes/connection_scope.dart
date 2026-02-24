@@ -13,6 +13,8 @@ class ConnectionScope extends StatefulWidget {
   State<ConnectionScope> createState() => _ConnectionScopeState();
 }
 
+/// get repository from dependencies - not the best solution, but creating a bloc
+/// will be redundant, we don't even need a state
 class _ConnectionScopeState extends State<ConnectionScope> {
   bool _isScreenInited = false;
   late final ConnectionRepository _repository;
@@ -40,7 +42,7 @@ class _ConnectionScopeState extends State<ConnectionScope> {
     if (!_repository.isConnected) {
       print('KlmLog chatScope trying to connect on onResume');
       Future.delayed(const Duration(seconds: 1), () async {
-        /// yes, call it at least 3 times for sure. 1 time not always working on physical device
+        /// call it at least 3 times for sure. 1 time not always working on physical device
         _repository.reconnect(onlyIfDisconnected: true);
         await Future<void>.delayed(const Duration(milliseconds: 500));
         _repository.reconnect(onlyIfDisconnected: true);
@@ -54,8 +56,8 @@ class _ConnectionScopeState extends State<ConnectionScope> {
   @override
   Widget build(BuildContext context) {
     return FocusDetector(
-      onForegroundGained: () => _onResume(),
-      onVisibilityGained: () => _onResume(),
+      onForegroundGained: _onResume,
+      onVisibilityGained: _onResume,
       child: widget.child,
     );
   }

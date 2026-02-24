@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:kepleomax/core/logger.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -83,6 +85,27 @@ class ChatsLocalDataSourceImpl implements ChatsLocalDataSource {
     for (var chatJson in query) {
       chatJson = Map.from(chatJson);
 
+      /// add otherUser
+      final otherUser = await _database.query(
+        'users',
+        where: 'id = ?',
+        whereArgs: [chatJson['other_user_id']],
+      );
+      if (otherUser.isEmpty) {
+        logger.e('otherUser in cache not found, id: ${chatJson['other_user_id']}');
+        unawaited(
+          _database.delete(
+            'chats',
+            where: 'other_user_id = ?',
+            whereArgs: [chatJson['other_user_id']],
+          ),
+        );
+        continue;
+      }
+      chatJson['other_user_id'] = null;
+      chatJson['other_user'] = otherUser.first;
+
+      /// add lastMessage
       final lastMessage = await _database.query(
         'messages',
         limit: 1,
@@ -93,17 +116,6 @@ class ChatsLocalDataSourceImpl implements ChatsLocalDataSource {
       if (lastMessage.isNotEmpty) {
         chatJson['last_message'] = jsonEncode(lastMessage[0]);
       }
-
-      final otherUser = await _database.query(
-        'users',
-        where: 'id = ?',
-        whereArgs: [chatJson['other_user_id']],
-      );
-      if (otherUser.isEmpty) {
-        throw Exception('otherUser in cache not found');
-      }
-      chatJson['other_user_id'] = null;
-      chatJson['other_user'] = otherUser.first;
 
       result.add(ChatDto.fromLocalJson(chatJson));
     }

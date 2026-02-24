@@ -807,7 +807,7 @@ as bool,
 mixin _$ChatData {
 
  int get chatId;/// if user in chat was null, this user will be used
- User? get otherUser; List<Message> get messages; int get unreadCount; bool get isAllMessagesLoaded; UnreadMessagesValue get unreadMessagesValue; bool get isTyping; bool get isLoading; bool get isConnected;
+ User get otherUser; List<Message> get messages; int get unreadCount; bool get isAllMessagesLoaded; UnreadMessagesValue get unreadMessagesValue; bool get isTyping; bool get isLoading; bool get isConnected;
 /// Create a copy of ChatData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -838,11 +838,11 @@ abstract mixin class $ChatDataCopyWith<$Res>  {
   factory $ChatDataCopyWith(ChatData value, $Res Function(ChatData) _then) = _$ChatDataCopyWithImpl;
 @useResult
 $Res call({
- int chatId, User? otherUser, List<Message> messages, int unreadCount, bool isAllMessagesLoaded, UnreadMessagesValue unreadMessagesValue, bool isTyping, bool isLoading, bool isConnected
+ int chatId, User otherUser, List<Message> messages, int unreadCount, bool isAllMessagesLoaded, UnreadMessagesValue unreadMessagesValue, bool isTyping, bool isLoading, bool isConnected
 });
 
 
-$UserCopyWith<$Res>? get otherUser;$UnreadMessagesValueCopyWith<$Res> get unreadMessagesValue;
+$UserCopyWith<$Res> get otherUser;$UnreadMessagesValueCopyWith<$Res> get unreadMessagesValue;
 
 }
 /// @nodoc
@@ -855,11 +855,11 @@ class _$ChatDataCopyWithImpl<$Res>
 
 /// Create a copy of ChatData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? chatId = null,Object? otherUser = freezed,Object? messages = null,Object? unreadCount = null,Object? isAllMessagesLoaded = null,Object? unreadMessagesValue = null,Object? isTyping = null,Object? isLoading = null,Object? isConnected = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? chatId = null,Object? otherUser = null,Object? messages = null,Object? unreadCount = null,Object? isAllMessagesLoaded = null,Object? unreadMessagesValue = null,Object? isTyping = null,Object? isLoading = null,Object? isConnected = null,}) {
   return _then(_self.copyWith(
 chatId: null == chatId ? _self.chatId : chatId // ignore: cast_nullable_to_non_nullable
-as int,otherUser: freezed == otherUser ? _self.otherUser : otherUser // ignore: cast_nullable_to_non_nullable
-as User?,messages: null == messages ? _self.messages : messages // ignore: cast_nullable_to_non_nullable
+as int,otherUser: null == otherUser ? _self.otherUser : otherUser // ignore: cast_nullable_to_non_nullable
+as User,messages: null == messages ? _self.messages : messages // ignore: cast_nullable_to_non_nullable
 as List<Message>,unreadCount: null == unreadCount ? _self.unreadCount : unreadCount // ignore: cast_nullable_to_non_nullable
 as int,isAllMessagesLoaded: null == isAllMessagesLoaded ? _self.isAllMessagesLoaded : isAllMessagesLoaded // ignore: cast_nullable_to_non_nullable
 as bool,unreadMessagesValue: null == unreadMessagesValue ? _self.unreadMessagesValue : unreadMessagesValue // ignore: cast_nullable_to_non_nullable
@@ -873,12 +873,9 @@ as bool,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$UserCopyWith<$Res>? get otherUser {
-    if (_self.otherUser == null) {
-    return null;
-  }
-
-  return $UserCopyWith<$Res>(_self.otherUser!, (value) {
+$UserCopyWith<$Res> get otherUser {
+  
+  return $UserCopyWith<$Res>(_self.otherUser, (value) {
     return _then(_self.copyWith(otherUser: value));
   });
 }/// Create a copy of ChatData
@@ -972,7 +969,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int chatId,  User? otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  UnreadMessagesValue unreadMessagesValue,  bool isTyping,  bool isLoading,  bool isConnected)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int chatId,  User otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  UnreadMessagesValue unreadMessagesValue,  bool isTyping,  bool isLoading,  bool isConnected)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ChatData() when $default != null:
 return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_that.isAllMessagesLoaded,_that.unreadMessagesValue,_that.isTyping,_that.isLoading,_that.isConnected);case _:
@@ -993,7 +990,7 @@ return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int chatId,  User? otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  UnreadMessagesValue unreadMessagesValue,  bool isTyping,  bool isLoading,  bool isConnected)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int chatId,  User otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  UnreadMessagesValue unreadMessagesValue,  bool isTyping,  bool isLoading,  bool isConnected)  $default,) {final _that = this;
 switch (_that) {
 case _ChatData():
 return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_that.isAllMessagesLoaded,_that.unreadMessagesValue,_that.isTyping,_that.isLoading,_that.isConnected);case _:
@@ -1013,7 +1010,7 @@ return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int chatId,  User? otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  UnreadMessagesValue unreadMessagesValue,  bool isTyping,  bool isLoading,  bool isConnected)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int chatId,  User otherUser,  List<Message> messages,  int unreadCount,  bool isAllMessagesLoaded,  UnreadMessagesValue unreadMessagesValue,  bool isTyping,  bool isLoading,  bool isConnected)?  $default,) {final _that = this;
 switch (_that) {
 case _ChatData() when $default != null:
 return $default(_that.chatId,_that.otherUser,_that.messages,_that.unreadCount,_that.isAllMessagesLoaded,_that.unreadMessagesValue,_that.isTyping,_that.isLoading,_that.isConnected);case _:
@@ -1033,7 +1030,7 @@ class _ChatData implements ChatData {
 
 @override final  int chatId;
 /// if user in chat was null, this user will be used
-@override final  User? otherUser;
+@override final  User otherUser;
  final  List<Message> _messages;
 @override List<Message> get messages {
   if (_messages is EqualUnmodifiableListView) return _messages;
@@ -1078,11 +1075,11 @@ abstract mixin class _$ChatDataCopyWith<$Res> implements $ChatDataCopyWith<$Res>
   factory _$ChatDataCopyWith(_ChatData value, $Res Function(_ChatData) _then) = __$ChatDataCopyWithImpl;
 @override @useResult
 $Res call({
- int chatId, User? otherUser, List<Message> messages, int unreadCount, bool isAllMessagesLoaded, UnreadMessagesValue unreadMessagesValue, bool isTyping, bool isLoading, bool isConnected
+ int chatId, User otherUser, List<Message> messages, int unreadCount, bool isAllMessagesLoaded, UnreadMessagesValue unreadMessagesValue, bool isTyping, bool isLoading, bool isConnected
 });
 
 
-@override $UserCopyWith<$Res>? get otherUser;@override $UnreadMessagesValueCopyWith<$Res> get unreadMessagesValue;
+@override $UserCopyWith<$Res> get otherUser;@override $UnreadMessagesValueCopyWith<$Res> get unreadMessagesValue;
 
 }
 /// @nodoc
@@ -1095,11 +1092,11 @@ class __$ChatDataCopyWithImpl<$Res>
 
 /// Create a copy of ChatData
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? chatId = null,Object? otherUser = freezed,Object? messages = null,Object? unreadCount = null,Object? isAllMessagesLoaded = null,Object? unreadMessagesValue = null,Object? isTyping = null,Object? isLoading = null,Object? isConnected = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? chatId = null,Object? otherUser = null,Object? messages = null,Object? unreadCount = null,Object? isAllMessagesLoaded = null,Object? unreadMessagesValue = null,Object? isTyping = null,Object? isLoading = null,Object? isConnected = null,}) {
   return _then(_ChatData(
 chatId: null == chatId ? _self.chatId : chatId // ignore: cast_nullable_to_non_nullable
-as int,otherUser: freezed == otherUser ? _self.otherUser : otherUser // ignore: cast_nullable_to_non_nullable
-as User?,messages: null == messages ? _self._messages : messages // ignore: cast_nullable_to_non_nullable
+as int,otherUser: null == otherUser ? _self.otherUser : otherUser // ignore: cast_nullable_to_non_nullable
+as User,messages: null == messages ? _self._messages : messages // ignore: cast_nullable_to_non_nullable
 as List<Message>,unreadCount: null == unreadCount ? _self.unreadCount : unreadCount // ignore: cast_nullable_to_non_nullable
 as int,isAllMessagesLoaded: null == isAllMessagesLoaded ? _self.isAllMessagesLoaded : isAllMessagesLoaded // ignore: cast_nullable_to_non_nullable
 as bool,unreadMessagesValue: null == unreadMessagesValue ? _self.unreadMessagesValue : unreadMessagesValue // ignore: cast_nullable_to_non_nullable
@@ -1114,12 +1111,9 @@ as bool,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$UserCopyWith<$Res>? get otherUser {
-    if (_self.otherUser == null) {
-    return null;
-  }
-
-  return $UserCopyWith<$Res>(_self.otherUser!, (value) {
+$UserCopyWith<$Res> get otherUser {
+  
+  return $UserCopyWith<$Res>(_self.otherUser, (value) {
     return _then(_self.copyWith(otherUser: value));
   });
 }/// Create a copy of ChatData

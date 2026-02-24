@@ -30,7 +30,7 @@ abstract class ChatData with _$ChatData implements ChatState {
     required int chatId,
 
     /// if user in chat was null, this user will be used
-    required User? otherUser,
+    required User otherUser,
     required List<Message> messages,
     required int unreadCount,
     required bool isAllMessagesLoaded,
@@ -43,7 +43,7 @@ abstract class ChatData with _$ChatData implements ChatState {
   factory ChatData.initial() =>
       ChatData(
         chatId: -1,
-        otherUser: null,
+        otherUser: User.loading(),
         unreadCount: 0,
         messages: [],
         isAllMessagesLoaded: false,

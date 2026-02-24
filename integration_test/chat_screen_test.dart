@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -66,13 +67,14 @@ void main() {
       });
     }
 
-    void getChatWithIdMustReturn(ChatDto Function(int) factory, {bool asyncControl = false}) {
+    void getChatWithIdMustReturn(ChatDto? Function(int) factory, {bool asyncControl = false}) {
       when((dp.chatsApi as MockChatsApi).getChatWithId(chatId: anyNamed('chatId'))).thenAnswer((inv) async {
         if (asyncControl) {
           _getChatWithIdCompleter = Completer();
           await _getChatWithIdCompleter.future;
         }
-        return HttpResponse(ChatResponse(data: factory(inv.namedArguments[#chatId] as int), message: null), Response(requestOptions: RequestOptions(), statusCode: 200));
+        final chat = factory(inv.namedArguments[#chatId] as int);
+        return HttpResponse(ChatResponse(data: chat, message: null), Response(requestOptions: RequestOptions(), statusCode: chat == null ? 404 : 200));
       });
     }
 
@@ -99,7 +101,7 @@ void main() {
 
       getChatsMustReturn(chats);
       // every ChatEventLoad calls it to get actual otherUser data
-      getChatWithIdMustReturn((id) => [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4].firstWhere((chat) => chat.id == id));
+      getChatWithIdMustReturn((id) => [chatDto0, chatDto1, chatDto2, chatDto3, chatDto4].firstWhereOrNull((chat) => chat.id == id));
       if (chats.isNotEmpty) {
         getMessagesMustReturn(messages, chatId: chats[openChatAtIndex].id, asyncControl: getMessagesAsyncControl);
       }
@@ -452,48 +454,6 @@ void main() {
       tester.getChat(0).check(message: chatDto0.lastMessage!.message);
     });
 
-    testWidgets('open_chat_from_notification_test', (tester) async {
-      await setupApp(tester, [chatDto0], [messageDto0], getMessagesAsyncControl: true);
-      await tester.goBack();
-
-      await tester.pushPage(ChatPage(chatId: 0, otherUser: null));
-      tester
-        ..checkChatAppBarStatus(ChatAppBarStatus.updating)
-        ..checkMessagesOrder([0])
-        ..checkChatOtherUserName(chatDto0.otherUser.username);
-      await sendGetMessagesResponse(tester);
-      tester
-        ..checkChatAppBarStatus(ChatAppBarStatus.none)
-        ..checkMessagesOrder([0])
-        ..checkChatOtherUserName(chatDto0.otherUser.username);
-    });
-
-    testWidgets('open_new_chat_from_notification_test', (tester) async {
-      await setupApp(tester, [], []);
-      getMessagesMustReturn([messageDto0, messageDto1], chatId: 0, asyncControl: true);
-      getChatWithIdMustReturn((id) => chatDto0, asyncControl: true);
-
-      await tester.pushPage(ChatPage(chatId: 0, otherUser: null), settle: false);
-      tester
-        ..checkChatAppBarStatus(ChatAppBarStatus.updating)
-        ..checkMessagesOrder([])
-        ..checkChatOtherUserName('-------');
-      await sendGetChatWithIdResponse(tester, settle: false);
-      tester
-        ..checkChatAppBarStatus(ChatAppBarStatus.updating)
-        ..checkMessagesOrder([])
-        ..checkChatOtherUserName(chatDto0.otherUser.username);
-      await sendGetMessagesResponse(tester);
-      tester
-        ..checkChatAppBarStatus(ChatAppBarStatus.none)
-        ..checkMessagesOrder([0, 1])
-        ..checkChatOtherUserName(chatDto0.otherUser.username);
-
-      ws.addMessage(messageDto3);
-      await tester.pumpAndSettle();
-      tester.checkMessagesOrder([3, 0, 1]);
-    });
-
     testWidgets('delete_message_behind_app_cache_test', (tester) async {
       await setupApp(tester, [chatDto0], [messageDto0, messageDto1, messageDto2, messageDto3], getMessagesAsyncControl: true);
 
@@ -552,6 +512,20 @@ void main() {
       tester.checkMessagesOrder([0, 2, 3, 4]);
     });
 
+    testWidgets('open_deleted_chat_from_notification_test', (tester) async {
+      await setupApp(tester, [], []);
+      getMessagesMustReturn([], chatId: 6);
+
+      await tester.pushPage(ChatPage(chatId: 6, otherUser: const User(id: 10, username: 'OTHER_USERNAME_10', profileImage: null, isCurrent: false)));
+      tester.checkChatsOrder([]);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      ws.addMessage(const MessageDto(id: 13, chatId: 7, senderId: 10, isCurrentUser: false, message: 'MSG_0', isRead: false, createdAt: 1000, editedAt: null, fromCache: false), createdChatInfo: CreatedChatInfo(chatId: 7, usersIds: [0, 10]));
+      await tester.pumpAndSettle();
+      tester.checkMessagesOrder([13]);
+    });
+
+    /// TODO unreadCounter test
     /// TODO system dates messages test
     /// TODO base paging test
     /// paging is tested via unit-tests
