@@ -4,39 +4,31 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kepleomax/core/data/data_sources/chats_api_data_sources.dart';
-import 'package:kepleomax/core/data/data_sources/messages_api_data_sources.dart';
-import 'package:kepleomax/core/data/local_data_sources/chats_local_data_source.dart';
-import 'package:kepleomax/core/data/local_data_sources/users_local_data_source.dart';
 import 'package:kepleomax/core/data/messenger/combine_cache_and_api.dart';
 import 'package:kepleomax/core/data/messenger/messenger_repository.dart';
 import 'package:kepleomax/core/data/models/messages_collection.dart';
-import 'package:kepleomax/core/mocks/mock_messages_web_socket.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/network/apis/messages/message_dtos.dart';
-import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
-import 'messenger_repository_test.mocks.dart';
+import 'mocks/fake_messages_web_socket.dart';
 import 'mocks/mock_messages_local_data_source.dart';
+import 'mocks/mockito_mocks.mocks.dart';
 
 /// out, in, n, gaps are described in combine_cache_and_api.dart (CombineCacheAndApi)
-@GenerateMocks([ChatsApiDataSource, MessagesApiDataSource, ChatsLocalDataSource, UsersLocalDataSource])
 void main() {
   group('messenger_repository_messages_test', () {
     late MessengerRepository repository;
     late StreamIterator<MessagesCollection> iterator;
-    late MockMessagesWebSocket ws;
     late MockMessagesLocalDataSource messagesLocal;
     late MockMessagesApiDataSource messagesApi;
 
     setUp(() {
-      ws = MockMessagesWebSocket();
       messagesLocal = MockMessagesLocalDataSource();
       messagesApi = MockMessagesApiDataSource();
 
       repository = MessengerRepositoryImpl(
-        webSocket: ws,
+        webSocket: FakeMessagesWebSocket(),
         chatsApiDataSource: MockChatsApiDataSource(),
         messagesApiDataSource: messagesApi,
         messagesLocalDataSource: messagesLocal,

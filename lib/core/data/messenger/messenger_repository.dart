@@ -34,7 +34,7 @@ part 'on_typing_update.dart';
 abstract class MessengerRepository {
   /// api/db calls
   /// on BlocInit call loadChatsFromCache(); on ws connected call loadChats()
-  Future<void> loadChatsFromCache();
+  Future<void> loadCachedChats();
 
   Future<void> loadChats();
 
@@ -118,7 +118,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
 
   /// api calls
   @override
-  Future<void> loadChatsFromCache() async {
+  Future<void> loadCachedChats() async {
     // final now = DateTime.now().millisecondsSinceEpoch;
     // print('KlmLog loadChatsFromCache start: ${now}');
     final cache = await _chatsLocal.getChats();

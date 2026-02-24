@@ -11,10 +11,7 @@ import 'package:kepleomax/core/app.dart';
 import 'package:kepleomax/core/app_constants.dart';
 import 'package:kepleomax/core/data/local_data_sources/local_database_manager.dart';
 import 'package:kepleomax/core/di/dependencies.dart';
-import 'package:kepleomax/core/di/initialize_dependencies.dart';
 import 'package:kepleomax/core/flavor.dart';
-import 'package:kepleomax/core/mocks/mock_messages_web_socket.dart';
-import 'package:kepleomax/core/mocks/mockito_mocks.mocks.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/network/apis/chats/chats_dtos.dart';
@@ -27,6 +24,9 @@ import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retrofit/dio.dart';
 
+import 'initialize_tests_dependencies.dart';
+import 'mocks/mock_messages_web_socket.dart';
+import 'mocks/mockito_mocks.mocks.dart';
 import 'utils/mock_objects.dart';
 import 'utils/utils.dart';
 
@@ -44,7 +44,7 @@ void main() {
     });
 
     setUp(() async {
-      dp = await initializeDependencies(useMocks: true);
+      dp = await initializeTestsDependencies();
       ws = dp.messagesWebSocket as MockMessagesWebSocket;
       await dp.authController.setUser(User.testing());
     });

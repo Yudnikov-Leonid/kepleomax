@@ -3,4 +3,4 @@ import 'package:kepleomax/core/network/apis/messages/messages_api.dart';
 import 'package:mockito/annotations.dart';
 
 @GenerateMocks([ChatsApi, MessagesApi])
-abstract class MockitoMocks {}
+abstract class _MockitoMocks {}

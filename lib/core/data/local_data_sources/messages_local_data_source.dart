@@ -32,8 +32,6 @@ class MessagesLocalDataSourceImpl implements MessagesLocalDataSource {
       where: 'chat_id = ?',
       whereArgs: [chatId],
       orderBy: 'created_at DESC',
-      // limit: limit, // TODO
-      // offset: offset,
     );
     return query.map((m) => MessageDto.fromJson(m, fromCache: true)).toList();
   }

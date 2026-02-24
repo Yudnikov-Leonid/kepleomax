@@ -26,6 +26,7 @@ class MessagesApiDataSourceImpl implements MessagesApiDataSource {
       limit: limit,
       cursor: cursor,
     );
+    if (res.response.statusCode == 403) return [];
     if (res.response.statusCode != 200) {
       throw Exception(
         res.data.message ?? 'Failed to get messages: ${res.response.statusCode}',

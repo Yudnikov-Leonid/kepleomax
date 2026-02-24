@@ -32,6 +32,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
 
     on<ChatsEvent>(
       (event, emit) => switch (event) {
+        /// TODO improve that
         final ChatsEventLoadCache event => _onLoadCache(event, emit),
         final ChatsEventLoad event => _onLoad(event, emit),
         ChatsEvent _ => () {},
@@ -60,7 +61,7 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     Emitter<ChatsState> emit,
   ) async {
     try {
-      await _messengerRepository.loadChatsFromCache();
+      await _messengerRepository.loadCachedChats();
     } catch (e, st) {
       add(_ChatsEventEmitError(error: e, stackTrace: st));
     }

@@ -48,18 +48,18 @@ class _ChatsApi implements ChatsApi {
   }
 
   @override
-  Future<HttpResponse<ChatResponse>> getChatWithUser({
-    required int otherUserId,
+  Future<HttpResponse<ChatResponse>> getChatWithId({
+    required int chatId,
   }) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'userId': otherUserId};
+    final queryParameters = <String, dynamic>{r'chatId': chatId};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<HttpResponse<ChatResponse>>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/withUser',
+            '/withId',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -78,18 +78,18 @@ class _ChatsApi implements ChatsApi {
   }
 
   @override
-  Future<HttpResponse<ChatResponse>> getChatWithId({
-    required int chatId,
+  Future<HttpResponse<ChatResponse>> getChatWithUser({
+    required int otherUserId,
   }) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'chatId': chatId};
+    final queryParameters = <String, dynamic>{r'userId': otherUserId};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<HttpResponse<ChatResponse>>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/withId',
+            '/withUser',
             queryParameters: queryParameters,
             data: _data,
           )

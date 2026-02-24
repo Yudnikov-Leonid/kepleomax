@@ -58,10 +58,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     });
 
     /// events
-    /// TODO why there is ChatEventReadMessagesBeforeTime here?
     on<ChatEvent>(
       (event, emit) => switch (event) {
         final ChatEventLoad event => _onLoad(event, emit),
+        /// needs here, because we don't have to read messages before they are loaded
         final ChatEventReadMessagesBeforeTime event => _onReadMessagesBeforeTime(
           event,
           emit,
@@ -191,7 +191,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         }),
       );
 
-      /// TODO currentChatsCollection is null when open the chat from background notification
+      /// TODO currentChatsCollection can be null when open the chat from background notification
       /// set unreadCount and isTyping
       final chat = _messengerRepository.currentChatsCollection?.chats
           .where((c) => c.id == chatId)

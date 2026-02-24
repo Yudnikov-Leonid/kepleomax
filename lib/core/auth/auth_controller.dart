@@ -139,7 +139,7 @@ class AuthControllerImpl implements AuthController {
   }
 
   Future<void> _checkFcmToken() async {
-    /// TODO make solution better
+    /// TODO make better solution
     final token = await FirebaseMessaging.instance.getToken();
     if (token == null) return;
     final savedToken = _prefs.getString(_fcmKey);

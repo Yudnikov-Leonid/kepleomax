@@ -22,22 +22,22 @@ import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/flavor.dart';
 import 'package:kepleomax/core/logger.dart';
 import 'package:kepleomax/core/network/apis/auth/auth_api.dart';
-import 'package:kepleomax/core/network/apis/chats/chats_api.dart';
 import 'package:kepleomax/core/network/apis/files/files_api.dart';
-import 'package:kepleomax/core/network/apis/messages/messages_api.dart';
 import 'package:kepleomax/core/network/apis/posts/post_api.dart';
 import 'package:kepleomax/core/network/apis/profile/profile_api.dart';
-import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/middlewares/auth_interceptor.dart';
-import 'package:kepleomax/core/network/token_provider.dart';
-import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/core/settings/app_settings.dart';
 import 'package:kepleomax/firebase_options.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
-Future<Dependencies> initializeDependencies() async {
+import 'mocks/fake_user_api.dart';
+import 'mocks/mock_messages_web_socket.dart';
+import 'mocks/mock_token_provider.dart';
+import 'mocks/mockito_mocks.mocks.dart';
+
+Future<Dependencies> initializeTestsDependencies({bool useMocks = false}) async {
   final dp = Dependencies();
 
   for (final step in _steps) {
@@ -96,30 +96,16 @@ List<_InitializationStep> _steps = [
     dp.dio = dio;
   }),
 
-  _InitializationStep(
-    'token_provider',
-    (dp) async {
-      dp.tokenProvider = TokenProviderImpl(
-        prefs: dp.sharedPreferences,
-        secureStorage: dp.secureStorage,
-        // needs its own dio, cause the current one will be locked
-        dio: Dio(
-          BaseOptions(
-            validateStatus: (_) => true,
-            connectTimeout: const Duration(seconds: 5),
-            receiveTimeout: const Duration(seconds: 10),
-          ),
-        )..interceptors.add(dp.prettyDioLogger),
-      );
-    },
-  ),
+  _InitializationStep('token_provider', (dp) async {
+    dp.tokenProvider = MockTokenProvider();
+  }),
 
   _InitializationStep(
     'auth_apis',
     (dp) async {
       dp
         ..authApi = AuthApi(dp.dio, flavor.baseUrl)
-        ..userApi = UserApi(dp.dio, flavor.baseUrl)
+        ..userApi = FakeUserApi()
         ..profileApi = ProfileApi(dp.dio, flavor.baseUrl)
         ..filesApi = FilesApi(dp.dio, flavor.baseUrl);
     },
@@ -154,10 +140,7 @@ List<_InitializationStep> _steps = [
   _InitializationStep(
     'web_socket',
     (dp) async {
-      dp.messagesWebSocket = MessagesWebSocketImpl(
-        baseUrl: flavor.baseUrl,
-        tokenProvider: dp.tokenProvider,
-      );
+      dp.messagesWebSocket = MockMessagesWebSocket();
     },
   ),
 
@@ -166,8 +149,8 @@ List<_InitializationStep> _steps = [
     (dp) async {
       dp
         ..postApi = PostApi(dp.dio, flavor.baseUrl)
-        ..messagesApi = MessagesApi(dp.dio, flavor.baseUrl)
-        ..chatsApi = ChatsApi(dp.dio, flavor.baseUrl);
+        ..messagesApi = MockMessagesApi()
+        ..chatsApi = MockChatsApi();
     },
   ),
 

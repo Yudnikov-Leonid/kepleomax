@@ -12,7 +12,7 @@ Future<void> main() async {
     () async {
       WidgetsFlutterBinding.ensureInitialized().deferFirstFrame();
 
-      final dependencies = await initializeDependencies(useMocks: flavor.isTesting);
+      final dependencies = await initializeDependencies();
 
       WidgetsFlutterBinding.ensureInitialized().allowFirstFrame();
 
