@@ -41,7 +41,7 @@ void main() {
 
     setUp(() async {
       dp = await initializeDependencies();
-      ws = dp.messagesWebSocket as MockMessagesWebSocket;
+      ws = dp.messengerWebSocket as MockMessagesWebSocket;
       await dp.authController.setUser(User.testing());
     });
 

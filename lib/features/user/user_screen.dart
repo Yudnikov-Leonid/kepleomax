@@ -27,6 +27,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 part 'widgets/primary_button.dart';
+
 part 'widgets/user_scroll_listeners.dart';
 
 const int _appBarUsernameFullShownOffset = 130;
@@ -61,6 +62,7 @@ class _UserScreenState extends State<UserScreen> {
       create: (context) => UserBloc(
         userRepository: Dependencies.of(context).userRepository,
         connectionRepository: Dependencies.of(context).connectionRepository,
+        messengerWebSocket: Dependencies.of(context).messengerWebSocket,
         userId: widget.userId,
       )..add(const UserEventLoad()),
       child: Scaffold(

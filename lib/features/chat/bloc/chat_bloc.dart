@@ -12,6 +12,7 @@ import 'package:kepleomax/core/flavor.dart';
 import 'package:kepleomax/core/logger.dart';
 import 'package:kepleomax/core/models/message.dart';
 import 'package:kepleomax/core/models/user.dart';
+import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
 import 'package:kepleomax/core/network/websockets/models/online_status_update.dart';
 import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 import 'package:kepleomax/core/notifications/notifications_service.dart';
@@ -26,10 +27,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     required MessengerRepository messengerRepository,
     required ChatsRepository chatsRepository,
     required ConnectionRepository connectionRepository,
+    required MessengerWebSocket messengerWebSocket,
     required int chatId,
   }) : _messengerRepository = messengerRepository,
        _chatsRepository = chatsRepository,
        _connectionRepository = connectionRepository,
+       _messagesWebSocket = messengerWebSocket,
        super(ChatStateBase.initial()) {
     /// subscribes
     _messagesUpdatesSub = _messengerRepository.messagesUpdatesStream.listen(
@@ -49,10 +52,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _connectionStateSub = _connectionRepository.connectionStateStream.listen(
       (isConnected) => add(_ChatEventConnectingChanged(isConnected)),
     );
-    _onlineUpdatesSub = _connectionRepository.onlineUpdatesStream.listen((update) {
+    _onlineUpdatesSub = _messagesWebSocket.onlineUpdatesStream.listen((update) {
       add(_ChatEventOnlineStatusUpdate(update));
     });
-    _typingUpdatesSub = _connectionRepository.typingUpdatesStream.listen((update) {
+    _typingUpdatesSub = _messagesWebSocket.typingUpdatesStream.listen((update) {
       if (_data.chatId != update.chatId) return;
       add(_ChatEventTypingUpdate(update));
     });
@@ -61,6 +64,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatEvent>(
       (event, emit) => switch (event) {
         final ChatEventLoad event => _onLoad(event, emit),
+
         /// needs here, because we don't have to read messages before they are loaded
         final ChatEventReadMessagesBeforeTime event => _onReadMessagesBeforeTime(
           event,
@@ -98,6 +102,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final MessengerRepository _messengerRepository;
   final ChatsRepository _chatsRepository;
   final ConnectionRepository _connectionRepository;
+  final MessengerWebSocket _messagesWebSocket;
   late final StreamSubscription<void> _messagesUpdatesSub;
   late final StreamSubscription<void> _connectionStateSub;
   late final StreamSubscription<void> _chatUpdatesSub;
@@ -238,25 +243,25 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     Emitter<ChatState> emit,
   ) {
     if (_data.isLoading || !_data.isConnected) return;
-    _connectionRepository.readMessageBeforeTime(
+    _messagesWebSocket.readMessagesBeforeTime(
       chatId: _data.chatId,
       time: event.time,
     );
   }
 
   void _onReadAllMessages(ChatEventReadAllMessages event, Emitter<ChatState> emit) {
-    _connectionRepository.readAllMessages(chatId: _data.chatId);
+    _messagesWebSocket.readAllMessages(chatId: _data.chatId);
   }
 
   void _onSendMessage(ChatEventSendMessage event, Emitter<ChatState> emit) {
-    _connectionRepository.sendMessage(
-      messageBody: event.value,
+    _messagesWebSocket.sendMessage(
+      message: event.value,
       recipientId: _data.otherUser.id,
     );
   }
 
   void _onDeleteMessage(ChatEventDeleteMessage event, Emitter<ChatState> emit) {
-    _connectionRepository.deleteMessage(messageId: event.messageId);
+    _messagesWebSocket.deleteMessage(messageId: event.messageId);
   }
 
   int _lastTimeActivityWasSent = 0;
@@ -269,7 +274,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _lastTimeActivityWasSent = now;
 
     if (event.value.isNotEmpty) {
-      _connectionRepository.typingActivityDetected(chatId: _data.chatId);
+      _messagesWebSocket.typingActivityDetected(chatId: _data.chatId);
     }
   }
 

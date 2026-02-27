@@ -6,11 +6,12 @@ import 'package:kepleomax/core/navigation/pages.dart';
 import 'package:kepleomax/core/presentation/colors.dart';
 import 'package:kepleomax/core/presentation/unfocus_widget.dart';
 import 'package:kepleomax/core/scopes/auth_scope.dart';
+import 'package:kepleomax/core/scopes/call_scope.dart';
 import 'package:kepleomax/core/scopes/connection_scope.dart';
 import 'package:kepleomax/core/scopes/user_activity_scope.dart';
 import 'package:kepleomax/features/chats/bloc/chats_bloc.dart';
 
-final mainNavigatorGlobalKey = GlobalKey();
+final mainNavigatorGlobalKey = GlobalKey<AppNavigatorState>();
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -24,10 +25,12 @@ class _AppState extends State<App> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => ChatsBloc(
-          messengerRepository: Dependencies.of(context).messengerRepository,
-          connectionRepository: Dependencies.of(context).connectionRepository,
-        )),
+        BlocProvider(
+          create: (context) => ChatsBloc(
+            messengerRepository: Dependencies.of(context).messengerRepository,
+            connectionRepository: Dependencies.of(context).connectionRepository,
+          ),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -43,11 +46,15 @@ class _AppState extends State<App> {
               builder: (context, userId) => ConnectionScope(
                 key: Key('chat_scope_$userId'),
                 child: UserActivityScope(
-                  connectionRepository: Dependencies.of(context).connectionRepository,
-                  child: AppNavigator(
-                    initialState: [const MainPage()],
-                    navigatorKey: mainNavigatorKey,
-                    key: mainNavigatorGlobalKey,
+                  connectionRepository: Dependencies.of(
+                    context,
+                  ).connectionRepository,
+                  child: CallScope(
+                    child: AppNavigator(
+                      initialState: const [MainPage()],
+                      navigatorKey: mainNavigatorKey,
+                      key: mainNavigatorGlobalKey,
+                    ),
                   ),
                 ),
               ),

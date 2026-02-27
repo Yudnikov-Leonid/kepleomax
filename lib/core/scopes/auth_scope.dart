@@ -59,8 +59,8 @@ class _AuthScopeState extends State<AuthScope> {
       key: ValueKey(_controller.user?.id ?? -1),
       controller: _controller,
       child: _controller.user == null
-          ? AppNavigator(
-              initialState: [const LoginPage()],
+          ? const AppNavigator(
+              initialState: [LoginPage()],
               navigatorKey: loginNavigatorKey,
             )
           : widget.builder(context, _controller.user!.id),

@@ -25,6 +25,7 @@ import 'package:kepleomax/core/presentation/parse_time.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/features/chat/bloc/chat_bloc.dart';
 import 'package:kepleomax/features/chat/bloc/chat_state.dart';
+import 'package:kepleomax/features/chats/chats_screen_navigator.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -60,9 +61,9 @@ class _ChatScreenState extends State<ChatScreen> {
       chatsRepository: dp.chatsRepository,
       messengerRepository: dp.messengerRepository,
       connectionRepository: dp.connectionRepository,
+      messengerWebSocket: dp.messengerWebSocket,
       chatId: widget.chatId,
-    )
-      ..add(ChatEventInit(chatId: widget.chatId, otherUser: widget.otherUser));
+    )..add(ChatEventInit(chatId: widget.chatId, otherUser: widget.otherUser));
     super.initState();
   }
 
@@ -217,58 +218,54 @@ class _BodyState extends State<_Body> {
                       ? const Center(child: CircularProgressIndicator())
                       : data.messages.isEmpty
                       ? const Center(
-                    child: _TechMessage(
-                      key: Key('no_messages_widget'),
-                      text: '\nNo messages here yet...\n\nWrite something\n',
-                    ),
-                  )
+                          child: _TechMessage(
+                            key: Key('no_messages_widget'),
+                            text: '\nNo messages here yet...\n\nWrite something\n',
+                          ),
+                        )
                       : ListViewObserver(
-                    controller: _observerController,
-                    autoTriggerObserveTypes: const [
-                      ObserverAutoTriggerObserveType.scrollEnd,
-                    ],
-                    triggerOnObserveType:
-                    ObserverTriggerOnObserveType.directly,
-                    child: ListView.builder(
-                      key: const Key('messages_list_view'),
-                      controller: widget.scrollController,
-                      physics: ChatObserverClampingScrollPhysics(
-                        observer: _chatObserver,
-                      ),
-                      shrinkWrap: _chatObserver.isShrinkWrap,
-                      padding: EdgeInsets.only(
-                        bottom: 4,
-                        top: data.isAllMessagesLoaded ? 4 : 20,
-                      ),
-                      reverse: true,
-                      itemCount: data.messages.length,
-                      itemBuilder: (context, i) =>
-                          VisibilityDetector(
-
-                            /// DateTime to check visibility on every messagesList changes
-                            /// (like the change of some fromCache statuses)
-                            key: Key(
-                              'visibility_detector_$i-${DateTime
-                                  .now()
-                                  .millisecondsSinceEpoch}',
+                          controller: _observerController,
+                          autoTriggerObserveTypes: const [
+                            ObserverAutoTriggerObserveType.scrollEnd,
+                          ],
+                          triggerOnObserveType:
+                              ObserverTriggerOnObserveType.directly,
+                          child: ListView.builder(
+                            key: const Key('messages_list_view'),
+                            controller: widget.scrollController,
+                            physics: ChatObserverClampingScrollPhysics(
+                              observer: _chatObserver,
                             ),
-                            onVisibilityChanged: (info) =>
-                                _onVisibilityChanged(info, data.messages[i]),
-                            child: MessageWidget(
-                              key: Key('message_${data.messages[i].id}'),
-                              onDelete: () {
-                                _chatBloc.add(
-                                  ChatEventDeleteMessage(
-                                    messageId: data.messages[i].id,
-                                  ),
-                                );
-                              },
-                              user: data.otherUser,
-                              message: data.messages[i],
+                            shrinkWrap: _chatObserver.isShrinkWrap,
+                            padding: EdgeInsets.only(
+                              bottom: 4,
+                              top: data.isAllMessagesLoaded ? 4 : 20,
+                            ),
+                            reverse: true,
+                            itemCount: data.messages.length,
+                            itemBuilder: (context, i) => VisibilityDetector(
+                              /// DateTime to check visibility on every messagesList changes
+                              /// (like the change of some fromCache statuses)
+                              key: Key(
+                                'visibility_detector_$i-${DateTime.now().millisecondsSinceEpoch}',
+                              ),
+                              onVisibilityChanged: (info) =>
+                                  _onVisibilityChanged(info, data.messages[i]),
+                              child: MessageWidget(
+                                key: Key('message_${data.messages[i].id}'),
+                                onDelete: () {
+                                  _chatBloc.add(
+                                    ChatEventDeleteMessage(
+                                      messageId: data.messages[i].id,
+                                    ),
+                                  );
+                                },
+                                user: data.otherUser,
+                                message: data.messages[i],
+                              ),
                             ),
                           ),
-                    ),
-                  ),
+                        ),
                 ),
               ),
               _ChatBottom(
@@ -393,14 +390,17 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                             color: Colors.grey,
                           ),
                         ),
-                      if (!data.isLoading &&
-                          data.isConnected)
+                      if (!data.isLoading && data.isConnected)
                         _UserStatusWidget(data: data),
                     ],
                   ),
                 ),
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    AppNavigator.of(
+                      context,
+                    )!.push(CallPage(otherUser: data.otherUser, doCall: true));
+                  },
                   icon: const Icon(Icons.call, color: KlmColors.primaryColor),
                 ),
               ],

@@ -7,18 +7,7 @@ import 'package:kepleomax/core/network/websockets/models/online_status_update.da
 import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
 import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 
-class FakeMessagesWebSocket implements MessagesWebSocket {
-  @override
-  Future<void> init() async {}
-
-  @override
-  void reinit() {}
-
-  @override
-  void disconnect() {}
-
-  @override
-  void connectIfNot() {}
+class FakeMessagesWebSocket implements MessengerWebSocket {
 
   @override
   void deleteMessage({required int messageId}) {}
@@ -36,17 +25,7 @@ class FakeMessagesWebSocket implements MessagesWebSocket {
   void subscribeOnOnlineStatusUpdates({required Iterable<int> usersIds}) {}
 
   @override
-  void activityDetected() {}
-
-  @override
   void typingActivityDetected({required int chatId}) {}
-
-  @override
-  bool get isConnected => true;
-
-  @override
-  Stream<bool> get connectionStateStream =>
-      StreamController<bool>.broadcast().stream;
 
   @override
   Stream<DeletedMessageUpdate> get deletedMessageStream =>

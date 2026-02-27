@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
+import 'package:kepleomax/features/call/call_screen.dart';
 import 'package:kepleomax/features/chat/chat_screen.dart';
 import 'package:kepleomax/features/chats/chats_screen.dart';
 
@@ -49,5 +50,14 @@ final class ChatPage extends AppPage {
         name: 'chat_screen',
         child: ChatScreen(chatId: chatId, otherUser: otherUser),
         key: ValueKey('chat_screen_${chatId}_${otherUser.id}'),
+      );
+}
+
+final class CallPage extends AppPage {
+  CallPage({required User otherUser, required bool doCall})
+    : super(
+        name: 'call_page',
+        child: CallScreen(otherUser: otherUser, doCall: doCall),
+        key: ValueKey('call_screen_${otherUser.id}'),
       );
 }

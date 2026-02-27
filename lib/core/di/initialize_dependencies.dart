@@ -30,7 +30,9 @@ import 'package:kepleomax/core/network/apis/profile/profile_api.dart';
 import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/middlewares/auth_interceptor.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
+import 'package:kepleomax/core/network/websockets/klm_web_socket.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
+import 'package:kepleomax/core/network/websockets/webrtc_web_socket.dart';
 import 'package:kepleomax/core/settings/app_settings.dart';
 import 'package:kepleomax/firebase_options.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
@@ -96,34 +98,28 @@ List<_InitializationStep> _steps = [
     dp.dio = dio;
   }),
 
-  _InitializationStep(
-    'token_provider',
-    (dp) async {
-      dp.tokenProvider = TokenProviderImpl(
-        prefs: dp.sharedPreferences,
-        secureStorage: dp.secureStorage,
-        // needs its own dio, cause the current one will be locked
-        dio: Dio(
-          BaseOptions(
-            validateStatus: (_) => true,
-            connectTimeout: const Duration(seconds: 5),
-            receiveTimeout: const Duration(seconds: 10),
-          ),
-        )..interceptors.add(dp.prettyDioLogger),
-      );
-    },
-  ),
+  _InitializationStep('token_provider', (dp) async {
+    dp.tokenProvider = TokenProviderImpl(
+      prefs: dp.sharedPreferences,
+      secureStorage: dp.secureStorage,
+      // needs its own dio, cause the current one will be locked
+      dio: Dio(
+        BaseOptions(
+          validateStatus: (_) => true,
+          connectTimeout: const Duration(seconds: 5),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      )..interceptors.add(dp.prettyDioLogger),
+    );
+  }),
 
-  _InitializationStep(
-    'auth_apis',
-    (dp) async {
-      dp
-        ..authApi = AuthApi(dp.dio, flavor.baseUrl)
-        ..userApi = UserApi(dp.dio, flavor.baseUrl)
-        ..profileApi = ProfileApi(dp.dio, flavor.baseUrl)
-        ..filesApi = FilesApi(dp.dio, flavor.baseUrl);
-    },
-  ),
+  _InitializationStep('auth_apis', (dp) async {
+    dp
+      ..authApi = AuthApi(dp.dio, flavor.baseUrl)
+      ..userApi = UserApi(dp.dio, flavor.baseUrl)
+      ..profileApi = ProfileApi(dp.dio, flavor.baseUrl)
+      ..filesApi = FilesApi(dp.dio, flavor.baseUrl);
+  }),
 
   _InitializationStep('auth', (dp) async {
     dp
@@ -151,25 +147,22 @@ List<_InitializationStep> _steps = [
     );
   }),
 
-  _InitializationStep(
-    'web_socket',
-    (dp) async {
-      dp.messagesWebSocket = MessagesWebSocketImpl(
+  _InitializationStep('web_socket', (dp) async {
+    dp
+      ..klmWebSocket = KlmWebSocketImpl(
         baseUrl: flavor.baseUrl,
         tokenProvider: dp.tokenProvider,
-      );
-    },
-  ),
+      )
+      ..messengerWebSocket = MessengerWebSocketImpl(klmWebSocket: dp.klmWebSocket)
+      ..webRtcWebSocket = WebRtcWebSocket(klmWebSocket: dp.klmWebSocket);
+  }),
 
-  _InitializationStep(
-    'apis',
-    (dp) async {
-      dp
-        ..postApi = PostApi(dp.dio, flavor.baseUrl)
-        ..messagesApi = MessagesApi(dp.dio, flavor.baseUrl)
-        ..chatsApi = ChatsApi(dp.dio, flavor.baseUrl);
-    },
-  ),
+  _InitializationStep('apis', (dp) async {
+    dp
+      ..postApi = PostApi(dp.dio, flavor.baseUrl)
+      ..messagesApi = MessagesApi(dp.dio, flavor.baseUrl)
+      ..chatsApi = ChatsApi(dp.dio, flavor.baseUrl);
+  }),
 
   _InitializationStep('repositories', (dp) async {
     final chatsApiDataSource = ChatsApiDataSourceImpl(chatsApi: dp.chatsApi);
@@ -178,10 +171,10 @@ List<_InitializationStep> _steps = [
       ..filesRepository = FilesRepositoryImpl(filesApi: dp.filesApi)
       ..postRepository = PostRepositoryImpl(postApi: dp.postApi)
       ..connectionRepository = ConnectionRepositoryImpl(
-        webSocket: dp.messagesWebSocket,
+        klmWebSocket: dp.klmWebSocket,
       )
       ..messengerRepository = MessengerRepositoryImpl(
-        webSocket: dp.messagesWebSocket,
+        webSocket: dp.messengerWebSocket,
         messagesApiDataSource: MessagesApiDataSourceImpl(
           messagesApi: dp.messagesApi,
         ),

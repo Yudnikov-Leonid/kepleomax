@@ -55,7 +55,7 @@ abstract class MessengerRepository {
 
 class MessengerRepositoryImpl implements MessengerRepository {
   MessengerRepositoryImpl({
-    required MessagesWebSocket webSocket,
+    required MessengerWebSocket webSocket,
     required ChatsApiDataSource chatsApiDataSource,
     required MessagesApiDataSource messagesApiDataSource,
     required MessagesLocalDataSource messagesLocalDataSource,
@@ -76,7 +76,7 @@ class MessengerRepositoryImpl implements MessengerRepository {
     _webSocket.typingUpdatesStream.listen(_onTypingUpdate);
   }
 
-  final MessagesWebSocket _webSocket;
+  final MessengerWebSocket _webSocket;
 
   final ChatsApiDataSource _chatsApi;
   final MessagesApiDataSource _messagesApi;

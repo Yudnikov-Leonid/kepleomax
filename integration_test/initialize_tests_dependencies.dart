@@ -140,7 +140,7 @@ List<_InitializationStep> _steps = [
   _InitializationStep(
     'web_socket',
     (dp) async {
-      dp.messagesWebSocket = MockMessagesWebSocket();
+      dp.messengerWebSocket = MockMessagesWebSocket();
     },
   ),
 
@@ -161,10 +161,10 @@ List<_InitializationStep> _steps = [
       ..filesRepository = FilesRepositoryImpl(filesApi: dp.filesApi)
       ..postRepository = PostRepositoryImpl(postApi: dp.postApi)
       ..connectionRepository = ConnectionRepositoryImpl(
-        webSocket: dp.messagesWebSocket,
+        webSocket: dp.messengerWebSocket,
       )
       ..messengerRepository = MessengerRepositoryImpl(
-        webSocket: dp.messagesWebSocket,
+        webSocket: dp.messengerWebSocket,
         messagesApiDataSource: MessagesApiDataSourceImpl(
           messagesApi: dp.messagesApi,
         ),

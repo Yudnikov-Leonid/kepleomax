@@ -8,7 +8,7 @@ import 'package:kepleomax/core/network/websockets/models/online_status_update.da
 import 'package:kepleomax/core/network/websockets/models/read_messages_update.dart';
 import 'package:kepleomax/core/network/websockets/models/typing_activity_update.dart';
 
-class MockMessagesWebSocket implements MessagesWebSocket {
+class MockMessagesWebSocket implements MessengerWebSocket {
   /// testing stuff
   bool _isConnected = false;
   int? _nextSendMessageId;
@@ -86,33 +86,12 @@ class MockMessagesWebSocket implements MessagesWebSocket {
       _deletedMessageController.stream;
 
   @override
-  Stream<bool> get connectionStateStream => _connectionController.stream;
-
-  @override
   Stream<OnlineStatusUpdate> get onlineUpdatesStream =>
       _onlineUpdatesController.stream;
 
   @override
   Stream<TypingActivityUpdate> get typingUpdatesStream =>
       _typingUpdatesController.stream;
-
-  /// websocket
-  @override
-  Future<void> init() async {}
-
-  @override
-  Future<void> reinit() async {}
-
-  /// use setIsConnected() in tests
-  @override
-  void connectIfNot() {}
-
-  /// use setIsConnected() in tests
-  @override
-  void disconnect() {}
-
-  @override
-  bool get isConnected => _isConnected;
 
   /// events
   @override
@@ -156,9 +135,6 @@ class MockMessagesWebSocket implements MessagesWebSocket {
 
   @override
   void subscribeOnOnlineStatusUpdates({required Iterable<int> usersIds}) {}
-
-  @override
-  void activityDetected() {}
 
   @override
   void typingActivityDetected({required int chatId}) {}
