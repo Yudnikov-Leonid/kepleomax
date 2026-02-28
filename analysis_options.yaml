@@ -30,6 +30,7 @@ linter:
     avoid_web_libraries_in_flutter: true
     slash_for_doc_comments: false
     omit_local_variable_types: false
+    no_default_cases: false
 
 dart_code_metrics:
   metrics:

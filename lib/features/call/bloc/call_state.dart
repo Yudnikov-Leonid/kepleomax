@@ -14,6 +14,11 @@ abstract class CallStateBase with _$CallStateBase implements CallState {
 }
 
 @freezed
+abstract class CallStateExit with _$CallStateExit implements CallState {
+  const factory CallStateExit() = _CallStateExit;
+}
+
+@freezed
 abstract class CallStateOpenPage with _$CallStateOpenPage implements CallState {
   const factory CallStateOpenPage({required User otherUser}) = _CallStateOpenPage;
 }
@@ -30,8 +35,7 @@ abstract class CallStateMessage with _$CallStateMessage implements CallState {
 abstract class CallData with _$CallData implements CallState {
   const factory CallData({
     required User otherUser,
-    @Default(RTCPeerConnectionState.RTCPeerConnectionStateDisconnected)
-    RTCPeerConnectionState connectionState,
+    @Default(RTCPeerConnectionState.RTCPeerConnectionStateDisconnected) RTCPeerConnectionState connectionState,
     RTCVideoRenderer? localRenderer,
     RTCVideoRenderer? remoteRenderer,
     @Default(false) bool isCallAccepted,
@@ -42,3 +46,13 @@ abstract class CallData with _$CallData implements CallState {
     connectionState: RTCPeerConnectionState.RTCPeerConnectionStateClosed,
   );
 }
+
+// enum CallStatus {
+//   waitingForResponse,
+//   waitingForYourResponse,
+//   cancelledDueToTimeout,
+//   otherUserEndedCall,
+//   accepted,
+//   disconnected,
+//   none,
+// }

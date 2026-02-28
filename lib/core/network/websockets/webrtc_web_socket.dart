@@ -7,18 +7,19 @@ import 'package:kepleomax/core/network/websockets/models/webrtc_models.dart';
 class WebRtcWebSocket {
   WebRtcWebSocket({required KlmWebSocket klmWebSocket}) : _webSocket = klmWebSocket {
     _webSocket.eventsStream.listen((event) {
-      final data = event.$2;
+      final data = event.$2 as Map<String, dynamic>;
       switch (event.$1) {
         case 'webrtc_offer':
-          _offersController.add(OfferUpdate.fromJson(data as Map<String, dynamic>));
+          _offersController.add(OfferUpdate.fromJson(data));
 
         case 'webrtc_answer':
-          _answersController.add(AnswerUpdate.fromJson(data as Map<String, dynamic>));
+          _answersController.add(AnswerUpdate.fromJson(data));
 
         case 'webrtc_ice_candidate':
-          _candidatesController.add(
-            CandidateUpdate.fromJson(data as Map<String, dynamic>),
-          );
+          _candidatesController.add(CandidateUpdate.fromJson(data));
+
+        case 'webrtc_end_call':
+          _endCallController.add(EndCallUpdate.fromJson(data));
       }
     });
   }
@@ -28,6 +29,7 @@ class WebRtcWebSocket {
   final _offersController = StreamController<OfferUpdate>.broadcast();
   final _answersController = StreamController<AnswerUpdate>.broadcast();
   final _candidatesController = StreamController<CandidateUpdate>.broadcast();
+  final _endCallController = StreamController<EndCallUpdate>.broadcast();
 
   void sendOffer(RTCSessionDescription offer, int toUserId) {
     _webSocket.emit('webrtc_send_offer', {
@@ -50,9 +52,15 @@ class WebRtcWebSocket {
     });
   }
 
+  void endCall(int toUserId) {
+    _webSocket.emit('webrtc_end_call', {'to_user_id': toUserId});
+  }
+
   Stream<OfferUpdate> get offersStream => _offersController.stream;
 
   Stream<AnswerUpdate> get answersStream => _answersController.stream;
 
   Stream<CandidateUpdate> get candidatesStream => _candidatesController.stream;
+
+  Stream<EndCallUpdate> get endCallStream => _endCallController.stream;
 }

@@ -30,7 +30,7 @@ class _CallScreenState extends State<CallScreen> {
 
   @override
   void dispose() {
-    _callBloc.add(const CallEventEndCall());
+    _callBloc.add(const CallEventEndCall(notifyOtherUser: true));
     super.dispose();
   }
 
@@ -57,7 +57,12 @@ class _BodyState extends State<_Body> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: BlocBuilder<CallBloc, CallState>(
+      child: BlocConsumer<CallBloc, CallState>(
+        listener: (context, state) {
+          if (state is CallStateExit) {
+            AppNavigator.of(context)!.pop();
+          }
+        },
         buildWhen: (oldState, newState) {
           if (newState is! CallStateBase) return false;
 
@@ -100,6 +105,15 @@ class _BodyState extends State<_Body> {
                     ),
                   ],
                   const Expanded(child: SizedBox()),
+                  // Text(
+                  //   'status: ${_mapStatus(data.status)}',
+                  //   textAlign: TextAlign.center,
+                  //   style: const TextStyle(
+                  //     fontSize: 18,
+                  //     fontWeight: FontWeight.w500,
+                  //     color: Colors.white,
+                  //   ),
+                  // ),
                   Text(
                     'connection state: ${_mapConnectionState(data.connectionState)}',
                     textAlign: TextAlign.center,
@@ -118,9 +132,7 @@ class _BodyState extends State<_Body> {
                           icon: Icons.videocam_off_outlined,
                           iconColor: Colors.blue,
                           color: Colors.white,
-                          onPressed: () {
-                            setState(() {});
-                          },
+                          onPressed: () {},
                         ),
                         _Button(
                           'Flip',
@@ -140,20 +152,10 @@ class _BodyState extends State<_Body> {
                           color: Colors.white,
                           onPressed: () {},
                         ),
-                      ] else if (!widget.doCall)
-                        _Button(
-                          'Accept',
-                          icon: Icons.call,
-                          iconColor: Colors.white,
-                          color: Colors.green,
-                          onPressed: () {
-                            context.read<CallBloc>().add(
-                              const CallEventAcceptCall(accept: true),
-                            );
-                          },
-                        ),
+                      ],
+
                       _Button(
-                        'End Call',
+                        data.isCallAccepted ? 'End Call' : 'Decline',
                         icon: Icons.call_end,
                         iconColor: Colors.white,
                         color: Colors.red,
@@ -161,6 +163,18 @@ class _BodyState extends State<_Body> {
                           AppNavigator.pop(context);
                         },
                       ),
+                      if (!data.isCallAccepted && !widget.doCall)
+                        _Button(
+                          'Accept',
+                          icon: Icons.call,
+                          iconColor: Colors.white,
+                          color: Colors.green,
+                          onPressed: () {
+                            context.read<CallBloc>().add(
+                              const CallEventAcceptCall(),
+                            );
+                          },
+                        ),
                     ],
                   ),
                   const SizedBox(height: 30),
@@ -189,6 +203,27 @@ class _BodyState extends State<_Body> {
         return 'New';
     }
   }
+
+  // String _mapStatus(CallStatus state) {
+  //   switch (state) {
+  //     case CallStatus.waitingForResponse:
+  //       return 'Waiting for the response';
+  //     case CallStatus.waitingForYourResponse:
+  //       return '';
+  //     case CallStatus.accepted:
+  //       return 'Accepted';
+  //     case CallStatus.disconnected:
+  //       return 'Disconnected';
+  //     case CallStatus.cancelledDueToTimeout:
+  //       return 'Cancelled due to timeout';
+  //
+  //     /// TODO change to otherUser.username
+  //     case CallStatus.otherUserEndedCall:
+  //       return 'Other user ended call';
+  //     case CallStatus.none:
+  //       return '';
+  //   }
+  // }
 }
 
 class _Button extends StatelessWidget {

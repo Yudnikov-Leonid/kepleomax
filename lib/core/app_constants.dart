@@ -7,6 +7,7 @@ abstract class AppConstants {
   static final Duration markAsOfflineAfterInactivity =
       _constants.markAsOfflineAfterInactivity;
   static final Duration showTypingAfterActivity = _constants.showTypingAfterActivity;
+  static final Duration callingTimeout = _constants.callingTimeout;
 
   static final int msgPagingLimit = _constants.msgPagingLimit;
   static final int postsPagingLimit = _constants.postsPagingLimit;
@@ -30,6 +31,8 @@ abstract class AppConstantsType {
   Duration get markAsOfflineAfterInactivity => const Duration(seconds: 60);
 
   Duration get showTypingAfterActivity => const Duration(seconds: 3);
+
+  Duration get callingTimeout => const Duration(seconds: 10);
 
   int get msgPagingLimit => 15;
 

@@ -1,8 +1,13 @@
 import 'dart:async';
 
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_callkit_incoming/entities/call_event.dart';
+import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:kepleomax/core/app_constants.dart';
 import 'package:kepleomax/core/data/user_repository.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/network/websockets/webrtc_web_socket.dart';
@@ -15,24 +20,41 @@ class CallBloc extends Bloc<CallEvent, CallState> {
   }) : _userRepository = userRepository,
        _webRtcWebSocket = webRtcWebSocket,
        super(CallStateBase.initial()) {
+    on<CallEvent>(
+      (event, emit) => switch (event) {
+        final _CallEventOpenCallPage event => _onOpenCallPage(event, emit),
+        final CallEventAcceptCall event => _onAcceptCall(event, emit),
+        final CallEventCall event => _onCall(event, emit),
+        final CallEventEndCall event => _onEndCall(event, emit),
+
+        _ => null,
+      },
+      transformer: sequential(),
+    );
     on<CallEventInit>(_onInit);
-    on<CallEventCall>(_onCall);
     on<CallEventFlipCamera>(_onFlipCamera);
-    on<CallEventAcceptCall>(_onAcceptCall);
-    on<CallEventEndCall>(_onEndCall);
     on<_CallEventEmit>(_onEmit);
-    on<_CallEventOpenCallPage>(_onOpenCallPage);
+    // on<_CallEventEmitStatus>(_onEmitStatus);
 
     _offersSub = _webRtcWebSocket.offersStream.listen((offer) async {
       print('KlmLog offer is received');
       _cachedOffer = offer.offer;
-      add(_CallEventOpenCallPage(otherUserId: offer.fromUserId));
+      add(_CallEventOpenCallPage(otherUserId: offer.otherUserId));
     });
     _answersSub = _webRtcWebSocket.answersStream.listen((answer) async {
       print('KlmLog answer is received');
+      _waitAnswerTimer!.cancel();
+      _waitAnswerTimer = null;
+      _candidates
+        ..forEach(_peerConnection!.addCandidate)
+        ..clear();
       await _peerConnection!.setRemoteDescription(answer.answer);
       final renderer = await _setUpRemoteRenderer();
-      _data = _data.copyWith(remoteRenderer: renderer, isCallAccepted: true);
+      _data = _data.copyWith(
+        remoteRenderer: renderer,
+        isCallAccepted: true,
+        // status: CallStatus.accepted,
+      );
       add(const _CallEventEmit());
     });
     _candidatesSub = _webRtcWebSocket.candidatesStream.listen((candidate) async {
@@ -43,6 +65,50 @@ class CallBloc extends Bloc<CallEvent, CallState> {
       }
       // print('KlmLog iceCandidate is received');
     });
+    _endCallSub = _webRtcWebSocket.endCallStream.listen((_) {
+      add(const CallEventEndCall(notifyOtherUser: false));
+    });
+
+    FlutterCallkitIncoming.activeCalls().then((calls) {
+      if (calls is List && calls.isNotEmpty) {
+        if (calls[0]['isAccepted'] == true) {
+          _openCallFromNotification(calls[0]['extra'] as Map<dynamic, dynamic>);
+        }
+      }
+    });
+
+    _incomingCallsSub = FlutterCallkitIncoming.onEvent.listen((event) {
+      if (event == null) return;
+
+      switch (event.event) {
+        case Event.actionCallAccept:
+          _openCallFromNotification(event.body['extra'] as Map<dynamic, dynamic>);
+          break;
+
+        case Event.actionCallDecline:
+          add(const CallEventEndCall(notifyOtherUser: true));
+          break;
+
+        case Event.actionCallEnded:
+          break;
+
+        case Event.actionCallTimeout:
+          break;
+
+        default:
+          break;
+      }
+    });
+  }
+
+  void _openCallFromNotification(Map<dynamic, dynamic> extra) {
+    print('KlmLog openCallFromNotification');
+    _cachedOffer = RTCSessionDescription(
+      extra['offer_sdp'] as String?,
+      extra['offer_type'] as String?,
+    );
+    add(_CallEventOpenCallPage(otherUserId: extra['other_user_id'] as int));
+    add(const CallEventAcceptCall());
   }
 
   final WebRtcWebSocket _webRtcWebSocket;
@@ -51,12 +117,16 @@ class CallBloc extends Bloc<CallEvent, CallState> {
   late StreamSubscription<void> _offersSub;
   late StreamSubscription<void> _answersSub;
   late StreamSubscription<void> _candidatesSub;
+  late StreamSubscription<void> _endCallSub;
+  late StreamSubscription<void> _incomingCallsSub;
 
   final _candidates = <RTCIceCandidate>[];
   final _tracks = <RTCTrackEvent>[];
   RTCSessionDescription? _cachedOffer;
   RTCPeerConnection? _peerConnection;
   late CallData _data = CallData.initial();
+
+  Timer? _waitAnswerTimer;
 
   Future<void> _createPeerConnection() async {
     final config = {
@@ -78,6 +148,17 @@ class CallBloc extends Bloc<CallEvent, CallState> {
       _data = _data.copyWith(connectionState: state);
       add(const _CallEventEmit());
       print('KlmLog RTCPeerConnectionState: $state');
+
+      if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
+        _peerConnection!.getStats().then((stats) {
+          stats.forEach((report) {
+            // if (report.type == 'candidate-pair' &&
+            //     report.values['state'] == 'failed') {
+            print('KlmLog failed, type: ${report.type}, values: ${report.values}');
+            // }
+          });
+        });
+      }
     };
 
     _peerConnection!.onIceConnectionState = (RTCIceConnectionState state) {
@@ -123,27 +204,33 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     _webRtcWebSocket.sendOffer(offer, _data.otherUser.id);
     await _peerConnection!.setLocalDescription(offer);
 
-    _data = _data.copyWith(isCallAccepted: true, localRenderer: localRenderer);
+    _data = _data.copyWith(
+      isCallAccepted: true,
+      localRenderer: localRenderer,
+      // status: CallStatus.waitingForResponse,
+    );
     emit(CallStateBase(data: _data));
+
+    _waitAnswerTimer = Timer(AppConstants.callingTimeout, () {
+      print('KlmLog cancel due to timeout');
+      add(const CallEventEndCall(notifyOtherUser: true));
+    });
   }
 
   Future<void> _onAcceptCall(
     CallEventAcceptCall event,
     Emitter<CallState> emit,
   ) async {
-    if (!event.accept) return;
-
     await _createPeerConnection();
 
     if (_cachedOffer == null) throw Exception('_cachedOffer == null');
     await _peerConnection!.setRemoteDescription(_cachedOffer!);
     _cachedOffer = null;
-    if (_candidates.isNotEmpty) {
-      print('KlmLog apply iceCandidates: ${_candidates.length}');
-      _candidates
-        ..forEach(_peerConnection!.addCandidate)
-        ..clear();
-    }
+
+    print('KlmLog apply iceCandidates: ${_candidates.length}');
+    _candidates
+      ..forEach(_peerConnection!.addCandidate)
+      ..clear();
 
     final localRenderer = await _setUpLocalRenderer(_data.otherUser.id);
 
@@ -159,6 +246,12 @@ class CallBloc extends Bloc<CallEvent, CallState> {
       remoteRenderer: remoteRenderer,
     );
     emit(CallStateBase(data: _data));
+
+    unawaited(
+      FlutterCallkitIncoming.hideCallkitIncoming(
+        CallKitParams(id: _data.otherUser.id.toString()),
+      ),
+    );
   }
 
   Future<RTCVideoRenderer> _setUpRemoteRenderer() async {
@@ -191,34 +284,43 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     /// TODO make getUser from cache
     final otherUser = await _userRepository.getUser(userId: event.otherUserId);
     emit(CallStateOpenPage(otherUser: otherUser));
-    _data = _data.copyWith(otherUser: otherUser, isCallAccepted: false);
+    _data = _data.copyWith(
+      otherUser: otherUser,
+      isCallAccepted: false,
+      // status: CallStatus.waitingForYourResponse,
+    );
     emit(CallStateBase(data: _data));
   }
 
   void _onEndCall(CallEventEndCall event, Emitter<CallState> emit) {
+    if (event.notifyOtherUser && _data.otherUser.id != User.loading().id) {
+      _webRtcWebSocket.endCall(_data.otherUser.id);
+    }
+
     print('KlmLog endCall');
+    _data.localRenderer?.srcObject?.dispose();
+    _data.localRenderer?.dispose();
+    _data.remoteRenderer?.srcObject?.dispose();
+    _data.remoteRenderer?.dispose();
     _data.localRenderer?.srcObject?.getTracks().forEach((track) {
       track.stop();
     });
-    _data.localRenderer?.srcObject?.dispose();
-    _data.localRenderer?.dispose();
-
     _data.remoteRenderer?.srcObject?.getTracks().forEach((track) {
       track.stop();
     });
-    _data.remoteRenderer?.srcObject?.dispose();
-    _data.remoteRenderer?.dispose();
-
-    _cachedOffer = null;
-
     _peerConnection?.dispose();
     _peerConnection = null;
 
+    _cachedOffer = null;
     _tracks.clear();
     _candidates.clear();
+    _waitAnswerTimer?.cancel();
+    _waitAnswerTimer = null;
 
-    _data = CallData.initial();
+    FlutterCallkitIncoming.endCall(_data.otherUser.id.toString());
+    emit(const CallStateExit());
     emit(CallStateBase(data: _data));
+    _data = CallData.initial();
   }
 
   @override
@@ -226,6 +328,8 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     _offersSub.cancel();
     _answersSub.cancel();
     _candidatesSub.cancel();
+    _endCallSub.cancel();
+    _incomingCallsSub.cancel();
 
     return super.close();
   }
@@ -248,9 +352,7 @@ class CallEventCall implements CallEvent {
 }
 
 class CallEventAcceptCall implements CallEvent {
-  const CallEventAcceptCall({required this.accept});
-
-  final bool accept;
+  const CallEventAcceptCall();
 }
 
 class CallEventFlipCamera implements CallEvent {
@@ -258,7 +360,9 @@ class CallEventFlipCamera implements CallEvent {
 }
 
 class CallEventEndCall implements CallEvent {
-  const CallEventEndCall();
+  const CallEventEndCall({required this.notifyOtherUser});
+
+  final bool notifyOtherUser;
 }
 
 class _CallEventEmit implements CallEvent {
@@ -270,3 +374,9 @@ class _CallEventOpenCallPage implements CallEvent {
 
   final int otherUserId;
 }
+
+// class _CallEventEmitStatus implements CallEvent {
+//   _CallEventEmitStatus({required this.status});
+//
+//   final CallStatus status;
+// }
