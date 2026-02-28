@@ -32,8 +32,10 @@ import 'package:kepleomax/core/network/middlewares/auth_interceptor.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/core/network/websockets/klm_web_socket.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
-import 'package:kepleomax/core/network/websockets/webrtc_web_socket.dart';
+import 'package:kepleomax/core/network/websockets/rtc_web_socket.dart';
 import 'package:kepleomax/core/settings/app_settings.dart';
+import 'package:kepleomax/features/call/data/calls_repository.dart';
+import 'package:kepleomax/features/call/data/peer_connection_controller.dart';
 import 'package:kepleomax/firebase_options.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -154,7 +156,7 @@ List<_InitializationStep> _steps = [
         tokenProvider: dp.tokenProvider,
       )
       ..messengerWebSocket = MessengerWebSocketImpl(klmWebSocket: dp.klmWebSocket)
-      ..webRtcWebSocket = WebRtcWebSocket(klmWebSocket: dp.klmWebSocket);
+      ..rtcWebSocket = RtcWebSocket(klmWebSocket: dp.klmWebSocket);
   }),
 
   _InitializationStep('apis', (dp) async {
@@ -187,6 +189,10 @@ List<_InitializationStep> _steps = [
       ..chatsRepository = ChatsRepositoryImpl(
         chatsApi: chatsApiDataSource,
         chatsLocalDataSource: dp.chatsLocalDataSource,
+      )
+      ..callsRepository = CallsRepositoryImpl(
+        rtcWebSocket: dp.rtcWebSocket,
+        peerConnectionController: PeerConnectionControllerImpl(),
       );
   }),
 

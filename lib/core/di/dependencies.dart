@@ -22,8 +22,9 @@ import 'package:kepleomax/core/network/apis/user/user_api.dart';
 import 'package:kepleomax/core/network/token_provider.dart';
 import 'package:kepleomax/core/network/websockets/klm_web_socket.dart';
 import 'package:kepleomax/core/network/websockets/messages_web_socket.dart';
-import 'package:kepleomax/core/network/websockets/webrtc_web_socket.dart';
+import 'package:kepleomax/core/network/websockets/rtc_web_socket.dart';
 import 'package:kepleomax/core/settings/app_settings.dart';
+import 'package:kepleomax/features/call/data/calls_repository.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
@@ -47,7 +48,7 @@ class Dependencies {
   late final ChatsApi chatsApi;
   late final KlmWebSocket klmWebSocket;
   late final MessengerWebSocket messengerWebSocket;
-  late final WebRtcWebSocket webRtcWebSocket;
+  late final RtcWebSocket rtcWebSocket;
 
   late final UsersLocalDataSource usersLocalDataSource;
   late final MessagesLocalDataSource messagesLocalDataSource;
@@ -60,6 +61,7 @@ class Dependencies {
   late final ConnectionRepository connectionRepository;
   late final MessengerRepository messengerRepository;
   late final ChatsRepository chatsRepository;
+  late final CallsRepository callsRepository;
 
   Widget inject({required Widget child}) =>
       InheritedDependencies(dependencies: this, child: child);

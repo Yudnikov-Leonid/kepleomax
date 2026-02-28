@@ -19,11 +19,6 @@ abstract class CallStateExit with _$CallStateExit implements CallState {
 }
 
 @freezed
-abstract class CallStateOpenPage with _$CallStateOpenPage implements CallState {
-  const factory CallStateOpenPage({required User otherUser}) = _CallStateOpenPage;
-}
-
-@freezed
 abstract class CallStateMessage with _$CallStateMessage implements CallState {
   const factory CallStateMessage({
     required String message,

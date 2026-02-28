@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
 import 'package:kepleomax/core/navigation/pages.dart';
@@ -54,10 +55,17 @@ final class ChatPage extends AppPage {
 }
 
 final class CallPage extends AppPage {
-  CallPage({required User otherUser, required bool doCall})
-    : super(
-        name: 'call_page',
-        child: CallScreen(otherUser: otherUser, doCall: doCall),
-        key: ValueKey('call_screen_${otherUser.id}'),
-      );
+  CallPage({
+    required User otherUser,
+    required bool doCall,
+    RTCSessionDescription? offer,
+  }) : super(
+         name: 'call_page',
+         child: CallScreen(
+           otherUser: otherUser,
+           doCall: doCall,
+           offer: offer,
+         ),
+         key: ValueKey('call_screen_${otherUser.id}'),
+       );
 }

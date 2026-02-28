@@ -4,8 +4,8 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:kepleomax/core/network/websockets/klm_web_socket.dart';
 import 'package:kepleomax/core/network/websockets/models/webrtc_models.dart';
 
-class WebRtcWebSocket {
-  WebRtcWebSocket({required KlmWebSocket klmWebSocket}) : _webSocket = klmWebSocket {
+class RtcWebSocket {
+  RtcWebSocket({required KlmWebSocket klmWebSocket}) : _webSocket = klmWebSocket {
     _webSocket.eventsStream.listen((event) {
       final data = event.$2 as Map<String, dynamic>;
       switch (event.$1) {

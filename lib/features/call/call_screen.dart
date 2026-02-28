@@ -1,51 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:kepleomax/core/di/dependencies.dart';
 import 'package:kepleomax/core/models/user.dart';
 import 'package:kepleomax/core/navigation/app_navigator.dart';
-import 'package:kepleomax/core/presentation/klm_app_bar.dart';
 import 'package:kepleomax/core/presentation/user_image.dart';
 import 'package:kepleomax/features/call/bloc/call_bloc.dart';
 import 'package:kepleomax/features/call/bloc/call_state.dart';
 
 class CallScreen extends StatefulWidget {
-  const CallScreen({required this.otherUser, required this.doCall, super.key});
+  const CallScreen({
+    required this.otherUser,
+    required this.doCall,
+    this.offer,
+    super.key,
+  });
 
   final User otherUser;
   final bool doCall;
+  final RTCSessionDescription? offer;
 
   @override
   State<CallScreen> createState() => _CallScreenState();
 }
 
 class _CallScreenState extends State<CallScreen> {
-  late CallBloc _callBloc;
+  late final CallBloc _callBloc;
 
   @override
   void initState() {
-    _callBloc = context.read<CallBloc>()
-      ..add(CallEventInit(otherUser: widget.otherUser, doCall: widget.doCall));
+    final dp = Dependencies.of(context);
+    _callBloc =
+        CallBloc(
+          webRtcWebSocket: dp.rtcWebSocket,
+          callsRepository: dp.callsRepository,
+        )..add(
+          CallEventInit(
+            otherUser: widget.otherUser,
+            doCall: widget.doCall,
+            offer: widget.offer,
+          ),
+        );
     super.initState();
   }
 
-  @override
-  void dispose() {
-    _callBloc.add(const CallEventEndCall(notifyOtherUser: true));
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   _callBloc.add(const CallEventEndCall(notifyOtherUser: true));
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.blue,
-      //appBar: _AppBar(),
-      body: _Body(doCall: widget.doCall),
+    return BlocProvider(
+      create: (context) => _callBloc,
+      child: Scaffold(
+        backgroundColor: Colors.blue,
+        //appBar: _AppBar(),
+        body: _Body(doCall: widget.doCall),
+      ),
     );
   }
 }
 
 class _Body extends StatefulWidget {
-  const _Body({required this.doCall, super.key});
+  const _Body({required this.doCall});
 
   final bool doCall;
 
@@ -114,15 +133,15 @@ class _BodyState extends State<_Body> {
                   //     color: Colors.white,
                   //   ),
                   // ),
-                  Text(
-                    'connection state: ${_mapConnectionState(data.connectionState)}',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
-                    ),
-                  ),
+                  // Text(
+                  //   'connection state: ${_mapConnectionState(data.connectionState)}',
+                  //   textAlign: TextAlign.center,
+                  //   style: const TextStyle(
+                  //     fontSize: 18,
+                  //     fontWeight: FontWeight.w500,
+                  //     color: Colors.white,
+                  //   ),
+                  // ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
@@ -233,7 +252,6 @@ class _Button extends StatelessWidget {
     required this.iconColor,
     required this.color,
     required this.onPressed,
-    super.key,
   });
 
   final String title;
@@ -262,22 +280,4 @@ class _Button extends StatelessWidget {
       ],
     );
   }
-}
-
-class _AppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _AppBar({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const SafeArea(
-      child: Row(
-        children: [
-          KlmBackButton(icon: Icon(Icons.close, color: Colors.white, size: 30)),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

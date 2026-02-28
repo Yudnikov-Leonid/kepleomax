@@ -397,9 +397,12 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
                 IconButton(
                   onPressed: () {
-                    AppNavigator.of(
-                      context,
-                    )!.push(CallPage(otherUser: data.otherUser, doCall: true));
+                    AppNavigator.of(context)!.push(
+                      CallPage(
+                        otherUser: data.otherUser,
+                        doCall: true,
+                      ),
+                    );
                   },
                   icon: const Icon(Icons.call, color: KlmColors.primaryColor),
                 ),

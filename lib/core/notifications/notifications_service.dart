@@ -188,7 +188,7 @@ class NotificationService {
       textDecline: 'Decline',
       missedCallNotification: const NotificationParams(
         showNotification: true,
-        isShowCallback: true,
+        isShowCallback: false,
         subtitle: 'Missed call',
         //callbackText: 'Call back',
       ),

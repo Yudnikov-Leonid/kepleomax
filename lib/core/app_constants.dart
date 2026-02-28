@@ -32,7 +32,7 @@ abstract class AppConstantsType {
 
   Duration get showTypingAfterActivity => const Duration(seconds: 3);
 
-  Duration get callingTimeout => const Duration(seconds: 10);
+  Duration get callingTimeout => const Duration(seconds: 45);
 
   int get msgPagingLimit => 15;
 
